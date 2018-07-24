@@ -16,25 +16,27 @@ public class PlayerTiedEdges {
 
     private static Collection<CustomEdgeData> customEdgeData = new HashSet<>();
 
+    private static String SPELL_NAME = "SPELL_NAME";
+
     static {
         customEdgeData.add(
                 new CustomEdgeData()
                         .setEnd(new Location(3221, 3218, 0))
-                        .setInteraction(new Interaction(Interaction.SPELL).setSpellName("HOME_TELEPORT"))
+                        .setInteraction(new Interaction().setType(Interaction.SPELL).withData(SPELL_NAME, "HOME_TELEPORT"))
                         .withRequirement(Player::isModernSpellbook)
         );
 
         customEdgeData.add(
                 new CustomEdgeData()
                         .setEnd(new Location(3212, 3424, 0))
-                        .setInteraction(new Interaction(Interaction.SPELL).setSpellName("VARROCK_TELEPORT"))
+                        .setInteraction(new Interaction().setType(Interaction.SPELL).withData(SPELL_NAME, "VARROCK_TELEPORT"))
                         .withRequirement(Player::isModernSpellbook)
         );
 
         customEdgeData.add(
                 new CustomEdgeData()
                         .setEnd(new Location(2757, 3480, 0))
-                        .setInteraction(new Interaction(Interaction.SPELL).setSpellName("CAMELOT_TELEPORT"))
+                        .setInteraction(new Interaction().setType(Interaction.SPELL).withData(SPELL_NAME, "CAMELOT_TELEPORT"))
                         .withRequirement(Player::isModernSpellbook)
         );
     }
