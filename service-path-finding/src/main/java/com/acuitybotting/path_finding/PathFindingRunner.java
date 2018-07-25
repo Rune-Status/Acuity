@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.stream.Collectors;
@@ -48,6 +49,7 @@ public class PathFindingRunner implements CommandLineRunner {
 
     private void dump() {
         hpaPathFindingService.getXteaService().saveRegionMapsFromAfter(171);
+        PathingEnviroment.save(PathingEnviroment.JSON, "banks", hpaPathFindingService.getXteaService().getBanks());
         webImageProcessingService.saveImagesFromRegionMaps(RsEnvironment.getRsMap().getRegions().values(), PathingEnviroment.ACUITY_RENDERINGS);
     }
 
@@ -75,36 +77,10 @@ public class PathFindingRunner implements CommandLineRunner {
         }
     }
 
-    private void loadSceneEntityDefsIn(){
-        Gson gson = new Gson();
-        File file = new File("C:\\Users\\zgher\\Documents\\RSPeer\\cache\\json\\objects");
-        Set<SceneEntityDefinition> definitions = new CopyOnWriteArraySet<>();
-
-        ExecutorUtil.run(10, executorService -> {
-            for (File def : file.listFiles()) {
-                executorService.execute(() -> {
-                    try {
-                        SceneEntityDefinition definition = gson.fromJson(Files.readAllLines(def.toPath()).stream().collect(Collectors.joining("")), SceneEntityDefinition.class);
-                        for (int i = 0; i < definition.getActions().length; i++) {
-                            if (definition.getActions()[i] == null) definition.getActions()[i] = "null";
-                        }
-                        definitions.add(definition);
-                        System.out.println("Loaded: " + definition);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
-            }
-        });
-
-        ArangoUtils.saveAll(hpaPathFindingService.getXteaService().getDefinitionRepository(), 300, definitions);
-        System.out.println("Done");
-    }
-
     @Override
     public void run(String... args) {
         try {
-            openUi().getMapPanel().addPlugin(new HpaPlugin(hpaPathFindingService.loadHpa(1)));
+            dump();
         } catch (Throwable e) {
             e.printStackTrace();
         }

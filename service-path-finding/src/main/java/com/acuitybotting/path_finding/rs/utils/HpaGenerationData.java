@@ -71,7 +71,7 @@ public class HpaGenerationData {
 
     public static boolean isDoor(Location position, String name, String[] actions, Integer mapDoorFlag) {
         if (position != null && doorLocationBlacklist.contains(position)) return false;
-        if (actions == null || Arrays.stream(actions).noneMatch(s -> doorActions.contains(s.toLowerCase()))) return false;
+        if (actions == null || Arrays.stream(actions).noneMatch(s -> s != null && doorActions.contains(s.toLowerCase()))) return false;
         if (name == null || !doorNames.contains(name.toLowerCase())) return false;
         return mapDoorFlag != null && mapDoorFlag != 0;
     }

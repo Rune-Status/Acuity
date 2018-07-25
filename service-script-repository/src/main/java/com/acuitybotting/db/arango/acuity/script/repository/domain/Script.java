@@ -15,7 +15,7 @@ import java.util.Set;
 @Document("Script")
 @Setter
 @Getter
-public class Script {
+public class  Script {
 
     public static final int ACCESS_PUBLIC = 1;
     public static final int ACCESS_PRIVATE = 2;

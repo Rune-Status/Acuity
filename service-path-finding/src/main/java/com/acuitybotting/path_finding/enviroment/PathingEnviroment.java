@@ -32,6 +32,7 @@ public class PathingEnviroment {
 
     public static final File RS = new File(JSON, "rs");
     public static final File REGION_INFO = new File(RS, "info");
+    public static final File SCENE_OBJECTS = new File(RS, "objects");
 
     public static final File XTEAS = new File(BASE, "xteas");
 

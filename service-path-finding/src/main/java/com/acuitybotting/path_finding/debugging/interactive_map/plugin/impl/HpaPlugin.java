@@ -77,16 +77,6 @@ public class HpaPlugin extends Plugin {
             }
         }
 
-        if (aStarImplementation != null && aStarImplementation.isDebugMode()) {
-            Set<Node> costCache = aStarImplementation.getEvaluated();
-            if (costCache != null) {
-                for (Node node : costCache) {
-                    getPaintUtil().markLocation(graphics, node, Color.ORANGE);
-                }
-            }
-        }
-
-
         Location click = getMapPanel().getMouseLocation();
         HPARegion clickRegion = graph.getRegionContaining(click);
         if (clickRegion != null){

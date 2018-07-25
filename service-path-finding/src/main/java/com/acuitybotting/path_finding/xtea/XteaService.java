@@ -16,6 +16,7 @@ import com.acuitybotting.path_finding.xtea.domain.rs.cache.RsLocationPosition;
 import com.acuitybotting.path_finding.xtea.domain.rs.cache.RsRegion;
 import com.acuitybotting.path_finding.xtea.domain.rs.cache.RsLocation;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,17 +36,16 @@ import java.util.stream.Collectors;
 @Slf4j
 public class XteaService {
 
-    private final SceneEntityDefinitionRepository definitionRepository;
     private final XteaRepository xteaRepository;
 
     private Map<Integer, SceneEntityDefinition> sceneEntityCache = new HashMap<>();
     private Map<String, RsRegion> regionCache = new HashMap<>();
+    private List<JsonElement> banks = new ArrayList<>();
 
     private Gson gson = new Gson();
 
     @Autowired
-    public XteaService(SceneEntityDefinitionRepository definitionRepository, XteaRepository xteaRepository) {
-        this.definitionRepository = definitionRepository;
+    public XteaService(XteaRepository xteaRepository) {
         this.xteaRepository = xteaRepository;
     }
 
@@ -98,7 +98,7 @@ public class XteaService {
     }
 
     public Optional<SceneEntityDefinition> getSceneEntityDefinition(int id) {
-        return Optional.ofNullable(sceneEntityCache.computeIfAbsent(id, integer -> definitionRepository.findByKey(id).orElse(null)));
+        return Optional.ofNullable(sceneEntityCache.computeIfAbsent(id, integer -> PathingEnviroment.loadFrom(PathingEnviroment.SCENE_OBJECTS, String.valueOf(id), SceneEntityDefinition.class).orElse(null)));
     }
 
     public Optional<RsRegion> getRegion(int id) {
@@ -188,6 +188,17 @@ public class XteaService {
                     addFlag(location.getPosition(), plane, MapFlags.OCCUPIED);
 
                     SceneEntityDefinition baseDefinition = getSceneEntityDefinition(location.getId()).orElseThrow(() -> new RuntimeException("Failed to load " + location.getId() + "."));
+
+                    if (baseDefinition.getMapFunction() == 5){
+                        Map<String, Object> save = new HashMap<>();
+                        save.put("x", baseX + regionX);
+                        save.put("y", baseY + regionY);
+                        save.put("plane", plane);
+                        save.put("actions", baseDefinition.getActions());
+                        save.put("name", baseDefinition.getName());
+                        save.put("id", baseDefinition.getKey());
+                        banks.add(gson.toJsonTree(save));
+                    }
 
                     boolean doorFlag = HpaGenerationData.isDoor(location.getPosition().toLocation(), baseDefinition.getName(), baseDefinition.getActions(), baseDefinition.getMapDoorFlag());
 
