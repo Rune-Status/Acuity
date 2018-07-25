@@ -11,10 +11,8 @@ import com.google.gson.JsonElement;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Zachary Herridge on 7/19/2018.
@@ -91,20 +89,15 @@ public class RabbitDbService {
 
     public RabbitDocument loadByKey(String userId, RabbitDbRequest request) {
         String query = "FOR u IN " + COLLECTION + " FILTER u.principalId == @principalId && u.database == @database && u.subGroup == @subGroup && u.subKey == @subKey RETURN u";
-        List<String> strings = arangoOperations.query(query, buildQueryMap(userId, request, true), null, String.class).asListRemaining();
+        List<String> json = arangoOperations.query(query, buildQueryMap(userId, request, true), null, String.class).asListRemaining();
+        if (json.size() > 0) return gson.fromJson(json.get(0), RabbitDocument.class);
         return null;
     }
 
-    private Set<RabbitDocument> loadByGroup(String userId, RabbitDbRequest request) {
-        Set<RabbitDocument> result;
-        String documentQuery = request.getDocumentQuery();
-        if (documentQuery == null){
-            result = repository.findAllByPrincipalIdAndDatabaseAndSubGroup(userId, request.getDatabase(), request.getGroup());
-        }
-        else {
-            result = repository.findAllByPrincipalIdAndDatabaseAndSubGroupAndSubDocumentMatchesRegex(userId, request.getDatabase(), request.getGroup(), documentQuery);
-        }
-        return result;
+    public Set<RabbitDocument> loadByGroup(String userId, RabbitDbRequest request) {
+        String query = "FOR u IN " + COLLECTION + " FILTER u.principalId == @principalId && u.database == @database && u.subGroup == @subGroup RETURN u";
+        List<String> json = arangoOperations.query(query, buildQueryMap(userId, request, false), null, String.class).asListRemaining();
+        return json.stream().map(s -> gson.fromJson(s, RabbitDocument.class)).collect(Collectors.toSet());
     }
 
     public void handle(MessageEvent messageEvent, RabbitDbRequest request, String userId) {
