@@ -17,8 +17,6 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * Created by Zachary Herridge on 7/19/2018.
@@ -41,7 +39,7 @@ public class RabbitDbService {
 
     private boolean isWriteAccessible(String userId, String db){
         if (db == null) return false;
-        return "script-settings".equals(db) || db.startsWith("user.db.");
+        return "registered-connections".equals(db) || "script-settings".equals(db) || db.startsWith("user.db.");
     }
 
     private boolean isReadAccessible(String userId, String db){
@@ -49,35 +47,31 @@ public class RabbitDbService {
         return "registered-connections".equals(db) || "script-settings".equals(db) || db.startsWith("user.db.");
     }
 
-    public void save(String userId, RabbitDbRequest request) {
-        if (CONNECTIONS_DATABASE.equals(request.getDatabase())){
-            RegisteredConnection registeredConnection = registeredConnectionRepository.findByPrincipalKeyAndConnectionId(userId, request.getId()).orElse(null);
-            if (registeredConnection == null) return;
-            registeredConnection.getAttributes().put(request.getKey(), request.getDocument());
-            registeredConnection.setLastHeartbeatTime(System.currentTimeMillis());
-            registeredConnectionRepository.save(registeredConnection);
-        }
-        else {
-            RabbitDocument rabbitDocument = new RabbitDocument();
-            rabbitDocument.setPrincipalId(userId);
-            rabbitDocument.setSubGroup(request.getGroup());
-            rabbitDocument.setSubKey(request.getKey());
-            rabbitDocument.setDatabase(request.getDatabase());
-            rabbitDocument.setSubDocument(request.getDocument());
+    public void save(String userId, RabbitDbRequest request, Map<String, Object> headers) {
+        RabbitDocument rabbitDocument = new RabbitDocument();
+        rabbitDocument.setPrincipalId(userId);
+        rabbitDocument.setSubGroup(request.getGroup());
+        rabbitDocument.setSubKey(request.getKey());
+        rabbitDocument.setDatabase(request.getDatabase());
+        rabbitDocument.setSubDocument(request.getDocument());
+        rabbitDocument.setHeaders(headers);
 
-            Map<String, Object> queryMap = new HashMap<>();
-            queryMap.put("principalId", rabbitDocument.getPrincipalId());
-            queryMap.put("database", rabbitDocument.getDatabase());
-            queryMap.put("subGroup", rabbitDocument.getSubGroup());
-            queryMap.put("subKey", rabbitDocument.getSubKey());
-            if (request.getRev() != null) queryMap.put("_rev", request.getRev());
+        Map<String, Object> queryMap = new HashMap<>();
+        queryMap.put("principalId", rabbitDocument.getPrincipalId());
+        queryMap.put("database", rabbitDocument.getDatabase());
+        queryMap.put("subGroup", rabbitDocument.getSubGroup());
+        queryMap.put("subKey", rabbitDocument.getSubKey());
+        if (request.getRev() != null) queryMap.put("_rev", request.getRev());
 
-            String upsertQuery = gson.toJson(queryMap);
-            String document = gson.toJson(rabbitDocument);
-            String query = "UPSERT " + upsertQuery + " INSERT " + document + " REPLACE " + document + " IN RabbitDocument";
-            log.info("Query: " + query);
-            arangoOperations.query(query, null, new AqlQueryOptions().count(true), null);
-        }
+        String upsertQuery = gson.toJson(queryMap);
+        String document = gson.toJson(rabbitDocument);
+
+        String strategy = request.getType() == RabbitDbRequest.SAVE_REPLACE ? "REPLACE" : "UPDATE";
+        String query = "UPSERT " + upsertQuery + " INSERT " + document + " " + strategy + " " + document + " IN RabbitDocument";
+
+        log.info("Query: " + query);
+        arangoOperations.query(query, null, new AqlQueryOptions().count(true), null);
+
     }
 
     private void delete(String userId, RabbitDbRequest request) {
@@ -85,29 +79,17 @@ public class RabbitDbService {
     }
 
     private RabbitDocument loadByKey(String userId, RabbitDbRequest request) {
-        RabbitDocument document;
-        if (CONNECTIONS_DATABASE.equals(request.getDatabase())){
-            document = registeredConnectionRepository.findByPrincipalKeyAndConnectionId(userId, request.getKey()).map(this::connectionToUserDoc).orElse(null);
-        }
-        else{
-            document = repository.findByPrincipalIdAndDatabaseAndSubGroupAndSubKey(userId, request.getDatabase(), request.getGroup(), request.getKey()).orElse(null);
-        }
-        return document;
+        return repository.findByPrincipalIdAndDatabaseAndSubGroupAndSubKey(userId, request.getDatabase(), request.getGroup(), request.getKey()).orElse(null);
     }
 
     private Set<RabbitDocument> loadByGroup(String userId, RabbitDbRequest request) {
         Set<RabbitDocument> result;
-        if (CONNECTIONS_DATABASE.equals(request.getDatabase())){
-            result = registeredConnectionRepository.findAllByPrincipalKeyAndLastHeartbeatTimeGreaterThan(userId, System.currentTimeMillis() - TimeUnit.SECONDS.toMillis(30)).stream().map(this::connectionToUserDoc).collect(Collectors.toSet());
+        String documentQuery = request.getDocumentQuery();
+        if (documentQuery == null){
+            result = repository.findAllByPrincipalIdAndDatabaseAndSubGroup(userId, request.getDatabase(), request.getGroup());
         }
-        else{
-            String documentQuery = request.getDocumentQuery();
-            if (documentQuery == null){
-                result = repository.findAllByPrincipalIdAndDatabaseAndSubGroup(userId, request.getDatabase(), request.getGroup());
-            }
-            else {
-                result = repository.findAllByPrincipalIdAndDatabaseAndSubGroupAndSubDocumentMatchesRegex(userId, request.getDatabase(), request.getGroup(), documentQuery);
-            }
+        else {
+            result = repository.findAllByPrincipalIdAndDatabaseAndSubGroupAndSubDocumentMatchesRegex(userId, request.getDatabase(), request.getGroup(), documentQuery);
         }
         return result;
     }
@@ -122,8 +104,8 @@ public class RabbitDbService {
         log.info("Handling db request {} for user {}.", request, userId);
 
         if (isWriteAccessible(userId, request.getDatabase())){
-            if (request.getType() == RabbitDbRequest.SAVE) {
-                if (isWriteAccessible(userId, request.getDatabase())) save(userId, request);
+            if (request.getType() == RabbitDbRequest.SAVE_REPLACE || request.getType() == RabbitDbRequest.SAVE_UPDATE) {
+                if (isWriteAccessible(userId, request.getDatabase())) save(userId, request, null);
             } else if (request.getType() == RabbitDbRequest.DELETE_BY_KEY) {
                 delete(userId, request);
             }
@@ -136,15 +118,6 @@ public class RabbitDbService {
             } else if (request.getType() == RabbitDbRequest.FIND_BY_GROUP) {
                 messageEvent.getChannel().respond(messageEvent.getMessage(), gson.toJson(loadByGroup(userId, request)));
             }
-        }
-    }
-
-    @EventListener
-    public void handleScriptStorageRequest(MessageEvent messageEvent) {
-        if (messageEvent.getRouting().contains(".services.acuity-db.request")) {
-            String userId = RoutingUtil.routeToUserId(messageEvent.getRouting());
-            handle(messageEvent, gson.fromJson(messageEvent.getMessage().getBody(), RabbitDbRequest.class), userId);
-            messageEvent.getChannel().acknowledge(messageEvent.getMessage());
         }
     }
 }

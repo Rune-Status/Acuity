@@ -7,6 +7,8 @@ import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.annotation.Id;
 
+import java.util.Map;
+
 /**
  * Created by Zachary Herridge on 7/19/2018.
  */
@@ -28,4 +30,6 @@ public class RabbitDocument {
     private String subGroup;
     private String subKey;
     private String subDocument;
+
+    private Map<String, Object> headers;
 }

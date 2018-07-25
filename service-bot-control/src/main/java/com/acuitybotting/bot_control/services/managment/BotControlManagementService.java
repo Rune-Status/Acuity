@@ -1,19 +1,18 @@
 package com.acuitybotting.bot_control.services.managment;
 
-import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
-import com.acuitybotting.data.flow.messaging.services.identity.RoutingUtil;
-import com.acuitybotting.db.arango.acuity.bot_control.domain.RegisteredConnection;
-import com.acuitybotting.db.arango.acuity.bot_control.repositories.RegisteredConnectionRepository;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.acuitybotting.bot_control.domain.RabbitDbRequest;
+import com.acuitybotting.bot_control.services.user.db.RabbitDbService;
+import com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit.management.RabbitManagement;
+import com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit.management.domain.RabbitConnection;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
-import java.util.Objects;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Zachary Herridge on 6/1/2018.
@@ -22,55 +21,46 @@ import java.util.Objects;
 @Slf4j
 public class BotControlManagementService {
 
-    private final RegisteredConnectionRepository registeredConnectionRepository;
-    private final Gson gson = new Gson();
+    private final RabbitDbService rabbitDbService;
+
+    @Value("${rabbit.host}")
+    private String host;
+    @Value("${rabbit.username}")
+    private String username;
+    @Value("${rabbit.password}")
+    private String password;
 
     @Autowired
-    public BotControlManagementService(RegisteredConnectionRepository registeredConnectionRepository) {
-        this.registeredConnectionRepository = registeredConnectionRepository;
+    public BotControlManagementService(RabbitDbService rabbitDbService) {
+        this.rabbitDbService = rabbitDbService;
     }
 
-    public void heartbeat(String userId, JsonObject heartbeat){
-        String connectionId = heartbeat.get("connectionId").getAsString();
-        Objects.requireNonNull(connectionId);
-        registeredConnectionRepository.updateHeartbeat(userId, connectionId, System.currentTimeMillis());
-        log.info("Updated heartbeat for connection {} for user {}.", connectionId, userId);
+    private void updateRegisteredConnections(){
+        for (Map.Entry<String, List<RabbitConnection>> entry : RabbitManagement.getConnections().entrySet()) {
+            RabbitDbRequest rabbitDbRequest = new RabbitDbRequest();
+            rabbitDbRequest.setType(RabbitDbRequest.SAVE_UPDATE);
+            rabbitDbRequest.setDatabase("registered-connections");
+            rabbitDbRequest.setGroup("connections");
+
+            for (RabbitConnection rabbitConnection : entry.getValue()) {
+                if (rabbitConnection.getUser_provided_name() == null) continue;
+
+                Map<String, Object> headers = new HashMap<>();
+                headers.put("connectionTime", rabbitConnection.getConnected_at());
+                headers.put("connectionConfirmationTime", System.currentTimeMillis());
+                rabbitDbRequest.setKey(rabbitConnection.getUser_provided_name());
+                rabbitDbService.save(entry.getKey(), rabbitDbRequest, headers);
+            }
+        }
     }
 
-    public RegisteredConnection register(String userId, JsonObject registration) {
-        Objects.requireNonNull(userId);
-
-        String connectionId = registration.get("connectionId").getAsString();
-        String type = registration.get("type").getAsString();
-        Objects.requireNonNull(connectionId);
-        Objects.requireNonNull(type);
-
-        RegisteredConnection registeredConnection = new RegisteredConnection();
-        registeredConnection.setPrincipalKey(userId);
-        registeredConnection.setConnectionId(connectionId);
-        registeredConnection.setConnectionType(type);
-        registeredConnection.setAttributes(new HashMap<>());
-
-
-        long now = System.currentTimeMillis();
-        registeredConnection.setConnectionTime(now);
-        registeredConnection.setLastHeartbeatTime(now);
-
-        registeredConnectionRepository.save(registeredConnection);
-
-        log.info("Registered connection {} for user {}.", registeredConnection, userId);
-
-        return registeredConnection;
-    }
-
-    @EventListener
-    public void handleConnectionRegistration(MessageEvent messageEvent){
-        String userId = RoutingUtil.routeToUserId(messageEvent.getRouting());
-        JsonObject body = gson.fromJson(messageEvent.getMessage().getBody(), JsonObject.class);
-
-        if (messageEvent.getRouting().endsWith(".connections.register")){
-            register(userId, body);
-            messageEvent.getChannel().acknowledge(messageEvent.getMessage());
+    @Scheduled(fixedDelay = 20000)
+    public void updateConnections(){
+        try {
+            RabbitManagement.loadAll("http://" + host + ":" + "15672", username, password);
+            updateRegisteredConnections();
+        } catch (Exception e) {
+            log.error("Error during RabbitManagement.loadAll.", e);
         }
     }
 }

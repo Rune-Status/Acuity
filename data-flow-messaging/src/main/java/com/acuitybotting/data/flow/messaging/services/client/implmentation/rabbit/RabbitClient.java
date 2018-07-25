@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +25,7 @@ import java.util.function.Consumer;
 @Slf4j
 public class RabbitClient implements MessagingClient {
 
+    private String rabbitId = UUID.randomUUID().toString();
     private String endpoint;
     private String virtualHost;
     private String username;
@@ -75,7 +77,7 @@ public class RabbitClient implements MessagingClient {
     private void doConnect() {
         try {
             if (close()) {
-                connection = factory.newConnection();
+                connection = factory.newConnection(rabbitId);
                 if (connection.isOpen()) {
                     getLog().accept("RabbitMq connection opened.");
                     for (MessagingClientListener listener : listeners) {
@@ -106,6 +108,10 @@ public class RabbitClient implements MessagingClient {
     public RabbitClient setVirtualHost(String virtualHost) {
         this.virtualHost = virtualHost;
         return this;
+    }
+
+    public String getRabbitId() {
+        return rabbitId;
     }
 
     public Executor getExecutor() {

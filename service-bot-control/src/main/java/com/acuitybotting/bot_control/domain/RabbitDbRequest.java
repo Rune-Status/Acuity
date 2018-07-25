@@ -9,15 +9,15 @@ import lombok.ToString;
 @ToString
 public class RabbitDbRequest {
 
-    public static final int SAVE = 0;
+    public static final int SAVE_REPLACE = 0;
     public static final int FIND_BY_KEY = 1;
     public static final int FIND_BY_GROUP = 2;
     public static final int DELETE_BY_KEY = 3;
+    public static final int SAVE_UPDATE = 4;
 
     private Integer type;
 
     private String database;
-    private String id;
     private String group;
     private String key;
     private String rev;

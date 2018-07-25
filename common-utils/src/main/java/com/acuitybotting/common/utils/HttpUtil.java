@@ -2,13 +2,11 @@ package com.acuitybotting.common.utils;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.Collections;
+import java.util.Base64;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 /**
@@ -16,11 +14,17 @@ import java.util.stream.Collectors;
  */
 public class HttpUtil {
 
-    public static String get(Map<String, String> headers, String url, TreeMap<String, String> queryParams) throws Exception {
+    public static Map<String, String> addBasicAuthHeader(Map<String, String> headers, String username, String password){
+        String basicAuth = "Basic " + new String(Base64.getEncoder().encode((username + ":" + password).getBytes()));
+        headers.put("Authorization", basicAuth);
+        return headers;
+    }
+
+    public static String get(Map<String, String> headers, String url, Map<String, String> queryParams) throws Exception {
         return makeRequest("GET", headers, url, queryParams, null);
     }
 
-    public static String makeRequest(String method, Map<String, String> headers, String url, TreeMap<String, String> queryParams, String body) throws Exception {
+    public static String makeRequest(String method, Map<String, String> headers, String url, Map<String, String> queryParams, String body) throws Exception {
         if (queryParams != null) url += "?" + queryParams.entrySet().stream().map(entry -> entry.getKey() + "=" + encode(entry.getValue())).collect(Collectors.joining("&"));
 
         URL obj = new URL(url);

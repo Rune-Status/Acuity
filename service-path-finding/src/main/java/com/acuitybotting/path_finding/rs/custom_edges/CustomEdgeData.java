@@ -15,10 +15,11 @@ public class CustomEdgeData {
 
     @Expose
     private Location start, end;
-    private Collection<PlayerPredicate> playerPredicates = new HashSet<>();
 
     @Expose
     private Interaction interaction;
+
+    private Collection<PlayerPredicate> playerPredicates = new HashSet<>();
 
     public Location getStart() {
         return start;
