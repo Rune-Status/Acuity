@@ -2,6 +2,8 @@ package com.acuitybotting.db.arango.acuity.bot_control.domain;
 
 import com.arangodb.springframework.annotation.Document;
 import com.arangodb.springframework.annotation.Rev;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -29,7 +31,8 @@ public class RabbitDocument {
 
     private String subGroup;
     private String subKey;
-    private String subDocument;
+
+    private JsonElement subDocument;
 
     private Map<String, Object> headers;
 }

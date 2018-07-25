@@ -4,13 +4,15 @@ import com.acuitybotting.bot_control.domain.RabbitDbRequest;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.db.arango.acuity.bot_control.domain.RabbitDocument;
 import com.acuitybotting.db.arango.acuity.bot_control.repositories.RabbitDocumentRepository;
-import com.arangodb.model.AqlQueryOptions;
+import com.arangodb.ArangoCursor;
 import com.arangodb.springframework.core.ArangoOperations;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -21,7 +23,7 @@ import java.util.Set;
 @Slf4j
 public class RabbitDbService {
 
-    public static final String CONNECTIONS_DATABASE = "registered-connections";
+    public static final String COLLECTION = "RabbitDocument";
 
     private final ArangoOperations arangoOperations;
     private final RabbitDocumentRepository repository;
@@ -47,39 +49,50 @@ public class RabbitDbService {
         return "registered-connections".equals(db) || "script-settings".equals(db) || db.startsWith("user.db.");
     }
     
-    public void save(String userId, RabbitDbRequest request, Map<String, Object> headers) {
+    public void save(String principalId, RabbitDbRequest request, Map<String, Object> headers) {
         RabbitDocument rabbitDocument = new RabbitDocument();
-        rabbitDocument.setPrincipalId(userId);
+        rabbitDocument.setPrincipalId(principalId);
         rabbitDocument.setSubGroup(request.getGroup());
         rabbitDocument.setSubKey(request.getKey());
         rabbitDocument.setDatabase(request.getDatabase());
-        rabbitDocument.setSubDocument(request.getDocument());
         rabbitDocument.setHeaders(headers);
 
-        Map<String, Object> queryMap = new HashMap<>();
-        queryMap.put("principalId", rabbitDocument.getPrincipalId());
-        queryMap.put("database", rabbitDocument.getDatabase());
-        queryMap.put("subGroup", rabbitDocument.getSubGroup());
-        queryMap.put("subKey", rabbitDocument.getSubKey());
-        if (request.getRev() != null) queryMap.put("_rev", request.getRev());
+        rabbitDocument.setSubDocument(gson.fromJson(request.getInsertDocument(), JsonElement.class));
+        String insertDocument = gson.toJson(rabbitDocument);
 
-        String upsertQuery = gson.toJson(queryMap);
-        String document = gson.toJson(rabbitDocument);
+        rabbitDocument.setSubDocument(gson.fromJson(request.getUpdateDocument(), JsonElement.class));
+        String updateDocument = gson.toJson(rabbitDocument);
 
         String strategy = request.getType() == RabbitDbRequest.SAVE_REPLACE ? "REPLACE" : "UPDATE";
-        String query = "UPSERT " + upsertQuery + " INSERT " + document + " " + strategy + " " + document + " IN RabbitDocument";
+        String query = "UPSERT " + buildQuery(principalId, request, true) + " INSERT " + insertDocument + " " + strategy + " " + updateDocument + " IN " + COLLECTION;
 
-        log.info("Query: " + query);
-        arangoOperations.query(query, null, new AqlQueryOptions().count(true), null);
+        arangoOperations.query(query, null, null, null);
 
+    }
+
+    private String buildQuery(String principalId, RabbitDbRequest request, boolean includeKey){
+        return gson.toJson(buildQueryMap(principalId, request, includeKey));
+    }
+
+    private Map<String, Object> buildQueryMap(String principalId, RabbitDbRequest request, boolean includeKey){
+        Map<String, Object> queryMap = new HashMap<>();
+        queryMap.put("principalId", principalId);
+        queryMap.put("database", request.getDatabase());
+        queryMap.put("subGroup", request.getGroup());
+        if (includeKey && request.getKey() != null) queryMap.put("subKey", request.getKey());
+        if (request.getRev() != null) queryMap.put("_rev", request.getRev());
+        return queryMap;
     }
 
     private void delete(String userId, RabbitDbRequest request) {
-        repository.deleteAllByPrincipalIdAndDatabaseAndSubGroupAndSubKey(userId, request.getDatabase(), request.getGroup(), request.getKey());
+        String query = "REMOVE " + buildQuery(userId, request, true) + "in " + COLLECTION;
+        arangoOperations.query(query, null, null, null);
     }
 
-    private RabbitDocument loadByKey(String userId, RabbitDbRequest request) {
-        return repository.findByPrincipalIdAndDatabaseAndSubGroupAndSubKey(userId, request.getDatabase(), request.getGroup(), request.getKey()).orElse(null);
+    public RabbitDocument loadByKey(String userId, RabbitDbRequest request) {
+        String query = "FOR u IN " + COLLECTION + " FILTER u.principalId == @principalId && u.database == @database && u.subGroup == @subGroup && u.subKey == @subKey RETURN u";
+        List<String> strings = arangoOperations.query(query, buildQueryMap(userId, request, true), null, String.class).asListRemaining();
+        return null;
     }
 
     private Set<RabbitDocument> loadByGroup(String userId, RabbitDbRequest request) {
