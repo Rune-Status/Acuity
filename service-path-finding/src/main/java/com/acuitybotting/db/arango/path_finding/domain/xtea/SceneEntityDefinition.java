@@ -1,20 +1,11 @@
 package com.acuitybotting.db.arango.path_finding.domain.xtea;
 
-import com.arangodb.springframework.annotation.Document;
-import com.arangodb.springframework.annotation.Key;
 import lombok.Getter;
 import lombok.ToString;
-import org.springframework.data.annotation.Id;
-
-import java.util.Arrays;
 
 @Getter
 @ToString
-@Document("SceneEntityDefinition")
 public class SceneEntityDefinition {
-
-    @Id
-    private String id;
 
     private Integer key;
 
