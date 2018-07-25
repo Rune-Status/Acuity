@@ -2,14 +2,12 @@ package com.acuitybotting.data.flow.messaging.services.client.implmentation.rabb
 
 import com.acuitybotting.common.utils.HttpUtil;
 import com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit.management.domain.RabbitConnection;
+import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -19,14 +17,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class RabbitManagement {
 
-    private static LoadingCache<String, List<RabbitConnection>> connections = CacheBuilder.newBuilder()
+    private static Cache<String, List<RabbitConnection>> connections = CacheBuilder.newBuilder()
             .expireAfterWrite(25, TimeUnit.SECONDS)
-            .build(new CacheLoader<String, List<RabbitConnection>>() {
-                @Override
-                public List<RabbitConnection> load(String rabbitUsername) throws Exception {
-                    return Collections.emptyList();
-                }
-            });
+            .build();
 
 
     public static void loadAll(String host, String username, String password) throws Exception {
@@ -41,12 +34,7 @@ public class RabbitManagement {
     }
 
     public static List<RabbitConnection> getConnectionsByUser(String rabbitUsername){
-        try {
-            return connections.get(rabbitUsername);
-        } catch (ExecutionException e) {
-            log.error("Error in Guava cache.", e);
-        }
-        return Collections.emptyList();
+        return Optional.ofNullable(connections.getIfPresent(rabbitUsername)).orElse(Collections.emptyList());
     }
 }
 

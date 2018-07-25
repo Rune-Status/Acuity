@@ -25,7 +25,7 @@ import java.util.function.Consumer;
 @Slf4j
 public class RabbitClient implements MessagingClient {
 
-    private String rabbitId = UUID.randomUUID().toString();
+    private String rabbitId;
     private String endpoint;
     private String virtualHost;
     private String username;
@@ -52,7 +52,8 @@ public class RabbitClient implements MessagingClient {
     }
 
     @Override
-    public void connect() {
+    public void connect(String connectionId) {
+        rabbitId = connectionId;
         factory.setHost(endpoint);
         factory.setUsername(username);
         factory.setPassword(password);

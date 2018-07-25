@@ -2,16 +2,12 @@ package com.acuitybotting.bot_control.services.user.db;
 
 import com.acuitybotting.bot_control.domain.RabbitDbRequest;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
-import com.acuitybotting.data.flow.messaging.services.identity.RoutingUtil;
 import com.acuitybotting.db.arango.acuity.bot_control.domain.RabbitDocument;
-import com.acuitybotting.db.arango.acuity.bot_control.domain.RegisteredConnection;
-import com.acuitybotting.db.arango.acuity.bot_control.repositories.RegisteredConnectionRepository;
 import com.acuitybotting.db.arango.acuity.bot_control.repositories.RabbitDocumentRepository;
 import com.arangodb.model.AqlQueryOptions;
 import com.arangodb.springframework.core.ArangoOperations;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -26,15 +22,19 @@ import java.util.Set;
 public class RabbitDbService {
 
     public static final String CONNECTIONS_DATABASE = "registered-connections";
+
     private final ArangoOperations arangoOperations;
     private final RabbitDocumentRepository repository;
-    private final RegisteredConnectionRepository registeredConnectionRepository;
     private final Gson gson = new Gson();
 
-    public RabbitDbService(ArangoOperations operations, RabbitDocumentRepository repository, RegisteredConnectionRepository registeredConnectionRepository) {
+    public RabbitDbService(ArangoOperations operations, RabbitDocumentRepository repository) {
         this.arangoOperations = operations;
         this.repository = repository;
-        this.registeredConnectionRepository = registeredConnectionRepository;
+    }
+
+    private boolean isDeleteAccessible(String userId, String db){
+        if (db == null) return false;
+        return "script-settings".equals(db) || db.startsWith("user.db.");
     }
 
     private boolean isWriteAccessible(String userId, String db){
@@ -46,7 +46,7 @@ public class RabbitDbService {
         if (db == null) return false;
         return "registered-connections".equals(db) || "script-settings".equals(db) || db.startsWith("user.db.");
     }
-
+    
     public void save(String userId, RabbitDbRequest request, Map<String, Object> headers) {
         RabbitDocument rabbitDocument = new RabbitDocument();
         rabbitDocument.setPrincipalId(userId);
@@ -94,19 +94,13 @@ public class RabbitDbService {
         return result;
     }
 
-    private RabbitDocument connectionToUserDoc(RegisteredConnection registeredConnection) {
-        RabbitDocument document = new RabbitDocument();
-        document.setSubDocument(gson.toJson(registeredConnection));
-        return document;
-    }
-
     public void handle(MessageEvent messageEvent, RabbitDbRequest request, String userId) {
         log.info("Handling db request {} for user {}.", request, userId);
 
         if (isWriteAccessible(userId, request.getDatabase())){
             if (request.getType() == RabbitDbRequest.SAVE_REPLACE || request.getType() == RabbitDbRequest.SAVE_UPDATE) {
                 if (isWriteAccessible(userId, request.getDatabase())) save(userId, request, null);
-            } else if (request.getType() == RabbitDbRequest.DELETE_BY_KEY) {
+            } else if (request.getType() == RabbitDbRequest.DELETE_BY_KEY && isDeleteAccessible(userId, request.getDatabase())) {
                 delete(userId, request);
             }
         }
