@@ -18,6 +18,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 /**
  * Created by Zachary Herridge on 7/18/2018.
  */
@@ -72,7 +74,7 @@ public class DashboardRabbitService implements CommandLineRunner {
                 }
             });
 
-            rabbitClient.connect();
+            rabbitClient.connect("ADB_" + UUID.randomUUID().toString());
         }
         catch (Throwable e){
             log.error("Error during dashboard RabbitMQ setup.", e);

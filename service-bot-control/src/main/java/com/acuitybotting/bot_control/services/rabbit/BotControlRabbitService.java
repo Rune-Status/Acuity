@@ -20,6 +20,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -77,7 +78,7 @@ public class BotControlRabbitService implements CommandLineRunner {
                 }
             });
 
-            rabbitClient.connect();
+            rabbitClient.connect("ABW_" + UUID.randomUUID().toString());
         } catch (Throwable e) {
             log.error("Error during dashboard RabbitMQ setup.", e);
         }

@@ -19,7 +19,7 @@ public class LocationTiedEdges {
         add(new CustomEdgeData()
                 .setStart(new Location(123, 123, 0))
                 .setEnd(new Location(123, 123, 0))
-                .setInteraction(new Interaction().setType(Interaction.FAIRY_RING).withData("code", "123123"))
+                .withInteraction(new Interaction().setType(Interaction.FAIRY_RING).withData("code", "123123"))
         );
     }
 

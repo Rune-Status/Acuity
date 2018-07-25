@@ -22,21 +22,21 @@ public class PlayerTiedEdges {
         customEdgeData.add(
                 new CustomEdgeData()
                         .setEnd(new Location(3221, 3218, 0))
-                        .setInteraction(new Interaction().setType(Interaction.SPELL).withData(SPELL_NAME, "HOME_TELEPORT"))
+                        .withInteraction(new Interaction().setType(Interaction.SPELL).withData(SPELL_NAME, "HOME_TELEPORT"))
                         .withRequirement(Player::isModernSpellbook)
         );
 
         customEdgeData.add(
                 new CustomEdgeData()
                         .setEnd(new Location(3212, 3424, 0))
-                        .setInteraction(new Interaction().setType(Interaction.SPELL).withData(SPELL_NAME, "VARROCK_TELEPORT"))
+                        .withInteraction(new Interaction().setType(Interaction.SPELL).withData(SPELL_NAME, "VARROCK_TELEPORT"))
                         .withRequirement(Player::isModernSpellbook)
         );
 
         customEdgeData.add(
                 new CustomEdgeData()
                         .setEnd(new Location(2757, 3480, 0))
-                        .setInteraction(new Interaction().setType(Interaction.SPELL).withData(SPELL_NAME, "CAMELOT_TELEPORT"))
+                        .withInteraction(new Interaction().setType(Interaction.SPELL).withData(SPELL_NAME, "CAMELOT_TELEPORT"))
                         .withRequirement(Player::isModernSpellbook)
         );
     }

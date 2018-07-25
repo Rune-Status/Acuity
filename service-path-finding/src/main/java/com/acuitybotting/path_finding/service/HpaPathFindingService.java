@@ -198,7 +198,7 @@ public class HpaPathFindingService {
                 }
             });
 
-            rabbitClient.connect();
+            rabbitClient.connect("APW_" + UUID.randomUUID().toString());
         } catch (Throwable e) {
             e.printStackTrace();
         }
