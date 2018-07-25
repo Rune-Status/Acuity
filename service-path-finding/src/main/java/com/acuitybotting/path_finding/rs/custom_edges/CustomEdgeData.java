@@ -5,7 +5,6 @@ import com.acuitybotting.path_finding.rs.custom_edges.requirements.PlayerPredica
 import com.acuitybotting.path_finding.rs.domain.location.Location;
 import com.google.gson.annotations.Expose;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -35,13 +34,12 @@ public class CustomEdgeData {
         return this;
     }
 
-
-    public CustomEdgeData withRequirement(PlayerPredicate predicate){
+    public CustomEdgeData withRequirement(PlayerPredicate predicate) {
         playerPredicates.add(predicate);
         return this;
     }
 
-    public CustomEdgeData withInteraction(Interaction interaction){
+    public CustomEdgeData withInteraction(Interaction interaction) {
         interactions.add(interaction);
         return this;
     }
