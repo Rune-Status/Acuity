@@ -33,16 +33,19 @@ public class RabbitChannel implements MessagingChannel, ShutdownListener {
     private Channel rabbitChannel;
     private long lastConnectionAttempt = 0;
 
+    private ScheduledFuture<?> scheduledFuture;
+
     public RabbitChannel(RabbitClient rabbitClient) {
         this.rabbitClient = rabbitClient;
     }
 
     @Override
     public void connect() {
-        rabbitClient.getExecutor().execute(this::doConnect);
+        if (scheduledFuture != null) throw new IllegalStateException("Client already connected.");
+        scheduledFuture = rabbitClient.getScheduledExecutorService().scheduleAtFixedRate(this::checkConnection, 0, 20, TimeUnit.SECONDS);
     }
 
-    private void doConnect(){
+    private void checkConnection(){
         if (rabbitChannel != null && rabbitChannel.isOpen()) return;
 
         synchronized (connectLock){
@@ -74,15 +77,7 @@ public class RabbitChannel implements MessagingChannel, ShutdownListener {
             }
         }
 
-        rabbitClient.getLog().accept("Failed to open channel connection, waiting 10 seconds and trying again.");
-
-        try {
-            Thread.sleep(TimeUnit.SECONDS.toMillis(10));
-        } catch (InterruptedException e) {
-            rabbitClient.getExceptionHandler().accept(e);
-        }
-
-        rabbitClient.getExecutor().execute(this::doConnect);
+        rabbitClient.getLog().accept("Failed to open channel connection, waiting 20 seconds and trying again.");
     }
 
     @Override
@@ -93,6 +88,8 @@ public class RabbitChannel implements MessagingChannel, ShutdownListener {
     @Override
     public MessagingChannel close() throws MessagingException {
         try {
+            scheduledFuture.cancel(false);
+            scheduledFuture = null;
             getChannel().close();
         } catch (IOException | TimeoutException e) {
             throw new MessagingException("Failed to close channel", e);
@@ -180,6 +177,7 @@ public class RabbitChannel implements MessagingChannel, ShutdownListener {
     @Override
     public void shutdownCompleted(ShutdownSignalException shutdownEvent) {
         rabbitClient.getLog().accept("Channel shutdown complete. " + shutdownEvent);
+        rabbitChannel = null;
         for (MessagingChannelListener listener : listeners) {
             try {
                 listener.onShutdown(this, shutdownEvent.getCause());

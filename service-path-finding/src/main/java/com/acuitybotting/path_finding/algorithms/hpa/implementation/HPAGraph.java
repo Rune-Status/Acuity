@@ -123,7 +123,7 @@ public class HPAGraph {
             HPARegion regionEnd = getRegionContaining(data.getEnd());
             HPANode end = regionEnd.getOrCreateNode(data.getEnd(), NodeType.CUSTOM);
 
-            start.getTemporaryEdges().add(new HPAEdge(start, end).setCustomEdgeData(data));
+            start.getTemporaryEdges().add(new HPAEdge(start, end).setType(EdgeType.CUSTOM).setCustomEdgeData(data));
             customNodeConnectionsCount++;
         }
     }

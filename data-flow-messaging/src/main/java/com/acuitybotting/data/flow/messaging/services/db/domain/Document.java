@@ -1,5 +1,7 @@
 package com.acuitybotting.data.flow.messaging.services.db.domain;
 
+import com.google.gson.JsonObject;
+
 import java.util.Map;
 
 public class Document {
@@ -11,7 +13,7 @@ public class Document {
     private String principalId;
     private String subGroup;
     private String subKey;
-    private String subDocument;
+    private JsonObject subDocument;
 
     private Map<String, Object> headers;
 
@@ -35,7 +37,7 @@ public class Document {
         return subKey;
     }
 
-    public String getDocument() {
+    public JsonObject getDocument() {
         return subDocument;
     }
 

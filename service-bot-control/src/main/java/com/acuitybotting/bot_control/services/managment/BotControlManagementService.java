@@ -54,7 +54,7 @@ public class BotControlManagementService {
         }
     }
 
-    @Scheduled(fixedDelay = 20000)
+    //@Scheduled(fixedDelay = 20000)
     public void updateConnections(){
         try {
             RabbitManagement.loadAll("http://" + host + ":" + "15672", username, password);
