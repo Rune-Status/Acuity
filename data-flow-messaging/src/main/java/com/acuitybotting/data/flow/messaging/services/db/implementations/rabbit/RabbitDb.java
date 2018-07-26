@@ -4,8 +4,9 @@ import com.acuitybotting.data.flow.messaging.services.Message;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingQueue;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
-import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
+import com.acuitybotting.data.flow.messaging.services.db.MessagingDb;
 import com.acuitybotting.data.flow.messaging.services.db.domain.Document;
+import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
 import com.google.gson.Gson;
 
 import java.util.Optional;
@@ -17,7 +18,7 @@ import java.util.function.Supplier;
 /**
  * Created by Zachary Herridge on 7/26/2018.
  */
-public class RabbitDb {
+public class RabbitDb implements MessagingDb {
 
     public static final int STRATEGY_REPLACE = RabbitDbRequest.SAVE_REPLACE;
     public static final int STRATEGY_UPDATE = RabbitDbRequest.SAVE_UPDATE;
@@ -85,7 +86,7 @@ public class RabbitDb {
         send(upsert);
     }
 
-    public Document[] findAllByGroup(String documentGroup) throws Exception {
+    public Document[] findAllByGroup(String documentGroup) throws MessagingException {
         RabbitDbRequest load =
                 new RabbitDbRequest()
                         .setGroup(documentGroup)
@@ -96,7 +97,7 @@ public class RabbitDb {
         return gson.fromJson(response, Document[].class);
     }
 
-    public Document findByGroupAndKey(String documentGroup, String key) throws Exception {
+    public Document findByGroupAndKey(String documentGroup, String key) throws MessagingException {
         RabbitDbRequest load =
                 new RabbitDbRequest()
                         .setGroup(documentGroup)
