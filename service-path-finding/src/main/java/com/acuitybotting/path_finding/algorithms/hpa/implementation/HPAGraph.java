@@ -206,7 +206,7 @@ public class HPAGraph {
 
                         HPANode start = region.getOrCreateNode(location, EdgeType.PLANE_CHANGE);
                         HPANode end = region.getOrCreateNode(location.clone(0, 0, 1), EdgeType.PLANE_CHANGE);
-                        start.addHpaEdge(end, EdgeType.PLANE_CHANGE).setType(EdgeType.PLANE_CHANGE);
+                        start.addHpaEdge(end, EdgeType.PLANE_CHANGE);
                         stairNodeConnectionsAddedCount++;
                     }
 
@@ -214,7 +214,7 @@ public class HPAGraph {
                         if (plane - 1 < 0) continue;
                         HPANode start = region.getOrCreateNode(location, EdgeType.PLANE_CHANGE);
                         HPANode end = region.getOrCreateNode(location.clone(0, 0, -1), EdgeType.PLANE_CHANGE);
-                        start.addHpaEdge(end, EdgeType.PLANE_CHANGE).setType(EdgeType.PLANE_CHANGE);
+                        start.addHpaEdge(end, EdgeType.PLANE_CHANGE);
                         stairNodeConnectionsAddedCount++;
                     }
                 }

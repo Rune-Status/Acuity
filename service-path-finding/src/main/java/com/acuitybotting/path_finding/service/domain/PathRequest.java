@@ -1,7 +1,7 @@
 package com.acuitybotting.path_finding.service.domain;
 
 import com.acuitybotting.path_finding.rs.domain.location.Location;
-import com.acuitybotting.path_finding.service.domain.abstractions.player.RSPlayer;
+import com.acuitybotting.path_finding.service.domain.abstractions.player.RsPlayer;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -12,6 +12,6 @@ import lombok.ToString;
 public class PathRequest {
 
     private Location start, end;
-    private RSPlayer rsPlayer;
+    private RsPlayer rsPlayer;
 
 }

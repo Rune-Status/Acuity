@@ -29,7 +29,7 @@ import com.acuitybotting.path_finding.rs.utils.EdgeType;
 import com.acuitybotting.path_finding.rs.utils.RsEnvironment;
 import com.acuitybotting.path_finding.service.domain.PathRequest;
 import com.acuitybotting.path_finding.service.domain.PathResult;
-import com.acuitybotting.path_finding.service.domain.abstractions.player.RSPlayer;
+import com.acuitybotting.path_finding.service.domain.abstractions.player.RsPlayer;
 import com.acuitybotting.path_finding.web_processing.HpaWebService;
 import com.acuitybotting.path_finding.xtea.XteaService;
 import com.google.gson.Gson;
@@ -76,7 +76,7 @@ public class HpaPathFindingService {
         this.hpaWebService = hpaWebService;
     }
 
-    private boolean evaluateCustomEdge(HPAEdge hpaEdge, RSPlayer rsPlayer) {
+    private boolean evaluateCustomEdge(HPAEdge hpaEdge, RsPlayer rsPlayer) {
         Player player = new PlayerImplementation(rsPlayer);
         Collection<PlayerPredicate> playerPredicates = hpaEdge.getCustomEdgeData().getPlayerPredicates();
         if (playerPredicates != null) {
@@ -205,7 +205,7 @@ public class HpaPathFindingService {
     }
 
     @SuppressWarnings("unchecked")
-    public PathResult findPath(Location startLocation, Location endLocation, RSPlayer rsPlayer) throws Exception {
+    public PathResult findPath(Location startLocation, Location endLocation, RsPlayer rsPlayer) throws Exception {
         HPARegion startRegion = graph.getRegionContaining(startLocation);
         HPARegion endRegion = graph.getRegionContaining(endLocation);
 

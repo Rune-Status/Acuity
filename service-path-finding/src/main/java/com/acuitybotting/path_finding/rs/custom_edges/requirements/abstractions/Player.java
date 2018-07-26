@@ -5,15 +5,9 @@ package com.acuitybotting.path_finding.rs.custom_edges.requirements.abstractions
  */
 public interface Player {
 
-    default PlayerSettings getSettings(){
-        return null;
-    }
+    PlayerSettings getSettings();
 
-    default PlayerItems getItems(){
-        return null;
-    }
+    PlayerItems getItems();
 
-    default PlayerLevels getLevels(){
-        return null;
-    }
+    PlayerLevels getLevels();
 }
