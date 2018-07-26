@@ -1,6 +1,5 @@
 package com.acuitybotting.bot_control.services.rabbit;
 
-import com.acuitybotting.bot_control.domain.RabbitDbRequest;
 import com.acuitybotting.bot_control.services.user.db.RabbitDbService;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingClient;
@@ -9,6 +8,7 @@ import com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbi
 import com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit.RabbitClient;
 import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.ChannelListenerAdapter;
 import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.ClientListenerAdapter;
+import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.data.flow.messaging.services.identity.RoutingUtil;
 import com.google.gson.Gson;
@@ -22,7 +22,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by Zachary Herridge on 7/19/2018.

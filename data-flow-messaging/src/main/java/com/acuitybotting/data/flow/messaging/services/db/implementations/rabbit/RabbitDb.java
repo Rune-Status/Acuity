@@ -4,7 +4,7 @@ import com.acuitybotting.data.flow.messaging.services.Message;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingQueue;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
-import com.acuitybotting.data.flow.messaging.services.db.domain.DbRequest;
+import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
 import com.acuitybotting.data.flow.messaging.services.db.domain.Document;
 import com.google.gson.Gson;
 
@@ -19,8 +19,8 @@ import java.util.function.Supplier;
  */
 public class RabbitDb {
 
-    public static final int STRATEGY_REPLACE = DbRequest.SAVE_REPLACE;
-    public static final int STRATEGY_UPDATE = DbRequest.SAVE_UPDATE;
+    public static final int STRATEGY_REPLACE = RabbitDbRequest.SAVE_REPLACE;
+    public static final int STRATEGY_UPDATE = RabbitDbRequest.SAVE_UPDATE;
 
     private Supplier<MessagingQueue> queueSupplier;
     private String exchange;
@@ -37,7 +37,7 @@ public class RabbitDb {
         this.queueSupplier = queueSupplier;
     }
 
-    private String getRoute(DbRequest request) {
+    private String getRoute(RabbitDbRequest request) {
         return route +
                 String.valueOf(request.getDatabase()) + "." +
                 String.valueOf(request.getGroup()) + "." +
@@ -45,9 +45,9 @@ public class RabbitDb {
     }
 
     public void deleteByKey(String documentGroup, String key) throws MessagingException {
-        DbRequest delete =
-                new DbRequest()
-                        .setType(DbRequest.DELETE_BY_KEY)
+        RabbitDbRequest delete =
+                new RabbitDbRequest()
+                        .setType(RabbitDbRequest.DELETE_BY_KEY)
                         .setGroup(documentGroup)
                         .setKey(key);
         send(delete);
@@ -74,8 +74,8 @@ public class RabbitDb {
     }
 
     public void upsert(String documentGroup, String key, String rev, int strategy, String insertDocument, String updateDocument) throws MessagingException {
-        DbRequest upsert =
-                new DbRequest()
+        RabbitDbRequest upsert =
+                new RabbitDbRequest()
                         .setType(strategy)
                         .setGroup(documentGroup)
                         .setKey(key)
@@ -86,10 +86,10 @@ public class RabbitDb {
     }
 
     public Document[] findAllByGroup(String documentGroup) throws Exception {
-        DbRequest load =
-                new DbRequest()
+        RabbitDbRequest load =
+                new RabbitDbRequest()
                         .setGroup(documentGroup)
-                        .setType(DbRequest.FIND_BY_GROUP);
+                        .setType(RabbitDbRequest.FIND_BY_GROUP);
 
         String response = sendWithResponse(load);
 
@@ -97,10 +97,10 @@ public class RabbitDb {
     }
 
     public Document findByGroupAndKey(String documentGroup, String key) throws Exception {
-        DbRequest load =
-                new DbRequest()
+        RabbitDbRequest load =
+                new RabbitDbRequest()
                         .setGroup(documentGroup)
-                        .setType(DbRequest.FIND_BY_KEY)
+                        .setType(RabbitDbRequest.FIND_BY_KEY)
                         .setKey(key);
 
         String response = sendWithResponse(load);
@@ -108,7 +108,7 @@ public class RabbitDb {
         return gson.fromJson(response, Document.class);
     }
 
-    public void send(DbRequest request) throws MessagingException {
+    public void send(RabbitDbRequest request) throws MessagingException {
         MessagingChannel channel = Optional.ofNullable(queueSupplier.get()).map(MessagingQueue::getChannel).orElse(null);
         if (channel == null) throw new RuntimeException("Not connected to RabbitMQ.");
         request.setDatabase(database);
@@ -118,7 +118,7 @@ public class RabbitDb {
                 gson.toJson(request));
     }
 
-    public String sendWithResponse(DbRequest request) throws MessagingException {
+    public String sendWithResponse(RabbitDbRequest request) throws MessagingException {
         String queue = Optional.ofNullable(queueSupplier.get()).map(MessagingQueue::getName).orElse(null);
         MessagingChannel channel = Optional.ofNullable(queueSupplier.get()).map(MessagingQueue::getChannel).orElse(null);
         if (channel == null || queue == null) throw new RuntimeException("Not connected to RabbitMQ.");

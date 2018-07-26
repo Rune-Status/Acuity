@@ -1,9 +1,9 @@
 package com.acuitybotting.bot_control.services.managment;
 
-import com.acuitybotting.bot_control.domain.RabbitDbRequest;
 import com.acuitybotting.bot_control.services.user.db.RabbitDbService;
 import com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit.management.RabbitManagement;
 import com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit.management.domain.RabbitConnection;
+import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,10 +37,10 @@ public class BotControlManagementService {
 
     private void updateRegisteredConnections(){
         for (Map.Entry<String, List<RabbitConnection>> entry : RabbitManagement.getConnections().entrySet()) {
-            RabbitDbRequest rabbitDbRequest = new RabbitDbRequest();
-            rabbitDbRequest.setType(RabbitDbRequest.SAVE_UPDATE);
-            rabbitDbRequest.setDatabase("registered-connections");
-            rabbitDbRequest.setGroup("connections");
+            RabbitDbRequest rabbitRabbitDbRequest = new RabbitDbRequest();
+            rabbitRabbitDbRequest.setType(RabbitDbRequest.SAVE_UPDATE);
+            rabbitRabbitDbRequest.setDatabase("registered-connections");
+            rabbitRabbitDbRequest.setGroup("connections");
 
             for (RabbitConnection rabbitConnection : entry.getValue()) {
                 if (rabbitConnection.getUser_provided_name() == null) continue;
@@ -48,8 +48,8 @@ public class BotControlManagementService {
                 Map<String, Object> headers = new HashMap<>();
                 headers.put("connectionTime", rabbitConnection.getConnected_at());
                 headers.put("connectionConfirmationTime", System.currentTimeMillis());
-                rabbitDbRequest.setKey(rabbitConnection.getUser_provided_name());
-                rabbitDbService.save(entry.getKey(), rabbitDbRequest, headers);
+                rabbitRabbitDbRequest.setKey(rabbitConnection.getUser_provided_name());
+                rabbitDbService.save(entry.getKey(), rabbitRabbitDbRequest, headers);
             }
         }
     }

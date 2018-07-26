@@ -1,7 +1,7 @@
 package com.acuitybotting.bot_control.services.user.db;
 
-import com.acuitybotting.bot_control.domain.RabbitDbRequest;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
+import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.db.arango.acuity.bot_control.domain.RabbitDocument;
 import com.acuitybotting.db.arango.acuity.bot_control.repositories.RabbitDocumentRepository;

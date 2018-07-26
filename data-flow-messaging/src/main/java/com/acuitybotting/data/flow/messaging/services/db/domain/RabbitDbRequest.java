@@ -3,7 +3,7 @@ package com.acuitybotting.data.flow.messaging.services.db.domain;
 /**
  * Created by Zachary Herridge on 7/19/2018.
  */
-public class DbRequest {
+public class RabbitDbRequest {
 
     public static final int SAVE_REPLACE = 0;
     public static final int FIND_BY_KEY = 1;
@@ -29,12 +29,12 @@ public class DbRequest {
         return key;
     }
 
-    public DbRequest setKey(String key) {
+    public RabbitDbRequest setKey(String key) {
         this.key = key;
         return this;
     }
 
-    public DbRequest setType(Integer type) {
+    public RabbitDbRequest setType(Integer type) {
         this.type = type;
         return this;
     }
@@ -43,7 +43,7 @@ public class DbRequest {
         return group;
     }
 
-    public DbRequest setGroup(String group) {
+    public RabbitDbRequest setGroup(String group) {
         this.group = group;
         return this;
     }
@@ -52,7 +52,7 @@ public class DbRequest {
         return rev;
     }
 
-    public DbRequest setRev(String rev) {
+    public RabbitDbRequest setRev(String rev) {
         this.rev = rev;
         return this;
     }
@@ -61,7 +61,7 @@ public class DbRequest {
         return database;
     }
 
-    public DbRequest setDatabase(String database) {
+    public RabbitDbRequest setDatabase(String database) {
         this.database = database;
         return this;
     }
@@ -70,7 +70,7 @@ public class DbRequest {
         return insertDocument;
     }
 
-    public DbRequest setInsertDocument(String insertDocument) {
+    public RabbitDbRequest setInsertDocument(String insertDocument) {
         this.insertDocument = insertDocument;
         return this;
     }
@@ -79,14 +79,14 @@ public class DbRequest {
         return updateDocument;
     }
 
-    public DbRequest setUpdateDocument(String updateDocument) {
+    public RabbitDbRequest setUpdateDocument(String updateDocument) {
         this.updateDocument = updateDocument;
         return this;
     }
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("DbRequest{");
+        final StringBuilder sb = new StringBuilder("RabbitDbRequest{");
         sb.append("type=").append(type);
         sb.append(", database='").append(database).append('\'');
         sb.append(", group='").append(group).append('\'');
