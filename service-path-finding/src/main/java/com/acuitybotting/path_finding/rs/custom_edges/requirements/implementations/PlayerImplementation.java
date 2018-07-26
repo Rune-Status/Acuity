@@ -13,4 +13,8 @@ public class PlayerImplementation implements Player {
     public PlayerImplementation(RSPlayer rsPlayer) {
         this.rsPlayer = rsPlayer;
     }
+
+    public boolean hasItem(int itemId) {
+        return getItems().hasItem(itemId);
+    }
 }

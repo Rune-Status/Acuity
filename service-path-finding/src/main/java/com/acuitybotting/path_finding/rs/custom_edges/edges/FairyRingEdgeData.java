@@ -6,12 +6,13 @@ import com.acuitybotting.path_finding.rs.domain.location.Location;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.function.Predicate;
 
 public class FairyRingEdgeData extends CustomEdgeData {
 
     private static final String FAIRY_CODE = "FAIRY_CODE";
     private static final Location FAIRY_HUB = new Location(2412, 4434, 0);
+    private static final int DRAMEN_STAFF_ID = 1234;
+    private static final int LUNAR_STAFF_ID = 2345;
     private static Collection<CustomEdgeData> customEdgeData = new HashSet<>();
 
     static {
@@ -239,12 +240,14 @@ public class FairyRingEdgeData extends CustomEdgeData {
 
     private FairyRingEdgeData() {
         this.setStart(FAIRY_HUB);
+        this.withRequirement(player -> player.getItems().hasItem(DRAMEN_STAFF_ID)
+                || player.getItems().hasItem(LUNAR_STAFF_ID) || player.getSettings().getValue(-1) == -1);
     }
 
     private static void add(CustomEdgeData edge) {
-        customEdgeData.add(edge);
         if (edge instanceof FairyRingEdgeData) {
             FairyRingEdgeData fairy = (FairyRingEdgeData) edge;
+            customEdgeData.add(fairy);
             customEdgeData.add(fairy.toHub());
         }
     }

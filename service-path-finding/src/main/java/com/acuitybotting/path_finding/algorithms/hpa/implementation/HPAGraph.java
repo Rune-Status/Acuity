@@ -7,6 +7,7 @@ import com.acuitybotting.path_finding.algorithms.graph.Node;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPANode;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPARegion;
 import com.acuitybotting.path_finding.rs.custom_edges.CustomEdgeData;
+import com.acuitybotting.path_finding.rs.custom_edges.edges.CharterNode;
 import com.acuitybotting.path_finding.rs.custom_edges.edges.FairyRingEdgeData;
 import com.acuitybotting.path_finding.rs.domain.graph.TileEdge;
 import com.acuitybotting.path_finding.rs.domain.location.Locateable;
@@ -112,8 +113,12 @@ public class HPAGraph {
         return regions;
     }
 
-    public HPAGraph addCustomNodes(){
-        for (CustomEdgeData data : FairyRingEdgeData.getEdges()) {
+    public void addCustomNodes(){
+        Collection<CustomEdgeData> edges = new HashSet<>();
+        edges.addAll(FairyRingEdgeData.getEdges());
+        edges.addAll(CharterNode.getEdges());
+
+        for (CustomEdgeData data : edges) {
             HPARegion regionStart = getRegionContaining(data.getStart());
             HPANode start = regionStart.getOrCreateNode(data.getStart());
 
@@ -122,8 +127,6 @@ public class HPAGraph {
             start.addHpaEdge(end, EdgeType.CUSTOM).setType(EdgeType.CUSTOM);
             customNodeConnectionsCount++;
         }
-
-        return this;
     }
 
     private void addInternalConnections(HPARegion region, HPANode startNode) {

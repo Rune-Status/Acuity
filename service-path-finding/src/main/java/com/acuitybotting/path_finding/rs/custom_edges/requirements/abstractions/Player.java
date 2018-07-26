@@ -16,6 +16,4 @@ public interface Player {
     default PlayerLevels getLevels(){
         return null;
     }
-
-    default QuestProgress[] getQuestProgress() {return null;}
 }

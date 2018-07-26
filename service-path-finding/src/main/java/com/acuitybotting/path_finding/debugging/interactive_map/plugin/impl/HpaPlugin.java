@@ -10,10 +10,12 @@ import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPANod
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPARegion;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.TerminatingNode;
 import com.acuitybotting.path_finding.debugging.interactive_map.plugin.Plugin;
+import com.acuitybotting.path_finding.debugging.interactive_map.util.Perspective;
 import com.acuitybotting.path_finding.rs.domain.location.LocateableHeuristic;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
 import com.acuitybotting.path_finding.rs.domain.location.LocationPair;
 import com.acuitybotting.path_finding.rs.utils.EdgeType;
+import org.springframework.expression.spel.ast.Projection;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -61,7 +63,6 @@ public class HpaPlugin extends Plugin {
                 }
             }
         }
-
 
         for (HPARegion HPARegion : graph.getRegions().values()) {
             for (HPANode hpaNode : HPARegion.getNodes().values()) {
