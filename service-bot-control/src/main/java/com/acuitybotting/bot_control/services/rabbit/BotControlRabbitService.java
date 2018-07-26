@@ -64,13 +64,17 @@ public class BotControlRabbitService implements CommandLineRunner {
                             String localQueue = "bot-control-worker-" + ThreadLocalRandom.current().nextInt(0, 1000);
                             channel.consumeQueue(localQueue, true, true);
                             channel.bindQueueToExchange(localQueue, "amq.rabbitmq.event", "queue.#");
+                            channel.bindQueueToExchange(localQueue, "acuitybotting.general", "user.fccb8d0e-33b1-43e0-bde5-2a360039a494.#");
 
                             channel.consumeQueue("acuitybotting.work.acuity-db.request", false, false);
                             channel.consumeQueue("acuitybotting.work.connections", false, false);
+
                         }
 
                         @Override
                         public void onMessage(MessageEvent messageEvent) {
+                            if (messageEvent.getRouting().contains("fccb8d0e-33b1-43e0-bde5-2a360039a494"))
+                                System.out.println(messageEvent);
                             publisher.publishEvent(messageEvent);
                         }
                     });

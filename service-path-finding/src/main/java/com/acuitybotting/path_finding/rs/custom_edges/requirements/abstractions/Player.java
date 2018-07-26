@@ -5,11 +5,11 @@ package com.acuitybotting.path_finding.rs.custom_edges.requirements.abstractions
  */
 public interface Player {
 
-    default boolean isModernSpellbook() {
-        return true;
+    default PlayerSettings getSettings(){
+        return null;
     }
 
-    default PlayerInventory getInventory(){
+    default PlayerItems getItems(){
         return null;
     }
 

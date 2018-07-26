@@ -22,6 +22,8 @@ public class RabbitDbRequest {
     private String key;
     private String rev;
 
-    private String document;
+    private String insertDocument;
+    private String updateDocument;
+
     private String documentQuery;
 }
