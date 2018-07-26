@@ -4,6 +4,7 @@ import com.acuitybotting.data.flow.messaging.services.Message;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingClient;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingQueue;
+import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.listeners.MessagingChannelListener;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.data.flow.messaging.services.futures.MessageFuture;
@@ -90,11 +91,11 @@ public class RabbitChannel implements MessagingChannel, ShutdownListener {
     }
 
     @Override
-    public MessagingChannel close() throws RuntimeException {
+    public MessagingChannel close() throws MessagingException {
         try {
             getChannel().close();
         } catch (IOException | TimeoutException e) {
-            throw new RuntimeException("Failed to close channel", e);
+            throw new MessagingException("Failed to close channel", e);
         }
         return this;
     }
@@ -105,20 +106,20 @@ public class RabbitChannel implements MessagingChannel, ShutdownListener {
     }
 
     @Override
-    public void acknowledge(Message message) throws RuntimeException {
+    public void acknowledge(Message message) throws MessagingException {
         try {
             Channel channel = getChannel();
-            if (channel == null || !channel.isOpen()) throw new RuntimeException("Not connected to RabbitMQ.");
+            if (channel == null || !channel.isOpen()) throw new MessagingException("Not connected to RabbitMQ.");
             channel.basicAck(message.getRabbitTag(), false);
         } catch (Throwable e) {
-            throw new RuntimeException("Error during acknowledging message: " + message + ".", e);
+            throw new MessagingException("Error during acknowledging message: " + message + ".", e);
         }
     }
 
     @Override
-    public Future<MessageEvent> send(String targetExchange, String targetRouting, String localQueue, String futureId, String body) throws RuntimeException {
+    public Future<MessageEvent> send(String targetExchange, String targetRouting, String localQueue, String futureId, String body) throws MessagingException {
         Channel channel = getChannel();
-        if (channel == null || !channel.isOpen()) throw new RuntimeException("Not connected to RabbitMQ.");
+        if (channel == null || !channel.isOpen()) throw new MessagingException("Not connected to RabbitMQ.");
 
         rabbitClient.getLog().accept("Sending to exchange '" + targetExchange + "' with routing '" + targetRouting + "' body: " + body);
 
@@ -152,9 +153,9 @@ public class RabbitChannel implements MessagingChannel, ShutdownListener {
         try {
             channel.basicPublish(targetExchange, targetRouting, null, rabbitClient.getGson().toJson(message).getBytes());
             return future;
-        } catch (IOException e) {
+        } catch (Throwable e) {
             if (generatedId != null) rabbitClient.getMessageFutures().remove(generatedId);
-            throw new RuntimeException("Exception during message publish.", e);
+            throw new MessagingException("Exception during message publish.", e);
         }
     }
 

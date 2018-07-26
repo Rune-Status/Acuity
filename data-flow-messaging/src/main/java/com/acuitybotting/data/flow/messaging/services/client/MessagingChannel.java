@@ -1,6 +1,7 @@
 package com.acuitybotting.data.flow.messaging.services.client;
 
 import com.acuitybotting.data.flow.messaging.services.Message;
+import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.listeners.MessagingChannelListener;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.data.flow.messaging.services.futures.MessageFuture;
@@ -19,33 +20,33 @@ public interface MessagingChannel {
 
     MessagingQueue getQueue(String queue);
 
-    MessagingChannel close() throws RuntimeException;
+    MessagingChannel close() throws MessagingException;
 
     MessagingClient getClient();
 
-    void acknowledge(Message message) throws RuntimeException;
+    void acknowledge(Message message) throws MessagingException;
 
-    default void sendToQueue(String queue, String body) throws RuntimeException {
+    default void sendToQueue(String queue, String body) throws MessagingException {
         send("", queue, body);
     }
 
-    default Future<MessageEvent> sendToQueue(String queue, String localQueue, String body) throws RuntimeException {
+    default Future<MessageEvent> sendToQueue(String queue, String localQueue, String body) throws MessagingException {
         return send("", queue, localQueue, body);
     }
 
-    default void send(String exchange, String routingKey, String body) throws RuntimeException {
+    default void send(String exchange, String routingKey, String body) throws MessagingException {
         send(exchange, routingKey, null, null, body);
     }
 
-    default Future<MessageEvent> send(String exchange, String routingKey, String localQueue, String body) throws RuntimeException {
+    default Future<MessageEvent> send(String exchange, String routingKey, String localQueue, String body) throws MessagingException {
         return send(exchange, routingKey, localQueue, null, body);
     }
 
-    default void respond(Message message, String body) throws RuntimeException {
+    default void respond(Message message, String body) throws MessagingException {
         respond(message, null, body);
     }
 
-    default Future<MessageEvent> respond(Message message, String localQueue, String body) throws RuntimeException {
+    default Future<MessageEvent> respond(Message message, String localQueue, String body) throws MessagingException {
         String responseTopic = message.getAttributes().get(RESPONSE_QUEUE);
         String responseId = message.getAttributes().get(RESPONSE_ID);
 
@@ -55,7 +56,7 @@ public interface MessagingChannel {
         return send("", responseTopic, localQueue, responseId, body);
     }
 
-    Future<MessageEvent> send(String targetExchange, String targetRouting, String localQueue, String futureId, String body) throws RuntimeException;
+    Future<MessageEvent> send(String targetExchange, String targetRouting, String localQueue, String futureId, String body) throws MessagingException;
 
     MessageFuture getMessageFuture(String id);
 

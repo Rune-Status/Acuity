@@ -8,4 +8,8 @@ public class MessagingException extends Exception {
     public MessagingException(String message, Throwable e) {
         super(message, e);
     }
+
+    public MessagingException(String message) {
+        super(message);
+    }
 }

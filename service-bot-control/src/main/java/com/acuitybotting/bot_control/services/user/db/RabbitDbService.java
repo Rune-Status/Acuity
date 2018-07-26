@@ -1,6 +1,7 @@
 package com.acuitybotting.bot_control.services.user.db;
 
 import com.acuitybotting.bot_control.domain.RabbitDbRequest;
+import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.db.arango.acuity.bot_control.domain.RabbitDocument;
 import com.acuitybotting.db.arango.acuity.bot_control.repositories.RabbitDocumentRepository;
@@ -114,9 +115,17 @@ public class RabbitDbService {
         if (isReadAccessible(userId, request.getDatabase())){
             if (request.getType() == RabbitDbRequest.FIND_BY_KEY) {
                 RabbitDocument rabbitDocument = loadByKey(userId, request);
-                messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), rabbitDocument == null ? "" : gson.toJson(rabbitDocument));
+                try {
+                    messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), rabbitDocument == null ? "" : gson.toJson(rabbitDocument));
+                } catch (MessagingException e) {
+                    e.printStackTrace();
+                }
             } else if (request.getType() == RabbitDbRequest.FIND_BY_GROUP) {
-                messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), gson.toJson(loadByGroup(userId, request)));
+                try {
+                    messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), gson.toJson(loadByGroup(userId, request)));
+                } catch (MessagingException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

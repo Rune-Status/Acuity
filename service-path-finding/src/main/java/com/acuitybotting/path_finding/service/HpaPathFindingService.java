@@ -161,8 +161,12 @@ public class HpaPathFindingService {
 
                                             String json = outGson.toJson(pathResult);
                                             log.info("Responding. {} {}", message.getAttributes().get(RESPONSE_QUEUE), json);
-                                            channel.respond(message, json);
-                                            channel.acknowledge(message);
+                                            try {
+                                                channel.respond(message, json);
+                                                channel.acknowledge(message);
+                                            } catch (MessagingException e) {
+                                                e.printStackTrace();
+                                            }
                                         })
                                         .consume(false);
                             } catch (MessagingException e) {
@@ -184,7 +188,11 @@ public class HpaPathFindingService {
                                                     xteaService.getXteaRepository().save(xtea);
                                                     log.info("Saved Xtea Key {}.", xtea);
                                                 }
-                                                channel.acknowledge(message);
+                                                try {
+                                                    channel.acknowledge(message);
+                                                } catch (MessagingException e) {
+                                                    e.printStackTrace();
+                                                }
                                             }
                                         })
                                         .consume(false);

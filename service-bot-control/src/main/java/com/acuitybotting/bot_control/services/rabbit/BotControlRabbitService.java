@@ -106,7 +106,11 @@ public class BotControlRabbitService implements CommandLineRunner {
         if (messageEvent.getRouting().contains(".services.acuity-db.request")) {
             String userId = RoutingUtil.routeToUserId(messageEvent.getRouting());
             dbService.handle(messageEvent, new Gson().fromJson(messageEvent.getMessage().getBody(), RabbitDbRequest.class), userId);
-            messageEvent.getQueue().getChannel().acknowledge(messageEvent.getMessage());
+            try {
+                messageEvent.getQueue().getChannel().acknowledge(messageEvent.getMessage());
+            } catch (MessagingException e) {
+                e.printStackTrace();
+            }
         }
     }
 
