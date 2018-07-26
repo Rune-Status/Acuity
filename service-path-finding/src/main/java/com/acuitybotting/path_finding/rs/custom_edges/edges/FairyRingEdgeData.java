@@ -240,6 +240,7 @@ public class FairyRingEdgeData extends CustomEdgeData {
 
     private FairyRingEdgeData() {
         this.setStart(FAIRY_HUB);
+        //TODO: Actually add in the correct values
         this.withRequirement(player -> player.getItems().hasItem(DRAMEN_STAFF_ID)
                 || player.getItems().hasItem(LUNAR_STAFF_ID) || player.getSettings().getValue(-1) == -1);
     }
