@@ -18,4 +18,9 @@ public class PlayerSettingsImplementation implements PlayerSettings {
     public int getSpellBook() {
         return player.getSpellBook();
     }
+
+    @Override
+    public int getCombatLevel() {
+        return player.getCombatLevel();
+    }
 }

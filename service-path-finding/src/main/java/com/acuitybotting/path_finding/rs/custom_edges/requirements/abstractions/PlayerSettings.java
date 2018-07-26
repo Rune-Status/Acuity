@@ -9,6 +9,12 @@ public interface PlayerSettings {
 
     int getSpellBook();
 
+    int getCombatLevel();
+
+    default int getWildernessLevel(){
+        return 0;
+    }
+
     default boolean isModernSpellbook() {
         return getSpellBook() == SPELLBOOK_MODERN;
     }
