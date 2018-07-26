@@ -13,10 +13,10 @@ import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Created by Zachary Herridge on 7/26/2018.
@@ -30,7 +30,7 @@ public class RabbitQueue implements MessagingQueue {
 
     private DefaultConsumer defaultConsumer;
 
-    private List<MessagingQueueListener> listeners = new ArrayList<>();
+    private List<MessagingQueueListener> listeners = new CopyOnWriteArrayList<>();
 
     public RabbitQueue(RabbitChannel channel, String queueName) {
         this.channel = channel;
@@ -128,6 +128,16 @@ public class RabbitQueue implements MessagingQueue {
                     messageFuture.complete(messageEvent);
                 }
             }
+
+            for (MessagingQueueListener listener : listeners) {
+                try {
+                    listener.onMessage(messageEvent);
+                }
+                catch (Throwable e){
+                    client.getExceptionHandler().accept(e);
+                }
+            }
+
         } catch (Throwable e) {
             client.getExceptionHandler().accept(e);
         }

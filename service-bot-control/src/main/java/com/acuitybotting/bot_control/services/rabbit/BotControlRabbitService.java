@@ -62,7 +62,7 @@ public class BotControlRabbitService implements CommandLineRunner {
                     rabbitChannel.getListeners().add(new ChannelListenerAdapter() {
                         @Override
                         public void onConnect(MessagingChannel channel) {
-                            String localQueue = "bot-control-worker-" + ThreadLocalRandom.current().nextInt(0, 1000);
+                            String localQueue = "bot-control-worker-" + UUID.randomUUID().toString();
 
                             try {
                                 channel.getQueue(localQueue)
@@ -70,27 +70,26 @@ public class BotControlRabbitService implements CommandLineRunner {
                                         .withListener(publisher::publishEvent)
                                         .bind("amq.rabbitmq.event", "queue.#")
                                         .consume(true);
-                            } catch (MessagingException e) {
-                                e.printStackTrace();
-                            }
 
-                            try {
                                 channel.getQueue("acuitybotting.work.acuity-db.request")
                                         .withListener(publisher::publishEvent)
                                         .consume(false);
-                            } catch (MessagingException e) {
-                                e.printStackTrace();
-                            }
 
-                            try {
                                 channel.getQueue("acuitybotting.work.connections")
                                         .withListener(publisher::publishEvent)
                                         .consume(false);
+
                             } catch (MessagingException e) {
-                                e.printStackTrace();
+                                log.error("Error during queue setup.", e);
                             }
                         }
+
+                        @Override
+                        public void onShutdown(MessagingChannel channel, Throwable cause) {
+                            channel.connect();
+                        }
                     });
+
                     rabbitChannel.connect();
                 }
             });

@@ -5,14 +5,16 @@ import com.acuitybotting.data.flow.messaging.services.client.exceptions.Messagin
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.db.arango.acuity.bot_control.domain.RabbitDocument;
 import com.acuitybotting.db.arango.acuity.bot_control.repositories.RabbitDocumentRepository;
-import com.arangodb.ArangoCursor;
 import com.arangodb.springframework.core.ArangoOperations;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -33,21 +35,21 @@ public class RabbitDbService {
         this.repository = repository;
     }
 
-    private boolean isDeleteAccessible(String userId, String db){
+    private boolean isDeleteAccessible(String userId, String db) {
         if (db == null) return false;
         return "script-settings".equals(db) || db.startsWith("user.db.");
     }
 
-    private boolean isWriteAccessible(String userId, String db){
+    private boolean isWriteAccessible(String userId, String db) {
         if (db == null) return false;
         return "registered-connections".equals(db) || "script-settings".equals(db) || db.startsWith("user.db.");
     }
 
-    private boolean isReadAccessible(String userId, String db){
+    private boolean isReadAccessible(String userId, String db) {
         if (db == null) return false;
         return "registered-connections".equals(db) || "script-settings".equals(db) || db.startsWith("user.db.");
     }
-    
+
     public void save(String principalId, RabbitDbRequest request, Map<String, Object> headers) {
         RabbitDocument rabbitDocument = new RabbitDocument();
         rabbitDocument.setPrincipalId(principalId);
@@ -66,14 +68,13 @@ public class RabbitDbService {
         String query = "UPSERT " + buildQuery(principalId, request, true) + " INSERT " + insertDocument + " " + strategy + " " + updateDocument + " IN " + COLLECTION;
 
         arangoOperations.query(query, null, null, null);
-
     }
 
-    private String buildQuery(String principalId, RabbitDbRequest request, boolean includeKey){
+    private String buildQuery(String principalId, RabbitDbRequest request, boolean includeKey) {
         return gson.toJson(buildQueryMap(principalId, request, includeKey));
     }
 
-    private Map<String, Object> buildQueryMap(String principalId, RabbitDbRequest request, boolean includeKey){
+    private Map<String, Object> buildQueryMap(String principalId, RabbitDbRequest request, boolean includeKey) {
         Map<String, Object> queryMap = new HashMap<>();
         queryMap.put("principalId", principalId);
         queryMap.put("database", request.getDatabase());
@@ -104,7 +105,7 @@ public class RabbitDbService {
     public void handle(MessageEvent messageEvent, RabbitDbRequest request, String userId) {
         log.info("Handling db request {} for user {}.", request, userId);
 
-        if (isWriteAccessible(userId, request.getDatabase())){
+        if (isWriteAccessible(userId, request.getDatabase())) {
             if (request.getType() == RabbitDbRequest.SAVE_REPLACE || request.getType() == RabbitDbRequest.SAVE_UPDATE) {
                 if (isWriteAccessible(userId, request.getDatabase())) save(userId, request, null);
             } else if (request.getType() == RabbitDbRequest.DELETE_BY_KEY && isDeleteAccessible(userId, request.getDatabase())) {
@@ -112,21 +113,22 @@ public class RabbitDbService {
             }
         }
 
-        if (isReadAccessible(userId, request.getDatabase())){
-            if (request.getType() == RabbitDbRequest.FIND_BY_KEY) {
-                RabbitDocument rabbitDocument = loadByKey(userId, request);
-                try {
-                    messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), rabbitDocument == null ? "" : gson.toJson(rabbitDocument));
-                } catch (MessagingException e) {
-                    e.printStackTrace();
-                }
-            } else if (request.getType() == RabbitDbRequest.FIND_BY_GROUP) {
-                try {
+        try {
+            if (isReadAccessible(userId, request.getDatabase())) {
+                if (request.getType() == RabbitDbRequest.FIND_BY_KEY) {
+                    RabbitDocument rabbitDocument = loadByKey(userId, request);
+                    try {
+                        messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), rabbitDocument == null ? "" : gson.toJson(rabbitDocument));
+                    } catch (MessagingException e) {
+                        e.printStackTrace();
+                    }
+                } else if (request.getType() == RabbitDbRequest.FIND_BY_GROUP) {
                     messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), gson.toJson(loadByGroup(userId, request)));
-                } catch (MessagingException e) {
-                    e.printStackTrace();
                 }
             }
+        } catch (MessagingException e) {
+            log.error("Error during response", e);
         }
+
     }
 }
