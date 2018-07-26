@@ -73,7 +73,7 @@ public class AStarImplementation {
 
             for (Edge edge : current.getNode().getNeighbors(args)) {
                 if (edgePredicate != null && !edgePredicate.test(edge)) continue;
-                if (!edge.evaluate()) continue;
+                if (!edge.evaluate(args)) continue;
 
                 Node next = edge.getEnd();
 
