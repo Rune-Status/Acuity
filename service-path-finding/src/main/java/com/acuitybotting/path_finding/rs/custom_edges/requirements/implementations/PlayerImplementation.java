@@ -38,4 +38,8 @@ public class PlayerImplementation implements Player {
     public PlayerLevels getLevels() {
         return levels;
     }
+
+    public boolean hasItem(int itemId) {
+        return getItems().hasItem(itemId);
+    }
 }

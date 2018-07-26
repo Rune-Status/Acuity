@@ -18,4 +18,8 @@ public interface PlayerSettings {
     default boolean isModernSpellbook() {
         return getSpellBook() == SPELLBOOK_MODERN;
     }
+
+    default int getValue(int setting) {
+        return -1;
+    }
 }
