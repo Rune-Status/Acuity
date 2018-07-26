@@ -17,4 +17,6 @@ public interface MessagingQueue {
     MessagingChannel getChannel();
 
     MessagingQueue withListener(MessagingQueueListener listener);
+
+    String getName();
 }

@@ -91,6 +91,11 @@ public class RabbitQueue implements MessagingQueue {
         return this;
     }
 
+    @Override
+    public String getName() {
+        return queueName;
+    }
+
     private void onDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
         try {
             Message message = null;
