@@ -3,10 +3,10 @@ package com.acuitybotting.path_finding.service;
 import com.acuitybotting.data.flow.messaging.services.Message;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingClient;
+import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit.RabbitClient;
-import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.MessagingChannelAdapter;
-import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.MessagingClientAdapter;
-import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
+import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.ChannelListenerAdapter;
+import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.ClientListenerAdapter;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.RegionMap;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.Xtea;
 import com.acuitybotting.path_finding.algorithms.astar.AStarService;
@@ -54,12 +54,10 @@ import static com.acuitybotting.data.flow.messaging.services.client.MessagingCli
 @PropertySource("classpath:general-worker-rabbit.credentials")
 public class HpaPathFindingService {
 
-    private HPAGraph graph;
-
     private final XteaService xteaService;
     private final AStarService aStarService;
     private final HpaWebService hpaWebService;
-
+    private HPAGraph graph;
     @Value("${rabbit.host}")
     private String host;
 
@@ -122,15 +120,85 @@ public class HpaPathFindingService {
 
             RabbitClient rabbitClient = new RabbitClient();
             rabbitClient.auth(host, username, password);
-            rabbitClient.getListeners().add(new MessagingClientAdapter() {
+            rabbitClient.getListeners().add(new ClientListenerAdapter() {
                 @Override
                 public void onConnect(MessagingClient client) {
                     MessagingChannel channel = client.createChannel();
-                    channel.getListeners().add(new MessagingChannelAdapter() {
+                    channel.getListeners().add(new ChannelListenerAdapter() {
                         @Override
                         public void onConnect(MessagingChannel channel) {
-                            channel.consumeQueue("acuitybotting.work.find-path", false, false);
-                            channel.consumeQueue("acuitybotting.work.xtea-dump", false, false);
+
+                            try {
+                                channel.getQueue("acuitybotting.work.find-path")
+                                        .withListener(messageEvent -> {
+                                            Message message = messageEvent.getMessage();
+                                            PathRequest pathRequest = inGson.fromJson(message.getBody(), PathRequest.class);
+                                            PathResult pathResult = new PathResult();
+
+                                            try {
+                                                log.info("Finding path. {}", pathRequest);
+                                                pathResult = findPath(pathRequest.getStart(), pathRequest.getEnd(), pathRequest.getRsPlayer());
+                                                List<? extends Edge> path = pathResult.getPath();
+                                                log.info("Found path. {}", path);
+
+                                                pathResult.setSubPaths(new HashMap<>());
+                                                if (path != null) {
+                                                    for (Edge edge : path) {
+                                                        if (edge instanceof HPAEdge) {
+                                                            String pathKey = ((HPAEdge) edge).getPathKey();
+                                                            List<Location> subPath = ((HPAEdge) edge).getPath();
+                                                            if (pathKey != null && subPath != null) {
+                                                                pathResult.getSubPaths().put(pathKey, subPath);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                            } catch (Exception e) {
+                                                log.error("Error during finding path. {}", e);
+                                                pathResult.setError(e.getMessage());
+                                            }
+
+                                            String json = outGson.toJson(pathResult);
+                                            log.info("Responding. {} {}", message.getAttributes().get(RESPONSE_QUEUE), json);
+                                            try {
+                                                channel.respond(message, json);
+                                                channel.acknowledge(message);
+                                            } catch (MessagingException e) {
+                                                e.printStackTrace();
+                                            }
+                                        })
+                                        .consume(false);
+                            } catch (MessagingException e) {
+                                e.printStackTrace();
+                            }
+
+                            try {
+                                channel.getQueue("acuitybotting.work.xtea-dump")
+                                        .withListener(messageEvent -> {
+                                            String routing = messageEvent.getRouting();
+                                            Message message = messageEvent.getMessage();
+
+                                            if (routing.endsWith("xtea-dump")) {
+                                                int[] emptyKeys = {0, 0, 0, 0};
+                                                Xtea[] xteas = inGson.fromJson(message.getBody(), Xtea[].class);
+                                                for (Xtea xtea : xteas) {
+                                                    if (xtea.getKeys() == null || Arrays.equals(xtea.getKeys(), emptyKeys))
+                                                        continue;
+                                                    xteaService.getXteaRepository().save(xtea);
+                                                    log.info("Saved Xtea Key {}.", xtea);
+                                                }
+                                                try {
+                                                    channel.acknowledge(message);
+                                                } catch (MessagingException e) {
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                        })
+                                        .consume(false);
+                            } catch (MessagingException e) {
+                                e.printStackTrace();
+                            }
                         }
 
                         @Override
@@ -138,60 +206,6 @@ public class HpaPathFindingService {
                             channel.connect();
                         }
 
-                        @Override
-                        public void onMessage(MessageEvent messageEvent) {
-                            try {
-                                String routing = messageEvent.getRouting();
-                                Message message = messageEvent.getMessage();
-
-                                if (routing.endsWith("xtea-dump")) {
-                                    int[] emptyKeys = {0, 0, 0, 0};
-                                    Xtea[] xteas = inGson.fromJson(message.getBody(), Xtea[].class);
-                                    for (Xtea xtea : xteas) {
-                                        if (xtea.getKeys() == null || Arrays.equals(xtea.getKeys(), emptyKeys))
-                                            continue;
-                                        xteaService.getXteaRepository().save(xtea);
-                                        log.info("Saved Xtea Key {}.", xtea);
-                                    }
-                                    channel.acknowledge(message);
-                                } else {
-                                    PathRequest pathRequest = inGson.fromJson(message.getBody(), PathRequest.class);
-                                    PathResult pathResult = new PathResult();
-
-                                    try {
-                                        log.info("Finding path. {}", pathRequest);
-                                        pathResult = findPath(pathRequest.getStart(), pathRequest.getEnd(), pathRequest.getRsPlayer());
-                                        List<? extends Edge> path = pathResult.getPath();
-                                        log.info("Found path. {}", path);
-
-                                        pathResult.setSubPaths(new HashMap<>());
-                                        if (path != null) {
-                                            for (Edge edge : path) {
-                                                if (edge instanceof HPAEdge) {
-                                                    String pathKey = ((HPAEdge) edge).getPathKey();
-                                                    List<Location> subPath = ((HPAEdge) edge).getPath();
-                                                    if (pathKey != null && subPath != null) {
-                                                        pathResult.getSubPaths().put(pathKey, subPath);
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                    } catch (Exception e) {
-                                        log.error("Error during finding path. {}", e);
-                                        pathResult.setError(e.getMessage());
-                                    }
-
-                                    String json = outGson.toJson(pathResult);
-                                    log.info("Responding. {} {}", message.getAttributes().get(RESPONSE_QUEUE), json);
-                                    channel.respond(message, json);
-                                    channel.acknowledge(message);
-                                }
-
-                            } catch (Throwable e) {
-                                log.error("Error during respond.", e);
-                            }
-                        }
                     });
 
                     channel.connect();
