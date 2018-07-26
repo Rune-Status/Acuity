@@ -57,6 +57,7 @@ public class RabbitClient implements MessagingClient {
         factory.setHost(endpoint);
         factory.setUsername(username);
         factory.setPassword(password);
+        factory.setTopologyRecoveryEnabled(false);
         if (virtualHost != null) factory.setVirtualHost(virtualHost);
 
         executor.execute(this::doConnect);

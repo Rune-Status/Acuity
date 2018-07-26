@@ -3,6 +3,7 @@ package com.acuitybotting.data.flow.messaging.services.client.implmentation.rabb
 import com.acuitybotting.data.flow.messaging.services.Message;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingClient;
+import com.acuitybotting.data.flow.messaging.services.client.MessagingQueue;
 import com.acuitybotting.data.flow.messaging.services.client.listeners.MessagingChannelListener;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.data.flow.messaging.services.futures.MessageFuture;
@@ -24,16 +25,11 @@ import static com.acuitybotting.data.flow.messaging.services.client.MessagingCli
 public class RabbitChannel implements MessagingChannel, ShutdownListener {
 
     private final Object connectLock = new Object();
-    private final Object queueConsumeLock = new Object();
 
     private RabbitClient rabbitClient;
-    private Map<String, String> queueConsumeMap = new ConcurrentHashMap<>();
-
     private List<MessagingChannelListener> listeners = new CopyOnWriteArrayList<>();
 
     private Channel rabbitChannel;
-    private DefaultConsumer rabbitConsumer;
-
     private long lastConnectionAttempt = 0;
 
     public RabbitChannel(RabbitClient rabbitClient) {
@@ -60,13 +56,6 @@ public class RabbitChannel implements MessagingChannel, ShutdownListener {
                     rabbitClient.getLog().accept("Channel opened.");
                     rabbitChannel.addShutdownListener(this);
                     rabbitChannel.basicQos(6);
-
-                    rabbitConsumer = new DefaultConsumer(rabbitChannel) {
-                        @Override
-                        public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
-                            onDelivery(consumerTag, envelope, properties, body);
-                        }
-                    };
 
                     for (MessagingChannelListener listener : listeners) {
                         try {
@@ -95,113 +84,9 @@ public class RabbitChannel implements MessagingChannel, ShutdownListener {
         rabbitClient.getExecutor().execute(this::doConnect);
     }
 
-    private void onDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
-        try {
-            Message message = null;
-
-            if (body != null && body.length > 0)
-                message = rabbitClient.getGson().fromJson(new String(body), Message.class);
-            if (message == null) message = new Message();
-            if (message.getAttributes() == null) message.setAttributes(new HashMap<>());
-
-            message.getAttributes().put("envelope.exchange", envelope.getExchange());
-            message.getAttributes().put("envelope.routing", envelope.getRoutingKey());
-
-            message.setRabbitTag(envelope.getDeliveryTag());
-
-            if (properties.getHeaders() != null) {
-                for (Map.Entry<String, Object> header : properties.getHeaders().entrySet()) {
-                    message.getAttributes().put("header." + header.getKey(), String.valueOf(header.getValue()));
-                }
-            }
-
-            if (properties.getReplyTo() != null)
-                message.getAttributes().put("properties.reply-to", properties.getReplyTo());
-            if (properties.getCorrelationId() != null)
-                message.getAttributes().put("properties.correlation-id", properties.getCorrelationId());
-
-
-            MessageEvent messageEvent = new MessageEvent();
-            messageEvent.setMessage(message);
-            messageEvent.setChannel(this);
-
-            String futureId = message.getAttributes().get(MessagingClient.FUTURE_ID);
-            if (futureId != null) {
-                MessageFuture messageFuture = rabbitClient.getMessageFutures().get(futureId);
-                if (messageFuture != null) {
-                    messageFuture.complete(messageEvent);
-                }
-            }
-
-            for (MessagingChannelListener listener : listeners) {
-                try {
-                    listener.onMessage(messageEvent);
-                } catch (Exception e) {
-                    rabbitClient.getExceptionHandler().accept(e);
-                }
-            }
-        } catch (Throwable e) {
-            rabbitClient.getExceptionHandler().accept(e);
-        }
-    }
-
     @Override
-    public MessagingChannel stopConsuming(String queue) {
-        String consumeId = queueConsumeMap.get(queue);
-        if (consumeId == null) return this;
-
-        Channel channel = getChannel();
-        if (channel == null || !channel.isOpen()) throw new RuntimeException("Not connected to RabbitMQ.");
-
-        try {
-            channel.basicCancel(consumeId);
-            queueConsumeMap.remove(queue);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to cancel queue consumption with id '" + consumeId + "'");
-        }
-
-        return this;
-    }
-
-    @Override
-    public MessagingChannel bind(String exchange, String routing, String queue, boolean createQueue, boolean autoAcknowledge) throws RuntimeException {
-        Channel channel = getChannel();
-        if (channel == null || !channel.isOpen()) throw new RuntimeException("Not connected to RabbitMQ.");
-
-        if (createQueue) {
-            if (queue == null) queue = generateId();
-            try {
-                queue = channel.queueDeclare(queue, false, true, true, null).getQueue();
-                rabbitClient.getLog().accept("Queue declared named '" + queue + "'.");
-            } catch (IOException e) {
-                throw new RuntimeException("Exception during queue creation with name '" + queue + "'.", e);
-            }
-        }
-
-        if (queue != null && !queueConsumeMap.containsKey(queue)) {
-            try {
-                synchronized (queueConsumeLock) {
-                    if (!queueConsumeMap.containsKey(queue)) {
-                        String consumeId = channel.basicConsume(queue, autoAcknowledge, rabbitConsumer);
-                        rabbitClient.getLog().accept("Consuming queue named '" + queue + "' with consume id '" + consumeId + "'.");
-                        queueConsumeMap.put(queue, consumeId);
-                    }
-                }
-            } catch (IOException e) {
-                throw new RuntimeException("Exception during consuming queue with name '" + queue + "'.", e);
-            }
-        }
-
-        if (exchange != null) {
-            try {
-                channel.queueBind(queue, exchange, routing);
-                rabbitClient.getLog().accept("Bound queue '" + queue + "' to exchange '" + exchange + "' with routing key '" + routing + "'.");
-            } catch (IOException e) {
-                throw new RuntimeException("Exception during binding queue named '" + queue + "' to exchange named '" + exchange + "' with routing key '" + routing + "'.", e);
-            }
-        }
-
-        return this;
+    public MessagingQueue getQueue(String queue) {
+        return new RabbitQueue(this, queue);
     }
 
     @Override

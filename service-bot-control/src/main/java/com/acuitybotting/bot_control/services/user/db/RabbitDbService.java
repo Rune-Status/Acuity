@@ -114,9 +114,9 @@ public class RabbitDbService {
         if (isReadAccessible(userId, request.getDatabase())){
             if (request.getType() == RabbitDbRequest.FIND_BY_KEY) {
                 RabbitDocument rabbitDocument = loadByKey(userId, request);
-                messageEvent.getChannel().respond(messageEvent.getMessage(), rabbitDocument == null ? "" : gson.toJson(rabbitDocument));
+                messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), rabbitDocument == null ? "" : gson.toJson(rabbitDocument));
             } else if (request.getType() == RabbitDbRequest.FIND_BY_GROUP) {
-                messageEvent.getChannel().respond(messageEvent.getMessage(), gson.toJson(loadByGroup(userId, request)));
+                messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), gson.toJson(loadByGroup(userId, request)));
             }
         }
     }
