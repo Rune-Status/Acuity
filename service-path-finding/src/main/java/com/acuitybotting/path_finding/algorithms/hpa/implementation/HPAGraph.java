@@ -6,12 +6,15 @@ import com.acuitybotting.path_finding.algorithms.graph.Edge;
 import com.acuitybotting.path_finding.algorithms.graph.Node;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPANode;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPARegion;
+import com.acuitybotting.path_finding.rs.custom_edges.CustomEdgeData;
+import com.acuitybotting.path_finding.rs.custom_edges.edges.FairyRingEdgeData;
 import com.acuitybotting.path_finding.rs.domain.graph.TileEdge;
 import com.acuitybotting.path_finding.rs.domain.location.Locateable;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
 import com.acuitybotting.path_finding.rs.domain.location.LocationPair;
 import com.acuitybotting.path_finding.rs.utils.EdgeType;
 import com.acuitybotting.path_finding.rs.utils.MapFlags;
+import com.acuitybotting.path_finding.rs.utils.RegionUtils;
 import com.acuitybotting.path_finding.rs.utils.RsEnvironment;
 import com.acuitybotting.path_finding.xtea.domain.rs.cache.RsRegion;
 import lombok.Getter;
@@ -38,6 +41,7 @@ public class HPAGraph {
     private int externalConnectionsCount = 0;
     private int internalConnectionCount = 0;
     private int stairNodeConnectionsAddedCount = 0;
+    private int customNodeConnectionsCount = 0;
 
     private PathFindingSupplier pathFindingSupplier;
 
@@ -67,6 +71,9 @@ public class HPAGraph {
             }
         });
         log.info("Found {} stair connections.", stairNodeConnectionsAddedCount);
+
+        addCustomNodes();
+        log.info("Found {} custom connections", customNodeConnectionsCount);
 
         ExecutorUtil.run(20, executor -> {
             for (HPARegion internalHPARegion : regions.values()) {
@@ -106,7 +113,16 @@ public class HPAGraph {
     }
 
     public HPAGraph addCustomNodes(){
-        //TODO
+        for (CustomEdgeData data : FairyRingEdgeData.getEdges()) {
+            HPARegion regionStart = getRegionContaining(data.getStart());
+            HPANode start = regionStart.getOrCreateNode(data.getStart());
+
+            HPARegion regionEnd = getRegionContaining(data.getEnd());
+            HPANode end = regionEnd.getOrCreateNode(data.getEnd());
+            start.addHpaEdge(end, EdgeType.CUSTOM).setType(EdgeType.CUSTOM);
+            customNodeConnectionsCount++;
+        }
+
         return this;
     }
 

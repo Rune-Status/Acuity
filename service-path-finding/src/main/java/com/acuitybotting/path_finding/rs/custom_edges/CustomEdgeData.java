@@ -6,6 +6,7 @@ import com.acuitybotting.path_finding.rs.domain.location.Location;
 import com.google.gson.annotations.Expose;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -20,7 +21,7 @@ public class CustomEdgeData {
     private Location start, end;
 
     @Expose
-    private List<Interaction> interactions;
+    private List<Interaction> interactions = new ArrayList<>();
 
     private Collection<PlayerPredicate> playerPredicates = new HashSet<>();
 

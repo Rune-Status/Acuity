@@ -6,6 +6,7 @@ import com.acuitybotting.path_finding.rs.domain.location.Location;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.function.Predicate;
 
 public class FairyRingEdgeData extends CustomEdgeData {
 

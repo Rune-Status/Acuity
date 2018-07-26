@@ -2,6 +2,7 @@ package com.acuitybotting.path_finding.rs.custom_edges.interaction;
 
 import com.google.gson.annotations.Expose;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -19,7 +20,7 @@ public class Interaction {
     private int type;
 
     @Expose
-    private Map<String, Object> interactionData;
+    private Map<String, Object> interactionData = new HashMap<>();
 
     public Interaction withData(String key, Object value){
         interactionData.put(key, value);
