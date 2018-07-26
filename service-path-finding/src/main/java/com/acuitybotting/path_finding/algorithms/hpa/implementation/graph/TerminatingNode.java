@@ -4,6 +4,7 @@ import com.acuitybotting.path_finding.algorithms.hpa.implementation.HPAGraph;
 import com.acuitybotting.path_finding.rs.domain.graph.TileEdge;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
 import com.acuitybotting.path_finding.rs.utils.EdgeType;
+import com.acuitybotting.path_finding.rs.utils.NodeType;
 
 import java.util.*;
 
@@ -15,7 +16,7 @@ public class TerminatingNode extends HPANode {
     private Set<TerminatingEdge> connections = new HashSet<>();
 
     public TerminatingNode(HPARegion region, Location location) {
-        super(region, location);
+        super(region, location, NodeType.CUSTOM);
     }
 
     public TerminatingNode addStartEdges(){

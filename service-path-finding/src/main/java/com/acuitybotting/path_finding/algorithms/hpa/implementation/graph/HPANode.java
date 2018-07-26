@@ -25,11 +25,12 @@ public class HPANode implements Node, Locateable {
     private HPARegion hpaRegion;
 
     @Expose
-    private int type = EdgeType.BASIC;
+    private int type;
 
-    public HPANode(HPARegion region, Location location) {
+    public HPANode(HPARegion region, Location location, int type) {
         this.location = location;
         this.hpaRegion = region;
+        this.type = type;
     }
 
     @Override
@@ -52,11 +53,6 @@ public class HPANode implements Node, Locateable {
         hpaEdge.setType(edgeType);
         hpaEdges.add(hpaEdge);
         return hpaEdge;
-    }
-
-    public HPANode setType(int type) {
-        this.type = type;
-        return this;
     }
 
     @Override

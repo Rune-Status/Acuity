@@ -80,12 +80,8 @@ public class HPARegion {
         return locations;
     }
 
-    public HPANode getOrCreateNode(Location location){
-        return getOrCreateNode(location, EdgeType.BASIC);
-    }
-
-    public HPANode getOrCreateNode(Location location, int type){
-        return nodes.computeIfAbsent(location, location1 -> new HPANode(this, location1).setType(type));
+    public HPANode getOrCreateNode(Location location, int creationType){
+        return nodes.computeIfAbsent(location, location1 -> new HPANode(this, location1, creationType));
     }
 
     public String getKey(){
