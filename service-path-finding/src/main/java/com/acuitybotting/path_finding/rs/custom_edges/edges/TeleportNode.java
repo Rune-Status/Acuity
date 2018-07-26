@@ -18,6 +18,7 @@ public class TeleportNode {
     private static final int FIRE_RUNE = 554;
     private static final int EARTH_RUNE = 557;
     private static final int LAW_RUNE = 563;
+    private static final int BLOOD_RUNE = 565;
     private static final int SOUL_RUNE = 566;
     private static final int BANANA = 1963;
 
@@ -27,6 +28,9 @@ public class TeleportNode {
     private static Collection<TeleportNode> teleports = new HashSet<>();
 
     static {
+        /*
+         * MODERN SPELLBOOK
+         */
         teleports.add(new TeleportNode()
                 .withName("HOME_TELEPORT")
                 .withSpellbook(PlayerSettings.SPELLBOOK_MODERN)
@@ -108,11 +112,84 @@ public class TeleportNode {
                 .withRune(FIRE_RUNE, 5)
                 .withLocation(new Location(1643, 3673, 0)));
 
-        buildConnections();
-    }
+        /*
+           ANCIENT SPELLBOOK
+         */
 
-    public static Collection<CustomEdgeData> getEdges() {
-        return connections;
+        teleports.add(new TeleportNode()
+                .withName("ANCIENT_HOME_TELEPORT")
+                .withLocation(new Location(3089, 3502, 0))
+                .withSpellbook(PlayerSettings.SPELLBOOK_ANCIENT));
+
+        teleports.add(new TeleportNode()
+                .withName("PADDEWA_TELEPORT")
+                .withSpellbook(PlayerSettings.SPELLBOOK_ANCIENT)
+                .withLocation(new Location(3099, 9883, 0))
+                .withRune(LAW_RUNE, 2)
+                .withRune(FIRE_RUNE, 1)
+                .withRune(AIR_RUNE, 1)
+                .withLevel(54));
+
+        teleports.add(new TeleportNode()
+                .withName("SENNTISEN_TELEPORT")
+                .withSpellbook(PlayerSettings.SPELLBOOK_ANCIENT)
+                .withLocation(new Location(3322, 3336, 0))
+                .withRune(LAW_RUNE, 2)
+                .withRune(SOUL_RUNE, 1)
+                .withLevel(60));
+
+        teleports.add(new TeleportNode()
+                .withName("KHARYLL_TELEPORT")
+                .withSpellbook(PlayerSettings.SPELLBOOK_ANCIENT)
+                .withLocation(new Location(3493, 3472, 0))
+                .withRune(LAW_RUNE, 2)
+                .withRune(BLOOD_RUNE, 1)
+                .withLevel(66));
+
+        teleports.add(new TeleportNode()
+                .withName("LASSAR_TELEPORT")
+                .withSpellbook(PlayerSettings.SPELLBOOK_ANCIENT)
+                .withLocation(new Location(3003, 3471, 0))
+                .withRune(LAW_RUNE, 2)
+                .withRune(WATER_RUNE, 4)
+                .withLevel(72));
+
+        teleports.add(new TeleportNode()
+                .withName("DAREYAAK_TELEPORT")
+                .withSpellbook(PlayerSettings.SPELLBOOK_ANCIENT)
+                .withLocation(new Location(2970, 3698, 0))
+                .withRune(LAW_RUNE, 2)
+                .withRune(FIRE_RUNE, 3)
+                .withRune(AIR_RUNE, 3)
+                .wilderness()
+                .withLevel(78));
+
+        teleports.add(new TeleportNode()
+                .withName("CARRALLANGER TELEPORT")
+                .withSpellbook(PlayerSettings.SPELLBOOK_ANCIENT)
+                .withLocation(new Location(3160, 3667, 0))
+                .withRune(LAW_RUNE, 2)
+                .withRune(SOUL_RUNE, 2)
+                .wilderness()
+                .withLevel(84));
+
+        teleports.add(new TeleportNode()
+                .withName("ANNAKARL TELEPORT")
+                .withSpellbook(PlayerSettings.SPELLBOOK_ANCIENT)
+                .withLocation(new Location(3287, 3886, 0))
+                .withRune(BLOOD_RUNE, 2)
+                .withRune(LAW_RUNE, 2)
+                .withLevel(90));
+
+        teleports.add(new TeleportNode()
+                .withName("GHORROCK")
+                .withSpellbook(PlayerSettings.SPELLBOOK_ANCIENT)
+                .withLocation(new Location(2973, 3878, 0))
+                .withRune(LAW_RUNE, 2)
+                .withRune(WATER_RUNE, 8)
+                .withLevel(96));
+
+        buildConnections();
     }
 
     private final List<Integer> runes = new ArrayList<>();
@@ -121,6 +198,12 @@ public class TeleportNode {
     private String name;
     private int spellbook;
     private Location location;
+    private boolean wilderness;
+    private int level;
+
+    public static Collection<CustomEdgeData> getEdges() {
+        return connections;
+    }
 
     private static void buildConnections() {
         for (TeleportNode node : teleports) {
@@ -132,6 +215,13 @@ public class TeleportNode {
                     .withRequirement(player -> player.getSettings().getSpellBook() == node.spellbook &&
                             (player.getItems().getCount(node.tablet) >= 0
                                     || hasRequiredRunes(player, node)));
+
+            if (node.wilderness) {
+                edgeData = edgeData.withInteraction(new Interaction()
+                        .setType(Interaction.INTERFACE)
+                        .withData("OPTION", "Yes, teleport me now.")
+                        .withData("WILDERNESS", true));
+            }
 
             connections.add(edgeData);
         }
@@ -173,6 +263,16 @@ public class TeleportNode {
 
     public TeleportNode withLocation(Location location) {
         this.location = location;
+        return this;
+    }
+
+    public TeleportNode wilderness() {
+        this.wilderness = true;
+        return this;
+    }
+
+    public TeleportNode withLevel(int level) {
+        this.level = level;
         return this;
     }
 
