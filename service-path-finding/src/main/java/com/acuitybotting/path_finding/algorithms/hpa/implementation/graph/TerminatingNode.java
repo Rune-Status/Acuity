@@ -40,7 +40,7 @@ public class TerminatingNode extends HPANode {
                 if (regionContaining != null){
                     HPANode teleportEnd = regionContaining.getNodes().get(customEdgeData.getEnd());
                     if (teleportEnd != null){
-                        edges.add(new HPAEdge(this, teleportEnd).setType(EdgeType.CUSTOM));
+                        edges.add(new HPAEdge(this, teleportEnd).setType(EdgeType.CUSTOM).setCustomEdgeData(customEdgeData).setCost(customEdgeData.getCostPenalty()));
                     }
                 }
 

@@ -21,6 +21,9 @@ public class CustomEdgeData {
     private Location start, end;
 
     @Expose
+    private double costPenalty = 0;
+
+    @Expose
     private List<Interaction> interactions = new ArrayList<>();
 
     private Collection<PlayerPredicate> playerPredicates = new HashSet<>();
@@ -42,6 +45,11 @@ public class CustomEdgeData {
 
     public CustomEdgeData withInteraction(Interaction interaction) {
         interactions.add(interaction);
+        return this;
+    }
+
+    public CustomEdgeData withCost(double cost){
+        this.costPenalty = cost;
         return this;
     }
 }

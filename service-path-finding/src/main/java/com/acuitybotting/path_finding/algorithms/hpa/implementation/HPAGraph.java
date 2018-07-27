@@ -141,7 +141,7 @@ public class HPAGraph {
             }
 
             if (start != null && end != null) {
-                start.getTemporaryEdges().add(new HPAEdge(start, end).setType(EdgeType.CUSTOM).setCustomEdgeData(data));
+                start.getTemporaryEdges().add(new HPAEdge(start, end).setType(EdgeType.CUSTOM).setCustomEdgeData(data).setCost(data.getCostPenalty()));
                 customNodeConnectionsCount++;
             }
         }

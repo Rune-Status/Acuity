@@ -209,6 +209,7 @@ public class TeleportNode {
         for (TeleportNode node : teleports) {
             CustomEdgeData edgeData = new CustomEdgeData()
                     .setEnd(node.location)
+                    .withCost(30)
                     .withInteraction(new Interaction()
                             .setType(Interaction.SPELL)
                             .withData(SPELL_NAME, node.name))
