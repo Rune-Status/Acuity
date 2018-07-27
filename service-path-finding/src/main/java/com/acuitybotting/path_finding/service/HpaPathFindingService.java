@@ -234,7 +234,6 @@ public class HpaPathFindingService {
 
         AStarImplementation astar = new AStarImplementation();
 
-
         TerminatingNode startNode = new TerminatingNode(startRegion, startLocation, false);
         startNode.getEdges().forEach(terminatingEdge -> astar.addStartingNode(terminatingEdge.getEnd()));
 

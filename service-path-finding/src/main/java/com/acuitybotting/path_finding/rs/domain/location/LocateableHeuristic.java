@@ -12,11 +12,11 @@ public class LocateableHeuristic implements AStarHeuristicSupplier {
     public Double getHeuristic(Set<Node> start, Node current, Set<Node> end, Edge edge) {
         Location currentLocation = ((Locateable) current).getLocation();
 
-        double totalDistance = 0;
+        double minDistance = Double.MAX_VALUE;
         for (Node node : end) {
-            totalDistance += currentLocation.getTraversalCost(((Locateable) node).getLocation());
+            minDistance = Math.min(minDistance, currentLocation.getTraversalCost(((Locateable) node).getLocation()));
         }
 
-        return totalDistance + edge.getCostPenalty();
+        return minDistance + edge.getCostPenalty();
     }
 }
