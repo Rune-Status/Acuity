@@ -41,10 +41,10 @@ public class HpaGenerationData {
         blackListDoorLocation(3268, 3228, 0);
 
         //Manually blocked locations.
-        blockLocation(3258,3179, 0);
+        blockLocation(3258, 3179, 0);
     }
 
-    private static boolean isPlaneChange(String name, String[] actions, Integer objectId){
+    private static boolean isPlaneChange(String name, String[] actions, Integer objectId) {
         if (name == null) return false;
         return planeChangeNames.contains(name.toLowerCase());
     }
@@ -59,8 +59,9 @@ public class HpaGenerationData {
         return getPlaneChangeAction(true, actions).size() > 0;
     }
 
-    public static Set<String> getPlaneChangeAction(boolean positiveLevelChange, String[] actions){
-        if (positiveLevelChange) return Arrays.stream(actions).filter(s -> s != null && s.toLowerCase().contains("up")).collect(Collectors.toSet());
+    public static Set<String> getPlaneChangeAction(boolean positiveLevelChange, String[] actions) {
+        if (positiveLevelChange)
+            return Arrays.stream(actions).filter(s -> s != null && s.toLowerCase().contains("up")).collect(Collectors.toSet());
         return Arrays.stream(actions).filter(s -> s != null && s.toLowerCase().contains("down")).collect(Collectors.toSet());
     }
 
@@ -71,20 +72,21 @@ public class HpaGenerationData {
 
     public static boolean isDoor(Location position, String name, String[] actions, Integer mapDoorFlag) {
         if (position != null && doorLocationBlacklist.contains(position)) return false;
-        if (actions == null || Arrays.stream(actions).noneMatch(s -> s != null && doorActions.contains(s.toLowerCase()))) return false;
+        if (actions == null || Arrays.stream(actions).noneMatch(s -> s != null && doorActions.contains(s.toLowerCase())))
+            return false;
         if (name == null || !doorNames.contains(name.toLowerCase())) return false;
         return mapDoorFlag != null && mapDoorFlag != 0;
     }
 
-    public static void blockLocation(int x, int y, int plane){
+    public static void blockLocation(int x, int y, int plane) {
         blockedOverride.add(new Location(x, y, plane));
     }
 
-    public static void blackListDoorLocation(int x, int y, int plane){
+    public static void blackListDoorLocation(int x, int y, int plane) {
         doorLocationBlacklist.add(new Location(x, y, plane));
     }
 
-    public static boolean isBlocked(int x, int y, int plane){
+    public static boolean isBlocked(int x, int y, int plane) {
         return blockedOverride.contains(new Location(x, y, plane));
     }
 

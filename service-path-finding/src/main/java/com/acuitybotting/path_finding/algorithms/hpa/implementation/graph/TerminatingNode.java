@@ -1,59 +1,52 @@
 package com.acuitybotting.path_finding.algorithms.hpa.implementation.graph;
 
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.HPAGraph;
-import com.acuitybotting.path_finding.rs.domain.graph.TileEdge;
+import com.acuitybotting.path_finding.rs.custom_edges.CustomEdgeData;
+import com.acuitybotting.path_finding.rs.custom_edges.edges.TeleportNode;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
-import com.acuitybotting.path_finding.rs.utils.EdgeType;
 import com.acuitybotting.path_finding.rs.utils.NodeType;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by Zachary Herridge on 6/20/2018.
  */
 public class TerminatingNode extends HPANode {
 
-    private Set<TerminatingEdge> connections = new HashSet<>();
+    private Set<TerminatingEdge> edges = new HashSet<>();
 
-    public TerminatingNode(HPARegion region, Location location) {
-        super(region, location, NodeType.CUSTOM);
+    public TerminatingNode(HPARegion region, Location location, boolean end) {
+        super(region, location, NodeType.TERMINATING);
+
+        HPANode hpaNode = region.getNodes().get(location);
+        if (hpaNode != null){
+            if (end) edges.add(new TerminatingEdge(hpaNode, this));
+            else edges.add(new TerminatingEdge(this, hpaNode));
+        }
+        else {
+            Set<HPAGraph.InternalConnection> internalConnections = region.getHpaGraph().findInternalConnections(region, this, -1);
+            for (HPAGraph.InternalConnection internalConnection : internalConnections) {
+                if (end) edges.add(new TerminatingEdge(internalConnection.getEnd(), this).setPath(internalConnection.getPath(), true));
+                else edges.add(new TerminatingEdge(this, internalConnection.getEnd()).setPath(internalConnection.getPath(), false));
+            }
+        }
+    }
+
+    public Set<TerminatingEdge> getEdges() {
+        return edges;
+    }
+
+    public TerminatingEdge getEdgeTo(HPANode hpaNode){
+        for (TerminatingEdge terminatingEdge : getEdges()) {
+            if (terminatingEdge.getEnd().equals(hpaNode)) return terminatingEdge;
+            if (terminatingEdge.getStart().equals(hpaNode)) return terminatingEdge;
+        }
+        return null;
     }
 
     public TerminatingNode addStartEdges(){
         return this;
-    }
-
-    private void connectTemporarily(HPANode start, HPANode end, List<TileEdge> path, boolean reverse){
-        TerminatingEdge edge = new TerminatingEdge(start, end);
-        if (path != null) edge.setPath(path, reverse);
-        edge.setType(EdgeType.BASIC);
-        edge.setCost(path == null ? 1 : path.size());
-        start.getTemporaryEdges().add(edge);
-        connections.add(edge);
-    }
-
-    public void disconnectFromGraph(){
-        for (TerminatingEdge connection : connections) {
-            connection.getStart().getTemporaryEdges().remove(connection);
-        }
-        connections.clear();
-    }
-
-    public void connectToGraph() {
-        HPAGraph graph = getHpaRegion().getHpaGraph();
-
-        HPANode hpaNode = getHpaRegion().getNodes().get(getLocation());
-        if (hpaNode != null) {
-            connectTemporarily(this, hpaNode, null, false);
-            connectTemporarily(hpaNode, this, null, true);
-        }
-        else {
-            for (HPAGraph.InternalConnection internalConnection : graph.findInternalConnections(getHpaRegion(), this, -1)) {
-                HPANode end = internalConnection.getEnd();
-                connectTemporarily(this, end, internalConnection.getPath(), false);
-                connectTemporarily(end, this, internalConnection.getPath(), true);
-            }
-        }
     }
 
     @Override

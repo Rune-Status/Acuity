@@ -21,9 +21,10 @@ public class TerminatingEdge extends HPAEdge{
         super(start, end);
     }
 
-    public void setPath(List<TileEdge> path, boolean reverse) {
+    public TerminatingEdge setPath(List<TileEdge> path, boolean reverse) {
         pathKey = UUID.randomUUID().toString();
         this.path = RsMap.convertPath(path, reverse);
+        return this;
     }
 
     @Override

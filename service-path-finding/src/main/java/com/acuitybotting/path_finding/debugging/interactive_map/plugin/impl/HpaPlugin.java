@@ -134,14 +134,14 @@ public class HpaPlugin extends Plugin {
                 end = getMapPanel().getMouseLocation();
                 endRegion = graph.getRegionContaining(end);
                 if (endRegion != null) {
-                    endNode = new TerminatingNode(endRegion, end);
+                    endNode = new TerminatingNode(endRegion, end, true);
                 }
                 getMapPanel().repaint();
             } else {
                 start = getMapPanel().getMouseLocation();
                 startRegion = graph.getRegionContaining(start);
                 if (startRegion != null) {
-                    startNode = new TerminatingNode(startRegion, start);
+                    startNode = new TerminatingNode(startRegion, start, false);
                 }
 
                 getMapPanel().repaint();

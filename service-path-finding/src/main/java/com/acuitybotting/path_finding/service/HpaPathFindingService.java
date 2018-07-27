@@ -234,53 +234,21 @@ public class HpaPathFindingService {
 
         AStarImplementation astar = new AStarImplementation();
 
-        Set<HPAGraph.InternalConnection> startConnections = null;
-        HPANode startNode = startRegion.getNodes().get(startLocation);
-        if (startNode != null){
-            astar.addStartingNode(startNode);
-        }
-        else {
-            startNode = new TerminatingNode(startRegion, startLocation);
-            startConnections = graph.findInternalConnections(startRegion, startNode, -1);
-            startConnections.forEach(internalConnection -> astar.addStartingNode(internalConnection.getEnd()));
-        }
 
-        Set<HPAGraph.InternalConnection> endConnections = null;
-        HPANode endNode = endRegion.getNodes().get(endLocation);
-        if (endNode != null){
-            astar.addDestinationNode(endNode);
-        }
-        else {
-            endNode = new TerminatingNode(endRegion, endLocation);
-            endConnections = graph.findInternalConnections(endRegion, endNode, -1);
-            endConnections.forEach(internalConnection -> astar.addDestinationNode(internalConnection.getEnd()));
-        }
+        TerminatingNode startNode = new TerminatingNode(startRegion, startLocation, false);
+        startNode.getEdges().forEach(terminatingEdge -> astar.addStartingNode(terminatingEdge.getEnd()));
+
+        TerminatingNode endNode = new TerminatingNode(endRegion, endLocation, true);
+        endNode.getEdges().forEach(terminatingEdge -> astar.addDestinationNode(terminatingEdge.getStart()));
 
         List<Edge> hpaPath = (List<Edge>) astar.findPath(new LocateableHeuristic()).orElse(null);
 
-
         if (hpaPath != null){
-            if (startConnections != null && hpaPath.size() > 0){
-                Edge edge = hpaPath.get(0);
-                for (HPAGraph.InternalConnection startConnection : startConnections) {
-                    if (startConnection.getEnd().equals(edge.getStart())){
-                        TerminatingEdge hpaEdge = new TerminatingEdge(startNode, startConnection.getEnd());
-                        hpaEdge.setPath(startConnection.getPath(), false);
-                        hpaPath.add(0, hpaEdge);
-                    }
-                }
-            }
+            TerminatingEdge edgeTo = startNode.getEdgeTo((HPANode) hpaPath.get(0).getStart());
+            if (edgeTo != null) hpaPath.add(0, edgeTo);
 
-            if (endConnections != null && hpaPath.size() > 0){
-                Edge edge = hpaPath.get(hpaPath.size() - 1);
-                for (HPAGraph.InternalConnection endConnection : endConnections) {
-                    if (endConnection.getEnd().equals(edge.getEnd())){
-                        TerminatingEdge hpaEdge = new TerminatingEdge((HPANode) edge.getEnd(), endNode);
-                        hpaEdge.setPath(endConnection.getPath(), true);
-                        hpaPath.add( hpaEdge);
-                    }
-                }
-            }
+            edgeTo = endNode.getEdgeTo((HPANode) hpaPath.get(hpaPath.size() - 1).getEnd());
+            if (edgeTo != null) hpaPath.add(edgeTo);
         }
 
         pathResult.setPath(hpaPath);
