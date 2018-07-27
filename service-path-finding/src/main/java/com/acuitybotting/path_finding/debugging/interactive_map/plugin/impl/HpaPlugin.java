@@ -118,7 +118,10 @@ public class HpaPlugin extends Plugin {
 
             if (pathResult.getPath() != null) {
                 for (Edge edge : pathResult.getPath()) {
+                    Stroke stroke = graphics.getStroke();
+                    graphics.setStroke(new BasicStroke(2));
                     getPaintUtil().connectLocations(graphics, edge.getStart(), edge.getEnd(), Color.MAGENTA);
+                    graphics.setStroke(stroke);
                 }
             }
         }
