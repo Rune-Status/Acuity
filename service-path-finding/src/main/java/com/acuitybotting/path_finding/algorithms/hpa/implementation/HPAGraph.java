@@ -220,8 +220,8 @@ public class HPAGraph {
 
     private void addStairConnections(HPARegion region) {
         for (int plane = 0; plane < RsRegion.Z; plane++) {
-            for (int x = 0; x < RsRegion.X; x++) {
-                for (int y = 0; y < RsRegion.Y; y++) {
+            for (int x = 0; x < region.getWidth(); x++) {
+                for (int y = 0; y < region.getHeight(); y++) {
                     Location location = region.getRoot().clone(x, y, plane);
 
                     Integer flag = RsEnvironment.getRsMap().getFlagAt(location).orElse(null);
