@@ -1,13 +1,14 @@
 package com.acuitybotting.bot_control.services.rabbit;
 
-import com.acuitybotting.bot_control.domain.RabbitDbRequest;
 import com.acuitybotting.bot_control.services.user.db.RabbitDbService;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingClient;
+import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit.RabbitChannel;
 import com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit.RabbitClient;
-import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.MessagingChannelAdapter;
-import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.MessagingClientAdapter;
+import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.ChannelListenerAdapter;
+import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.ClientListenerAdapter;
+import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.data.flow.messaging.services.identity.RoutingUtil;
 import com.google.gson.Gson;
@@ -21,7 +22,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by Zachary Herridge on 7/19/2018.
@@ -54,30 +54,41 @@ public class BotControlRabbitService implements CommandLineRunner {
             RabbitClient rabbitClient = new RabbitClient();
             rabbitClient.auth(host, username, password);
 
-            rabbitClient.getListeners().add(new MessagingClientAdapter() {
+            rabbitClient.getListeners().add(new ClientListenerAdapter() {
                 @Override
                 public void onConnect(MessagingClient client) {
                     rabbitChannel = (RabbitChannel) client.createChannel();
-                    rabbitChannel.getListeners().add(new MessagingChannelAdapter() {
+                    rabbitChannel.getListeners().add(new ChannelListenerAdapter() {
                         @Override
                         public void onConnect(MessagingChannel channel) {
-                            String localQueue = "bot-control-worker-" + ThreadLocalRandom.current().nextInt(0, 1000);
-                            channel.consumeQueue(localQueue, true, true);
-                            channel.bindQueueToExchange(localQueue, "amq.rabbitmq.event", "queue.#");
-                            channel.bindQueueToExchange(localQueue, "acuitybotting.general", "user.fccb8d0e-33b1-43e0-bde5-2a360039a494.#");
+                            String localQueue = "bot-control-worker-" + UUID.randomUUID().toString();
 
-                            channel.consumeQueue("acuitybotting.work.acuity-db.request", false, false);
-                            channel.consumeQueue("acuitybotting.work.connections", false, false);
+                            try {
+                                channel.getQueue(localQueue)
+                                        .create()
+                                        .withListener(publisher::publishEvent)
+                                        .bind("amq.rabbitmq.event", "queue.#")
+                                        .consume(true);
 
+                                channel.getQueue("acuitybotting.work.acuity-db.request")
+                                        .withListener(publisher::publishEvent)
+                                        .consume(false);
+
+                                channel.getQueue("acuitybotting.work.connections")
+                                        .withListener(publisher::publishEvent)
+                                        .consume(false);
+
+                            } catch (MessagingException e) {
+                                log.error("Error during queue setup.", e);
+                            }
                         }
 
                         @Override
-                        public void onMessage(MessageEvent messageEvent) {
-                            if (messageEvent.getRouting().contains("fccb8d0e-33b1-43e0-bde5-2a360039a494"))
-                                System.out.println(messageEvent);
-                            publisher.publishEvent(messageEvent);
+                        public void onShutdown(MessagingChannel channel, Throwable cause) {
+                            channel.connect();
                         }
                     });
+
                     rabbitChannel.connect();
                 }
             });
@@ -93,7 +104,11 @@ public class BotControlRabbitService implements CommandLineRunner {
         if (messageEvent.getRouting().contains(".services.acuity-db.request")) {
             String userId = RoutingUtil.routeToUserId(messageEvent.getRouting());
             dbService.handle(messageEvent, new Gson().fromJson(messageEvent.getMessage().getBody(), RabbitDbRequest.class), userId);
-            messageEvent.getChannel().acknowledge(messageEvent.getMessage());
+            try {
+                messageEvent.getQueue().getChannel().acknowledge(messageEvent.getMessage());
+            } catch (MessagingException e) {
+                e.printStackTrace();
+            }
         }
     }
 

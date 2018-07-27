@@ -6,7 +6,7 @@ import com.acuitybotting.data.flow.messaging.services.client.listeners.Messaging
 /**
  * Created by Zachary Herridge on 7/16/2018.
  */
-public class MessagingClientAdapter implements MessagingClientListener {
+public class ClientListenerAdapter implements MessagingClientListener {
 
     @Override
     public void onConnect(MessagingClient client) {

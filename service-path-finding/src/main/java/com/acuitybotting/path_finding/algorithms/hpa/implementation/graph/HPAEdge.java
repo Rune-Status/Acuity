@@ -12,6 +12,7 @@ import lombok.Getter;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Getter
@@ -34,6 +35,14 @@ public class HPAEdge implements Edge {
     public HPAEdge(HPANode start, HPANode end) {
         this.start = start;
         this.end = end;
+    }
+
+    @Override
+    public boolean evaluate(Map<String, Object> args) {
+        if (customEdgeData == null) return true;
+        Player player = (Player) args.get("player");
+        if (player == null) return true;
+        return customEdgeData.getPlayerPredicates().stream().allMatch(playerPredicate -> playerPredicate.test(player));
     }
 
     public boolean isInternal(){

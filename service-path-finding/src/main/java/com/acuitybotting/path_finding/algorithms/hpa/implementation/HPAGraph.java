@@ -4,15 +4,17 @@ package com.acuitybotting.path_finding.algorithms.hpa.implementation;
 import com.acuitybotting.common.utils.ExecutorUtil;
 import com.acuitybotting.path_finding.algorithms.graph.Edge;
 import com.acuitybotting.path_finding.algorithms.graph.Node;
+import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPAEdge;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPANode;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPARegion;
+import com.acuitybotting.path_finding.rs.custom_edges.CustomEdgeData;
+import com.acuitybotting.path_finding.rs.custom_edges.edges.CharterNode;
+import com.acuitybotting.path_finding.rs.custom_edges.edges.FairyRingEdgeData;
 import com.acuitybotting.path_finding.rs.domain.graph.TileEdge;
 import com.acuitybotting.path_finding.rs.domain.location.Locateable;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
 import com.acuitybotting.path_finding.rs.domain.location.LocationPair;
-import com.acuitybotting.path_finding.rs.utils.EdgeType;
-import com.acuitybotting.path_finding.rs.utils.MapFlags;
-import com.acuitybotting.path_finding.rs.utils.RsEnvironment;
+import com.acuitybotting.path_finding.rs.utils.*;
 import com.acuitybotting.path_finding.xtea.domain.rs.cache.RsRegion;
 import lombok.Getter;
 import lombok.Setter;
@@ -38,6 +40,7 @@ public class HPAGraph {
     private int externalConnectionsCount = 0;
     private int internalConnectionCount = 0;
     private int stairNodeConnectionsAddedCount = 0;
+    private int customNodeConnectionsCount = 0;
 
     private PathFindingSupplier pathFindingSupplier;
 
@@ -68,6 +71,9 @@ public class HPAGraph {
         });
         log.info("Found {} stair connections.", stairNodeConnectionsAddedCount);
 
+        addCustomNodes();
+        log.info("Found {} custom connections", customNodeConnectionsCount);
+
         ExecutorUtil.run(20, executor -> {
             for (HPARegion internalHPARegion : regions.values()) {
                 executor.execute(() -> {
@@ -76,8 +82,8 @@ public class HPAGraph {
                     for (LocationPair externalConnection : externalConnections) {
                         HPARegion externalHPARegion = getRegionContaining(externalConnection.getEnd());
 
-                        HPANode internalNode = internalHPARegion.getOrCreateNode(externalConnection.getStart());
-                        HPANode externalNode = externalHPARegion.getOrCreateNode(externalConnection.getEnd());
+                        HPANode internalNode = internalHPARegion.getOrCreateNode(externalConnection.getStart(), NodeType.BASIC);
+                        HPANode externalNode = externalHPARegion.getOrCreateNode(externalConnection.getEnd(), NodeType.BASIC);
 
                         internalNode.addHpaEdge(externalNode, EdgeType.BASIC);
                         externalNode.addHpaEdge(internalNode, EdgeType.BASIC);
@@ -105,9 +111,21 @@ public class HPAGraph {
         return regions;
     }
 
-    public HPAGraph addCustomNodes(){
-        //TODO
-        return this;
+    public void addCustomNodes(){
+        Collection<CustomEdgeData> edges = new HashSet<>();
+        edges.addAll(FairyRingEdgeData.getEdges());
+        edges.addAll(CharterNode.getEdges());
+
+        for (CustomEdgeData data : edges) {
+            HPARegion regionStart = getRegionContaining(data.getStart());
+            HPANode start = regionStart.getOrCreateNode(data.getStart(), NodeType.CUSTOM);
+
+            HPARegion regionEnd = getRegionContaining(data.getEnd());
+            HPANode end = regionEnd.getOrCreateNode(data.getEnd(), NodeType.CUSTOM);
+
+            start.getTemporaryEdges().add(new HPAEdge(start, end).setType(EdgeType.CUSTOM).setCustomEdgeData(data));
+            customNodeConnectionsCount++;
+        }
     }
 
     private void addInternalConnections(HPARegion region, HPANode startNode) {
@@ -204,17 +222,17 @@ public class HPAGraph {
                     if (MapFlags.check(flag, MapFlags.PLANE_CHANGE_UP)){
                         if (plane + 1 >= RsRegion.Z) continue;
 
-                        HPANode start = region.getOrCreateNode(location, EdgeType.PLANE_CHANGE);
-                        HPANode end = region.getOrCreateNode(location.clone(0, 0, 1), EdgeType.PLANE_CHANGE);
-                        start.addHpaEdge(end, EdgeType.PLANE_CHANGE).setType(EdgeType.PLANE_CHANGE);
+                        HPANode start = region.getOrCreateNode(location, NodeType.BASIC);
+                        HPANode end = region.getOrCreateNode(location.clone(0, 0, 1), NodeType.BASIC);
+                        start.addHpaEdge(end, EdgeType.PLANE_CHANGE);
                         stairNodeConnectionsAddedCount++;
                     }
 
                     if (MapFlags.check(flag, MapFlags.PLANE_CHANGE_DOWN)){
                         if (plane - 1 < 0) continue;
-                        HPANode start = region.getOrCreateNode(location, EdgeType.PLANE_CHANGE);
-                        HPANode end = region.getOrCreateNode(location.clone(0, 0, -1), EdgeType.PLANE_CHANGE);
-                        start.addHpaEdge(end, EdgeType.PLANE_CHANGE).setType(EdgeType.PLANE_CHANGE);
+                        HPANode start = region.getOrCreateNode(location, NodeType.BASIC);
+                        HPANode end = region.getOrCreateNode(location.clone(0, 0, -1), NodeType.BASIC);
+                        start.addHpaEdge(end, EdgeType.PLANE_CHANGE);
                         stairNodeConnectionsAddedCount++;
                     }
                 }

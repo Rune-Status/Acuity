@@ -12,10 +12,11 @@ import java.util.Map;
 @Getter
 @Setter
 @ToString
-public class RSPlayer {
+public class RsPlayer {
 
     private int combatLevel;
     private int spellBook;
     private Map<String, Integer> levels;
-    private Map<String, Integer> inventory;
+    private Map<Integer, Integer> inventory;
+    private Map<Integer, Integer> equipment;
 }

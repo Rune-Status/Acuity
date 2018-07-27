@@ -12,6 +12,7 @@ import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPAReg
 import com.acuitybotting.path_finding.enviroment.PathingEnviroment;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
 import com.acuitybotting.path_finding.rs.utils.EdgeType;
+import com.acuitybotting.path_finding.rs.utils.NodeType;
 import com.acuitybotting.path_finding.rs.utils.RsEnvironment;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

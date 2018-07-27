@@ -13,7 +13,5 @@ public interface MessagingChannelListener {
 
     void beforeMessageSend(MessagingChannel channel, Message message);
 
-    void onMessage(MessageEvent messageEvent);
-
     void onShutdown(MessagingChannel channel, Throwable cause);
 }

@@ -13,10 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 /**
@@ -31,7 +28,7 @@ public class RabbitClient implements MessagingClient {
     private String username;
     private String password;
 
-    private Executor executor = ExecutorUtil.newExecutorPool(3);
+    private ScheduledExecutorService scheduledExecutorService = ExecutorUtil.newScheduledExecutorPool(1);
 
     private Gson gson = new Gson();
 
@@ -44,6 +41,8 @@ public class RabbitClient implements MessagingClient {
     private Consumer<Throwable> throwableConsumer = throwable -> log.error("Error from Rabbit.", throwable);
     private Consumer<String> logConsumer = s -> log.info(s);
 
+    private ScheduledFuture<?> scheduledFuture;
+
     @Override
     public void auth(String endpoint, String username, String password) {
         this.endpoint = endpoint;
@@ -53,13 +52,17 @@ public class RabbitClient implements MessagingClient {
 
     @Override
     public void connect(String connectionId) {
+        if (scheduledFuture != null) throw new IllegalStateException("Client already connected.");
+
         rabbitId = connectionId;
         factory.setHost(endpoint);
         factory.setUsername(username);
         factory.setPassword(password);
+        factory.setTopologyRecoveryEnabled(false);
+        factory.setAutomaticRecoveryEnabled(false);
         if (virtualHost != null) factory.setVirtualHost(virtualHost);
 
-        executor.execute(this::doConnect);
+        scheduledFuture = scheduledExecutorService.scheduleAtFixedRate(this::checkConnection, 0, 10, TimeUnit.SECONDS);
     }
 
     private boolean close() {
@@ -75,11 +78,22 @@ public class RabbitClient implements MessagingClient {
         return connection == null;
     }
 
-    private void doConnect() {
+    private void checkConnection() {
+        if (connection != null && connection.isOpen()) return;
+
         try {
             if (close()) {
                 connection = factory.newConnection(rabbitId);
                 if (connection.isOpen()) {
+                    connection.addShutdownListener(e -> {
+                        for (MessagingClientListener listener : listeners) {
+                            try {
+                                listener.onShutdown(this);
+                            } catch (Throwable e1) {
+                                getExceptionHandler().accept(e1);
+                            }
+                        }
+                    });
                     getLog().accept("RabbitMq connection opened.");
                     for (MessagingClientListener listener : listeners) {
                         try {
@@ -96,14 +110,6 @@ public class RabbitClient implements MessagingClient {
         }
 
         getLog().accept("Failed to open RabbitMQ connection, waiting 10 seconds and trying again.");
-
-        try {
-            Thread.sleep(TimeUnit.SECONDS.toMillis(10));
-        } catch (InterruptedException e) {
-            getExceptionHandler().accept(e);
-        }
-
-        executor.execute(this::doConnect);
     }
 
     public RabbitClient setVirtualHost(String virtualHost) {
@@ -115,8 +121,8 @@ public class RabbitClient implements MessagingClient {
         return rabbitId;
     }
 
-    public Executor getExecutor() {
-        return executor;
+    public ScheduledExecutorService getScheduledExecutorService() {
+        return scheduledExecutorService;
     }
 
     public Map<String, MessageFuture> getMessageFutures() {

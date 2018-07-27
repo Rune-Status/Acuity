@@ -2,21 +2,22 @@ package com.acuitybotting.data.flow.messaging.services.events;
 
 import com.acuitybotting.data.flow.messaging.services.Message;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
+import com.acuitybotting.data.flow.messaging.services.client.MessagingQueue;
 
 /**
  * Created by Zachary Herridge on 7/19/2018.
  */
 public class MessageEvent {
 
-    private MessagingChannel channel;
+    private MessagingQueue queue;
     private Message message;
 
-    public MessagingChannel getChannel() {
-        return channel;
+    public MessagingQueue getQueue() {
+        return queue;
     }
 
-    public MessageEvent setChannel(MessagingChannel channel) {
-        this.channel = channel;
+    public MessageEvent setQueue(MessagingQueue queue) {
+        this.queue = queue;
         return this;
     }
 
@@ -36,7 +37,7 @@ public class MessageEvent {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("MessageEvent{");
-        sb.append("channel=").append(channel);
+        sb.append("queue=").append(queue);
         sb.append(", message=").append(message);
         sb.append('}');
         return sb.toString();

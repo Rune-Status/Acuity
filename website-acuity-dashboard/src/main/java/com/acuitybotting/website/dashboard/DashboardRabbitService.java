@@ -1,12 +1,12 @@
 package com.acuitybotting.website.dashboard;
 
-import com.acuitybotting.data.flow.messaging.services.Message;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingClient;
+import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit.RabbitChannel;
 import com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit.RabbitClient;
-import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.MessagingChannelAdapter;
-import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.MessagingClientAdapter;
+import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.ChannelListenerAdapter;
+import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.ClientListenerAdapter;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.website.dashboard.views.RootLayout;
 import lombok.extern.slf4j.Slf4j;
@@ -53,21 +53,23 @@ public class DashboardRabbitService implements CommandLineRunner {
             RabbitClient rabbitClient = new RabbitClient();
             rabbitClient.auth(host, username, password);
 
-            rabbitClient.getListeners().add(new MessagingClientAdapter(){
+            rabbitClient.getListeners().add(new ClientListenerAdapter(){
                 @Override
                 public void onConnect(MessagingClient client) {
                     rabbitChannel = (RabbitChannel) client.createChannel();
-                    rabbitChannel.getListeners().add(new MessagingChannelAdapter(){
+                    rabbitChannel.getListeners().add(new ChannelListenerAdapter(){
                         @Override
                         public void onConnect(MessagingChannel channel) {
-                            channel.consumeQueue("testQueue", true, true);
-                            channel.bindQueueToExchange("testQueue", "amq.rabbitmq.event", "queue.#");
-                            channel.bindQueueToExchange("testQueue", "acuitybotting.general", "user.*.services.bot-control.set-status");
-                        }
-
-                        @Override
-                        public void onMessage(MessageEvent messageEvent) {
-                            RootLayout.getGlobalEventBus().post(messageEvent.getMessage());
+                            try {
+                                channel.getQueue("testQueue")
+                                        .withListener(messageEvent -> RootLayout.getGlobalEventBus().post(messageEvent.getMessage()))
+                                        .create()
+                                        .bind("amq.rabbitmq.event", "queue.#")
+                                        .bind("acuitybotting.general", "user.*.services.bot-control.set-status")
+                                        .consume(true);
+                            } catch (MessagingException e) {
+                                e.printStackTrace();
+                            }
                         }
                     });
                     rabbitChannel.connect();
