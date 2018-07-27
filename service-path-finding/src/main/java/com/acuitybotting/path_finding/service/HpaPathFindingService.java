@@ -14,14 +14,17 @@ import com.acuitybotting.path_finding.algorithms.astar.implmentation.AStarImplem
 import com.acuitybotting.path_finding.algorithms.graph.Edge;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.HPAGraph;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.PathFindingSupplier;
-import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.*;
+import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPAEdge;
+import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPANode;
+import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPARegion;
+import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.TerminatingNode;
 import com.acuitybotting.path_finding.enviroment.PathingEnviroment;
-import com.acuitybotting.path_finding.rs.custom_edges.requirements.PlayerPredicate;
 import com.acuitybotting.path_finding.rs.custom_edges.requirements.abstractions.Player;
 import com.acuitybotting.path_finding.rs.custom_edges.requirements.implementations.PlayerImplementation;
 import com.acuitybotting.path_finding.rs.domain.graph.TileNode;
 import com.acuitybotting.path_finding.rs.domain.location.LocateableHeuristic;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
+import com.acuitybotting.path_finding.rs.utils.Direction;
 import com.acuitybotting.path_finding.rs.utils.MapFlags;
 import com.acuitybotting.path_finding.rs.utils.RsEnvironment;
 import com.acuitybotting.path_finding.rs.utils.RsMap;
@@ -206,13 +209,13 @@ public class HpaPathFindingService {
         }
     }
 
-    private boolean isBlocked(Location in){
+    private boolean isBlocked(Location in) {
         RsMap rsMap = RsEnvironment.getRsMap();
         Integer flag = rsMap.getFlagAt(in).orElse(null);
         return flag == null || MapFlags.isBlocked(flag);
     }
 
-    private Location adjustLocation(Location in){
+    private Location adjustLocation(Location in) {
         if (in == null) return null;
 
         if (!isBlocked(in)) return in;
@@ -222,7 +225,7 @@ public class HpaPathFindingService {
         open.add(in);
 
         int attempts = 0;
-        while (!open.isEmpty()){
+        while (!open.isEmpty()) {
             if (attempts++ > 100) break;
 
             Location poll = open.poll();
@@ -232,6 +235,10 @@ public class HpaPathFindingService {
             for (Edge neighbor : neighbors) {
                 Location end = ((TileNode) neighbor.getEnd()).getLocation();
                 if (!isBlocked(end)) return end;
+            }
+
+            for (Direction direction : Direction.values()) {
+                Location end = poll.clone(direction.getXOff(), direction.getYOff());
                 if (!closed.contains(end)) open.add(end);
             }
         }
@@ -266,17 +273,19 @@ public class HpaPathFindingService {
 
         List<Edge> hpaPath = null;
 
+        out:
         for (Edge se : startNode.getEdges()) {
             for (Edge ee : endNode.getEdges()) {
-                if (se.getEnd().equals(ee.getStart())){
+                if (se.getEnd().equals(ee.getStart())) {
                     hpaPath = new ArrayList<>();
                     hpaPath.add(se);
                     hpaPath.add(ee);
+                    break out;
                 }
             }
         }
 
-        if (hpaPath == null){
+        if (hpaPath == null) {
             AStarImplementation astar = new AStarImplementation();
             astar.setArgs(Collections.singletonMap("player", player));
             startNode.getEdges().forEach(edge -> astar.addStartingNode(edge.getEnd()));
@@ -284,7 +293,7 @@ public class HpaPathFindingService {
             hpaPath = (List<Edge>) astar.findPath(new LocateableHeuristic()).orElse(null);
             pathResult.setAStarImplementation(astar);
 
-            if (hpaPath != null){
+            if (hpaPath != null) {
                 Edge edgeTo = startNode.getEdgeTo((HPANode) hpaPath.get(0).getStart());
                 if (edgeTo != null) hpaPath.add(0, edgeTo);
 

@@ -20,7 +20,7 @@ public class TerminatingNode extends HPANode {
 
     private Set<Edge> edges = new HashSet<>();
 
-    public TerminatingNode(HPARegion region, Location location, Player rsPlayer, boolean end) {
+    public TerminatingNode(HPARegion region, Location location, Player player, boolean end) {
         super(region, location, NodeType.TERMINATING);
 
         HPANode hpaNode = region.getNodes().get(location);
@@ -38,7 +38,7 @@ public class TerminatingNode extends HPANode {
 
         if (!end){
             for (CustomEdgeData customEdgeData : TeleportNode.getEdges()) {
-                if (rsPlayer == null || customEdgeData.getPlayerPredicates().stream().allMatch(playerPredicate -> playerPredicate.test(rsPlayer))){
+                if (player == null || customEdgeData.getPlayerPredicates().stream().allMatch(playerPredicate -> playerPredicate.test(player))){
                     HPARegion regionContaining = region.getHpaGraph().getRegionContaining(customEdgeData.getEnd());
                     if (regionContaining != null){
                         HPANode teleportEnd = regionContaining.getNodes().get(customEdgeData.getEnd());
