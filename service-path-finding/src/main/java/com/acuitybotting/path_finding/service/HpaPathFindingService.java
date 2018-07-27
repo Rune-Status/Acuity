@@ -12,12 +12,9 @@ import com.acuitybotting.db.arango.path_finding.domain.xtea.Xtea;
 import com.acuitybotting.path_finding.algorithms.astar.AStarService;
 import com.acuitybotting.path_finding.algorithms.astar.implmentation.AStarImplementation;
 import com.acuitybotting.path_finding.algorithms.graph.Edge;
-import com.acuitybotting.path_finding.algorithms.graph.Node;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.HPAGraph;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.PathFindingSupplier;
-import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPAEdge;
-import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPARegion;
-import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.TerminatingNode;
+import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.*;
 import com.acuitybotting.path_finding.enviroment.PathingEnviroment;
 import com.acuitybotting.path_finding.rs.custom_edges.requirements.PlayerPredicate;
 import com.acuitybotting.path_finding.rs.custom_edges.requirements.abstractions.Player;
@@ -25,7 +22,6 @@ import com.acuitybotting.path_finding.rs.custom_edges.requirements.implementatio
 import com.acuitybotting.path_finding.rs.domain.graph.TileNode;
 import com.acuitybotting.path_finding.rs.domain.location.LocateableHeuristic;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
-import com.acuitybotting.path_finding.rs.utils.EdgeType;
 import com.acuitybotting.path_finding.rs.utils.RsEnvironment;
 import com.acuitybotting.path_finding.service.domain.PathRequest;
 import com.acuitybotting.path_finding.service.domain.PathResult;
@@ -227,6 +223,7 @@ public class HpaPathFindingService {
         Objects.requireNonNull(endRegion);
 
         PathResult pathResult = new PathResult();
+
         if (startRegion.equals(endRegion)) {
             List<Edge> internalPath = (List<Edge>) graph.findInternalPath(startLocation, endLocation, startRegion, true);
             if (internalPath != null) {
@@ -235,34 +232,60 @@ public class HpaPathFindingService {
             }
         }
 
-        TerminatingNode endNode = new TerminatingNode(endRegion, endLocation);
-        endNode.connectToGraph();
+        AStarImplementation astar = new AStarImplementation();
 
-        TerminatingNode startNode = new TerminatingNode(startRegion, startLocation).addStartEdges();
-        //todo startNode.addStartEdges();
-        startNode.connectToGraph();
-
-        try {
-            AStarImplementation aStarImplementation = new AStarImplementation()
-                    .setEdgePredicate(edge -> {
-                        if (edge instanceof HPAEdge) {
-                            HPAEdge hpaEdge = (HPAEdge) edge;
-                            if (hpaEdge.getType() == EdgeType.CUSTOM && hpaEdge.getCustomEdgeData() != null && !evaluateCustomEdge(hpaEdge, rsPlayer))
-                                return false;
-                        }
-
-                        Node end = edge.getEnd();
-                        return !(edge instanceof TerminatingNode) || end.equals(endNode);
-                    });
-
-            List<? extends Edge> hpaPath = aStarImplementation.findPath(new LocateableHeuristic(), startNode, endNode).orElse(null);
-            pathResult.setPath((List<Edge>) hpaPath);
-            pathResult.setAStarImplementation(aStarImplementation);
-            return pathResult;
-        } finally {
-            startNode.disconnectFromGraph();
-            endNode.disconnectFromGraph();
+        Set<HPAGraph.InternalConnection> startConnections = null;
+        HPANode startNode = startRegion.getNodes().get(startLocation);
+        if (startNode != null){
+            astar.addStartingNode(startNode);
         }
+        else {
+            startNode = new TerminatingNode(startRegion, startLocation);
+            startConnections = graph.findInternalConnections(startRegion, startNode, -1);
+            startConnections.forEach(internalConnection -> astar.addStartingNode(internalConnection.getEnd()));
+        }
+
+        Set<HPAGraph.InternalConnection> endConnections = null;
+        HPANode endNode = endRegion.getNodes().get(endLocation);
+        if (endNode != null){
+            astar.addDestinationNode(endNode);
+        }
+        else {
+            endNode = new TerminatingNode(endRegion, endLocation);
+            endConnections = graph.findInternalConnections(endRegion, endNode, -1);
+            endConnections.forEach(internalConnection -> astar.addDestinationNode(internalConnection.getEnd()));
+        }
+
+        List<Edge> hpaPath = (List<Edge>) astar.findPath(new LocateableHeuristic()).orElse(null);
+
+
+        if (hpaPath != null){
+            if (startConnections != null && hpaPath.size() > 0){
+                Edge edge = hpaPath.get(0);
+                for (HPAGraph.InternalConnection startConnection : startConnections) {
+                    if (startConnection.getEnd().equals(edge.getStart())){
+                        TerminatingEdge hpaEdge = new TerminatingEdge(startNode, startConnection.getEnd());
+                        hpaEdge.setPath(startConnection.getPath(), false);
+                        hpaPath.add(0, hpaEdge);
+                    }
+                }
+            }
+
+            if (endConnections != null && hpaPath.size() > 0){
+                Edge edge = hpaPath.get(hpaPath.size() - 1);
+                for (HPAGraph.InternalConnection endConnection : endConnections) {
+                    if (endConnection.getEnd().equals(edge.getEnd())){
+                        TerminatingEdge hpaEdge = new TerminatingEdge((HPANode) edge.getEnd(), endNode);
+                        hpaEdge.setPath(endConnection.getPath(), true);
+                        hpaPath.add( hpaEdge);
+                    }
+                }
+            }
+        }
+
+        pathResult.setPath(hpaPath);
+        pathResult.setAStarImplementation(astar);
+        return pathResult;
     }
 
     private PathFindingSupplier getPathFindingSupplier() {

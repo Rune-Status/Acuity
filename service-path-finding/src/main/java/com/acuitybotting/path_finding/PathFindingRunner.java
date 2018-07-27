@@ -80,8 +80,7 @@ public class PathFindingRunner implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try {
-            dump();
-            openUi().getMapPanel().addPlugin(new HpaPlugin(hpaPathFindingService.loadHpa(1)));
+            openUi().getMapPanel().addPlugin(new HpaPlugin(hpaPathFindingService.loadHpa(1)).setPathFindingService(hpaPathFindingService));
         } catch (Throwable e) {
             e.printStackTrace();
         }

@@ -15,6 +15,8 @@ import com.acuitybotting.path_finding.rs.domain.location.LocateableHeuristic;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
 import com.acuitybotting.path_finding.rs.domain.location.LocationPair;
 import com.acuitybotting.path_finding.rs.utils.EdgeType;
+import com.acuitybotting.path_finding.service.HpaPathFindingService;
+import com.acuitybotting.path_finding.service.domain.PathResult;
 import org.springframework.expression.spel.ast.Projection;
 
 import java.awt.*;
@@ -35,10 +37,10 @@ public class HpaPlugin extends Plugin {
     private HPARegion startRegion, endRegion;
     private TerminatingNode startNode, endNode;
 
-    private java.util.List<Edge> path;
+    private PathResult pathResult;
     private Executor executor = ExecutorUtil.newExecutorPool(1);
 
-    private AStarImplementation aStarImplementation;
+    private HpaPathFindingService pathFindingService;
 
     private Color[] nodeColorings = new Color[]{Color.BLUE, Color.RED, Color.CYAN};
 
@@ -98,20 +100,29 @@ public class HpaPlugin extends Plugin {
                 getPaintUtil().connectLocations(graphics, externalConnection.getStart(), externalConnection.getEnd(), Color.BLUE);
             }
 
-        }
-
-        HPANode hpaNode = clickRegion.getNodes().get(click);
-        if (hpaNode != null){
-            for (Edge edge : hpaNode.getNeighbors()) {
-                getPaintUtil().connectLocations(graphics, edge.getStart(), edge.getEnd(), Color.MAGENTA);
+            HPANode hpaNode = clickRegion.getNodes().get(click);
+            if (hpaNode != null){
+                for (Edge edge : hpaNode.getNeighbors()) {
+                    getPaintUtil().connectLocations(graphics, edge.getStart(), edge.getEnd(), Color.MAGENTA);
+                }
             }
         }
 
-        if (path != null) {
-            for (Edge edge : path) {
-                getPaintUtil().connectLocations(graphics, edge.getStart(), edge.getEnd(), Color.MAGENTA);
+
+        if (pathResult != null){
+            if (pathResult.getAStarImplementation() != null){
+                for (Node node : pathResult.getAStarImplementation().getCostCache().keySet()) {
+                    getPaintUtil().markLocation(graphics, node, Color.ORANGE);
+                }
+            }
+
+            if (pathResult.getPath() != null) {
+                for (Edge edge : pathResult.getPath()) {
+                    getPaintUtil().connectLocations(graphics, edge.getStart(), edge.getEnd(), Color.MAGENTA);
+                }
             }
         }
+
         if (startNode != null) getPaintUtil().markLocation(graphics, startNode, Color.RED);
         if (endNode != null) getPaintUtil().markLocation(graphics, endNode, Color.GREEN);
     }
@@ -123,18 +134,14 @@ public class HpaPlugin extends Plugin {
                 end = getMapPanel().getMouseLocation();
                 endRegion = graph.getRegionContaining(end);
                 if (endRegion != null) {
-                    if (endNode != null) endNode.disconnectFromGraph();
                     endNode = new TerminatingNode(endRegion, end);
-                    endNode.connectToGraph();
                 }
                 getMapPanel().repaint();
             } else {
                 start = getMapPanel().getMouseLocation();
                 startRegion = graph.getRegionContaining(start);
                 if (startRegion != null) {
-                    if (startNode != null) startNode.disconnectFromGraph();
                     startNode = new TerminatingNode(startRegion, start);
-                    startNode.connectToGraph();
                 }
 
                 getMapPanel().repaint();
@@ -142,22 +149,21 @@ public class HpaPlugin extends Plugin {
 
             if (startNode != null && endNode != null) {
                 executor.execute(() -> {
-                    startNode.disconnectFromGraph();
-                    startNode.connectToGraph();
-                    endNode.disconnectFromGraph();
-                    endNode.connectToGraph();
+                    try {
+                        pathResult = pathFindingService.findPath(start, end, null);
+                    } catch (Exception e1) {
+                        e1.printStackTrace();
+                    }
 
-                    aStarImplementation = new AStarImplementation()
-                            .setEdgePredicate(edge -> {
-                                Node end = edge.getEnd();
-                                return !(edge instanceof TerminatingNode) || end.equals(endNode);
-                            })
-                            .setDebugMode(true);
-                    path = (List<Edge>) aStarImplementation.findPath(new LocateableHeuristic(), startNode, endNode).orElse(null);
                     getMapPanel().repaint();
                 });
             }
         }
+    }
+
+    public HpaPlugin setPathFindingService(HpaPathFindingService pathFindingService) {
+        this.pathFindingService = pathFindingService;
+        return this;
     }
 
     @Override

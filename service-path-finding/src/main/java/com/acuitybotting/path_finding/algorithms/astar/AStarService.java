@@ -28,7 +28,7 @@ public class AStarService {
     }
 
     public Optional<List<? extends Edge>> findPath(AStarHeuristicSupplier heuristicSupplier, Node start, Node end, Predicate<Edge> edgePredicate, Map<String, Object> args) {
-        return build().setEdgePredicate(edgePredicate).setArgs(args).findPath(heuristicSupplier, start, end);
+        return build().setEdgePredicate(edgePredicate).setArgs(args).addStartingNode(start).addDestinationNode(end).findPath(heuristicSupplier);
     }
 
     public AStarImplementation build(){
