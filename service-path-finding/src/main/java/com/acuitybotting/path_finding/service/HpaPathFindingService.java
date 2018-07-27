@@ -217,7 +217,6 @@ public class HpaPathFindingService {
         }
     }
 
-
     private boolean isBlocked(Location in){
         RsMap rsMap = RsEnvironment.getRsMap();
         Integer flag = rsMap.getFlagAt(in).orElse(null);
@@ -283,7 +282,7 @@ public class HpaPathFindingService {
         List<Edge> hpaPath = (List<Edge>) astar.findPath(new LocateableHeuristic()).orElse(null);
 
         if (hpaPath != null){
-            TerminatingEdge edgeTo = startNode.getEdgeTo((HPANode) hpaPath.get(0).getStart());
+            Edge edgeTo = startNode.getEdgeTo((HPANode) hpaPath.get(0).getStart());
             if (edgeTo != null) hpaPath.add(0, edgeTo);
 
             edgeTo = endNode.getEdgeTo((HPANode) hpaPath.get(hpaPath.size() - 1).getEnd());

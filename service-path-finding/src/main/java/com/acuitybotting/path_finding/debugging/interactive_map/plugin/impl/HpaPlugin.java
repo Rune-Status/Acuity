@@ -57,7 +57,7 @@ public class HpaPlugin extends Plugin {
         if (graph == null) return;
 
         if (startNode != null){
-            for (Edge edge : startNode.getNeighbors()) {
+            for (Edge edge : startNode.getEdges()) {
                 if (edge instanceof HPAEdge){
                     if (((HPAEdge) edge).getType() == EdgeType.CUSTOM){
                         getPaintUtil().connectLocations(graphics, edge.getStart(), edge.getEnd(), Color.BLACK);

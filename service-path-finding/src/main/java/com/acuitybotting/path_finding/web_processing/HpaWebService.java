@@ -44,8 +44,9 @@ public class HpaWebService {
             HPARegion region = new HPARegion(graph, savedRegion.getRoot(), savedRegion.getWidth(), savedRegion.getHeight());
             graph.getRegions().put(region.getKey(), region);
         }
-
         log.info("Loaded {} SavedRegion(s).", graph.getRegions().size());
+
+        graph.addCustomNodes();
 
         Map<String, SavedNode> nodeMap = new HashMap<>();
         for (SavedNode savedNode : PathingEnviroment.loadFrom(PathingEnviroment.NODES, "nodes_" + version, SavedNode[].class).orElse(null)) {

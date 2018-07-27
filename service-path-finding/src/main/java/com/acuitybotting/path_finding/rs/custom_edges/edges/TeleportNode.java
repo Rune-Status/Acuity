@@ -217,10 +217,11 @@ public class TeleportNode {
                                     || hasRequiredRunes(player, node)));
 
             if (node.wilderness) {
-                edgeData = edgeData.withInteraction(new Interaction()
-                        .setType(Interaction.INTERFACE)
-                        .withData("OPTION", "Yes, teleport me now.")
-                        .withData("WILDERNESS", true));
+                edgeData = edgeData
+                        .withInteraction(new Interaction()
+                                .setType(Interaction.INTERFACE)
+                                .withData("OPTION", "Yes, teleport me now.")
+                                .withData("WILDERNESS", true));
             }
 
             connections.add(edgeData);

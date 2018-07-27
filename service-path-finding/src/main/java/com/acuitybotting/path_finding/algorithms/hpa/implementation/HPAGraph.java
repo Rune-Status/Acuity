@@ -10,11 +10,15 @@ import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPAReg
 import com.acuitybotting.path_finding.rs.custom_edges.CustomEdgeData;
 import com.acuitybotting.path_finding.rs.custom_edges.edges.CharterNode;
 import com.acuitybotting.path_finding.rs.custom_edges.edges.FairyRingEdgeData;
+import com.acuitybotting.path_finding.rs.custom_edges.edges.TeleportNode;
 import com.acuitybotting.path_finding.rs.domain.graph.TileEdge;
 import com.acuitybotting.path_finding.rs.domain.location.Locateable;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
 import com.acuitybotting.path_finding.rs.domain.location.LocationPair;
-import com.acuitybotting.path_finding.rs.utils.*;
+import com.acuitybotting.path_finding.rs.utils.EdgeType;
+import com.acuitybotting.path_finding.rs.utils.MapFlags;
+import com.acuitybotting.path_finding.rs.utils.NodeType;
+import com.acuitybotting.path_finding.rs.utils.RsEnvironment;
 import com.acuitybotting.path_finding.xtea.domain.rs.cache.RsRegion;
 import lombok.Getter;
 import lombok.Setter;
@@ -111,20 +115,29 @@ public class HPAGraph {
         return regions;
     }
 
-    public void addCustomNodes(){
+    public void addCustomNodes() {
         Collection<CustomEdgeData> edges = new HashSet<>();
         edges.addAll(FairyRingEdgeData.getEdges());
         edges.addAll(CharterNode.getEdges());
+        edges.addAll(TeleportNode.getEdges());
 
         for (CustomEdgeData data : edges) {
-            HPARegion regionStart = getRegionContaining(data.getStart());
-            HPANode start = regionStart.getOrCreateNode(data.getStart(), NodeType.CUSTOM);
+            HPANode start = null;
+            if (data.getStart() != null) {
+                HPARegion regionStart = getRegionContaining(data.getStart());
+                if (regionStart != null) start = regionStart.getOrCreateNode(data.getStart(), NodeType.CUSTOM);
+            }
 
-            HPARegion regionEnd = getRegionContaining(data.getEnd());
-            HPANode end = regionEnd.getOrCreateNode(data.getEnd(), NodeType.CUSTOM);
+            HPANode end = null;
+            if (data.getEnd() != null) {
+                HPARegion regionEnd = getRegionContaining(data.getEnd());
+                if (regionEnd != null) end = regionEnd.getOrCreateNode(data.getEnd(), NodeType.CUSTOM);
+            }
 
-            start.getTemporaryEdges().add(new HPAEdge(start, end).setType(EdgeType.CUSTOM).setCustomEdgeData(data));
-            customNodeConnectionsCount++;
+            if (start != null && end != null) {
+                start.getTemporaryEdges().add(new HPAEdge(start, end).setType(EdgeType.CUSTOM).setCustomEdgeData(data));
+                customNodeConnectionsCount++;
+            }
         }
     }
 
@@ -138,16 +151,6 @@ public class HPAGraph {
                     .addHpaEdge(internalConnection.getStart(), EdgeType.BASIC, internalConnection.getPath().size())
                     .setPathKey(RsEnvironment.getRsMap().addPath(internalConnection.getPath(), true));
         }
-    }
-
-
-    @Getter
-    @Setter
-    public static class InternalConnection {
-
-        private HPANode start, end;
-        private List<TileEdge> path;
-
     }
 
     public Set<InternalConnection> findInternalConnections(HPARegion region, HPANode startNode, int limit) {
@@ -172,7 +175,7 @@ public class HPAGraph {
     }
 
     @SuppressWarnings("unchecked")
-    private boolean evaluateInternalConnection(Set<InternalConnection> internalConnections, HPARegion region, HPANode startNode, HPANode endNode){
+    private boolean evaluateInternalConnection(Set<InternalConnection> internalConnections, HPARegion region, HPANode startNode, HPANode endNode) {
         if (startNode.getHpaEdges().stream().anyMatch(edge -> edge.getEnd().equals(endNode))) {
             return true;
         }
@@ -200,8 +203,7 @@ public class HPAGraph {
         return false;
     }
 
-
-    public List<? extends Edge> findInternalPath(Location start, Location end, HPARegion limit, boolean ignoreStartBlocked){
+    public List<? extends Edge> findInternalPath(Location start, Location end, HPARegion limit, boolean ignoreStartBlocked) {
         return pathFindingSupplier.findPath(
                 start,
                 end,
@@ -219,7 +221,7 @@ public class HPAGraph {
                     Integer flag = RsEnvironment.getRsMap().getFlagAt(location).orElse(null);
                     if (flag == null) continue;
 
-                    if (MapFlags.check(flag, MapFlags.PLANE_CHANGE_UP)){
+                    if (MapFlags.check(flag, MapFlags.PLANE_CHANGE_UP)) {
                         if (plane + 1 >= RsRegion.Z) continue;
 
                         HPANode start = region.getOrCreateNode(location, NodeType.BASIC);
@@ -228,7 +230,7 @@ public class HPAGraph {
                         stairNodeConnectionsAddedCount++;
                     }
 
-                    if (MapFlags.check(flag, MapFlags.PLANE_CHANGE_DOWN)){
+                    if (MapFlags.check(flag, MapFlags.PLANE_CHANGE_DOWN)) {
                         if (plane - 1 < 0) continue;
                         HPANode start = region.getOrCreateNode(location, NodeType.BASIC);
                         HPANode end = region.getOrCreateNode(location.clone(0, 0, -1), NodeType.BASIC);
@@ -284,8 +286,8 @@ public class HPAGraph {
             boolean connectsLast = lastPair != null && pathFindingSupplier.isDirectlyConnected(connection.getStart(), lastPair.getStart());
             lastPair = connection;
 
-            if (connectsOut){
-                if (!connectsLast || !lastConnectsOut){
+            if (connectsOut) {
+                if (!connectsLast || !lastConnectsOut) {
                     goodConnections.add(connection);
                     lastConnectsOut = true;
                     continue;
@@ -323,5 +325,14 @@ public class HPAGraph {
         sb.append(", regionHeight=").append(regionHeight);
         sb.append('}');
         return sb.toString();
+    }
+
+    @Getter
+    @Setter
+    public static class InternalConnection {
+
+        private HPANode start, end;
+        private List<TileEdge> path;
+
     }
 }

@@ -1,7 +1,11 @@
 package com.acuitybotting.path_finding.algorithms.hpa.implementation.graph;
 
+import com.acuitybotting.path_finding.algorithms.graph.Edge;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.HPAGraph;
+import com.acuitybotting.path_finding.rs.custom_edges.CustomEdgeData;
+import com.acuitybotting.path_finding.rs.custom_edges.edges.TeleportNode;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
+import com.acuitybotting.path_finding.rs.utils.EdgeType;
 import com.acuitybotting.path_finding.rs.utils.NodeType;
 
 import java.util.HashSet;
@@ -12,7 +16,7 @@ import java.util.Set;
  */
 public class TerminatingNode extends HPANode {
 
-    private Set<TerminatingEdge> edges = new HashSet<>();
+    private Set<Edge> edges = new HashSet<>();
 
     public TerminatingNode(HPARegion region, Location location, boolean end) {
         super(region, location, NodeType.TERMINATING);
@@ -29,16 +33,29 @@ public class TerminatingNode extends HPANode {
                 else edges.add(new TerminatingEdge(this, internalConnection.getEnd()).setPath(internalConnection.getPath(), false));
             }
         }
+
+        if (!end){
+            for (CustomEdgeData customEdgeData : TeleportNode.getEdges()) {
+                HPARegion regionContaining = region.getHpaGraph().getRegionContaining(customEdgeData.getEnd());
+                if (regionContaining != null){
+                    HPANode teleportEnd = regionContaining.getNodes().get(customEdgeData.getEnd());
+                    if (teleportEnd != null){
+                        edges.add(new HPAEdge(this, teleportEnd).setType(EdgeType.CUSTOM));
+                    }
+                }
+
+            }
+        }
     }
 
-    public Set<TerminatingEdge> getEdges() {
+    public Set<Edge> getEdges() {
         return edges;
     }
 
-    public TerminatingEdge getEdgeTo(HPANode hpaNode){
-        for (TerminatingEdge terminatingEdge : getEdges()) {
-            if (terminatingEdge.getEnd().equals(hpaNode)) return terminatingEdge;
-            if (terminatingEdge.getStart().equals(hpaNode)) return terminatingEdge;
+    public Edge getEdgeTo(HPANode hpaNode){
+        for (Edge edge : getEdges()) {
+            if (edge.getEnd().equals(hpaNode)) return edge;
+            if (edge.getStart().equals(hpaNode)) return edge;
         }
         return null;
     }
