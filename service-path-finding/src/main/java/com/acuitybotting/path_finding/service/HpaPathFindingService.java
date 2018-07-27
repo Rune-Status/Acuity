@@ -22,7 +22,9 @@ import com.acuitybotting.path_finding.rs.custom_edges.requirements.implementatio
 import com.acuitybotting.path_finding.rs.domain.graph.TileNode;
 import com.acuitybotting.path_finding.rs.domain.location.LocateableHeuristic;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
+import com.acuitybotting.path_finding.rs.utils.MapFlags;
 import com.acuitybotting.path_finding.rs.utils.RsEnvironment;
+import com.acuitybotting.path_finding.rs.utils.RsMap;
 import com.acuitybotting.path_finding.service.domain.PathRequest;
 import com.acuitybotting.path_finding.service.domain.PathResult;
 import com.acuitybotting.path_finding.service.domain.abstractions.player.RsPlayer;
@@ -42,6 +44,7 @@ import java.util.*;
 import java.util.function.Predicate;
 
 import static com.acuitybotting.data.flow.messaging.services.client.MessagingClient.RESPONSE_QUEUE;
+import static com.acuitybotting.path_finding.rs.domain.graph.TileNode.IGNORE_BLOCKED;
 
 @Getter
 @Setter
@@ -214,8 +217,45 @@ public class HpaPathFindingService {
         }
     }
 
+
+    private boolean isBlocked(Location in){
+        RsMap rsMap = RsEnvironment.getRsMap();
+        Integer flag = rsMap.getFlagAt(in).orElse(null);
+        return flag == null || MapFlags.isBlocked(flag);
+    }
+
+    private Location adjustLocation(Location in){
+        if (in == null) return null;
+
+        if (!isBlocked(in)) return in;
+
+        Set<Location> closed = new HashSet<>();
+        Queue<Location> open = new LinkedList<>();
+        open.add(in);
+
+        int attempts = 0;
+        while (!open.isEmpty()){
+            if (attempts++ > 100) break;
+
+            Location poll = open.poll();
+            closed.add(poll);
+
+            Collection<Edge> neighbors = new TileNode(poll).getNeighbors(Collections.singletonMap(IGNORE_BLOCKED, poll));
+            for (Edge neighbor : neighbors) {
+                Location end = ((TileNode) neighbor.getEnd()).getLocation();
+                if (!isBlocked(end)) return end;
+                if (!closed.contains(end)) open.add(end);
+            }
+        }
+
+        return in;
+    }
+
     @SuppressWarnings("unchecked")
     public PathResult findPath(Location startLocation, Location endLocation, RsPlayer rsPlayer) throws Exception {
+        startLocation = adjustLocation(startLocation);
+        endLocation = adjustLocation(endLocation);
+
         HPARegion startRegion = graph.getRegionContaining(startLocation);
         HPARegion endRegion = graph.getRegionContaining(endLocation);
 
@@ -264,7 +304,7 @@ public class HpaPathFindingService {
                         RsEnvironment.getRsMap().getNode(start),
                         RsEnvironment.getRsMap().getNode(end),
                         predicate,
-                        ignoreStartBlocked ? Collections.singletonMap(TileNode.IGNORE_BLOCKED, start) : Collections.emptyMap()
+                        ignoreStartBlocked ? Collections.singletonMap(IGNORE_BLOCKED, start) : Collections.emptyMap()
                 );
             }
 

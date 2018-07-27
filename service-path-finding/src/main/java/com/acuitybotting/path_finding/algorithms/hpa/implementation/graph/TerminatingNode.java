@@ -1,8 +1,6 @@
 package com.acuitybotting.path_finding.algorithms.hpa.implementation.graph;
 
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.HPAGraph;
-import com.acuitybotting.path_finding.rs.custom_edges.CustomEdgeData;
-import com.acuitybotting.path_finding.rs.custom_edges.edges.TeleportNode;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
 import com.acuitybotting.path_finding.rs.utils.NodeType;
 
