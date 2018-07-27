@@ -271,26 +271,40 @@ public class HpaPathFindingService {
             }
         }
 
-        AStarImplementation astar = new AStarImplementation();
 
         TerminatingNode startNode = new TerminatingNode(startRegion, startLocation, false);
-        startNode.getEdges().forEach(terminatingEdge -> astar.addStartingNode(terminatingEdge.getEnd()));
-
         TerminatingNode endNode = new TerminatingNode(endRegion, endLocation, true);
-        endNode.getEdges().forEach(terminatingEdge -> astar.addDestinationNode(terminatingEdge.getStart()));
 
-        List<Edge> hpaPath = (List<Edge>) astar.findPath(new LocateableHeuristic()).orElse(null);
+        List<Edge> hpaPath = null;
 
-        if (hpaPath != null){
-            Edge edgeTo = startNode.getEdgeTo((HPANode) hpaPath.get(0).getStart());
-            if (edgeTo != null) hpaPath.add(0, edgeTo);
-
-            edgeTo = endNode.getEdgeTo((HPANode) hpaPath.get(hpaPath.size() - 1).getEnd());
-            if (edgeTo != null) hpaPath.add(edgeTo);
+        for (Edge se : startNode.getEdges()) {
+            for (Edge ee : endNode.getEdges()) {
+                if (se.getEnd().equals(ee.getStart())){
+                    hpaPath = new ArrayList<>();
+                    hpaPath.add(se);
+                    hpaPath.add(ee);
+                }
+            }
         }
 
+        if (hpaPath == null){
+            AStarImplementation astar = new AStarImplementation();
+            startNode.getEdges().forEach(edge -> astar.addStartingNode(edge.getEnd()));
+            endNode.getEdges().forEach(edge -> astar.addDestinationNode(edge.getStart()));
+            hpaPath = (List<Edge>) astar.findPath(new LocateableHeuristic()).orElse(null);
+            pathResult.setAStarImplementation(astar);
+
+            if (hpaPath != null){
+                Edge edgeTo = startNode.getEdgeTo((HPANode) hpaPath.get(0).getStart());
+                if (edgeTo != null) hpaPath.add(0, edgeTo);
+
+                edgeTo = endNode.getEdgeTo((HPANode) hpaPath.get(hpaPath.size() - 1).getEnd());
+                if (edgeTo != null) hpaPath.add(edgeTo);
+            }
+        }
+
+
         pathResult.setPath(hpaPath);
-        pathResult.setAStarImplementation(astar);
         return pathResult;
     }
 

@@ -75,9 +75,6 @@ public class HPAGraph {
         });
         log.info("Found {} stair connections.", stairNodeConnectionsAddedCount);
 
-        addCustomNodes();
-        log.info("Found {} custom connections", customNodeConnectionsCount);
-
         ExecutorUtil.run(20, executor -> {
             for (HPARegion internalHPARegion : regions.values()) {
                 executor.execute(() -> {
@@ -110,6 +107,9 @@ public class HPAGraph {
         });
         log.info("Found {} internal connections.", internalConnectionCount);
 
+        addCustomNodes();
+        log.info("Found {} custom connections", customNodeConnectionsCount);
+
         log.info("Finished creating HPA graph in {} seconds.", (System.currentTimeMillis() - startTimestamp) / 1000);
 
         return regions;
@@ -125,13 +125,19 @@ public class HPAGraph {
             HPANode start = null;
             if (data.getStart() != null) {
                 HPARegion regionStart = getRegionContaining(data.getStart());
-                if (regionStart != null) start = regionStart.getOrCreateNode(data.getStart(), NodeType.CUSTOM);
+                if (regionStart != null) {
+                    start = regionStart.getOrCreateNode(data.getStart(), NodeType.CUSTOM);
+                    addInternalConnections(regionStart, start);
+                }
             }
 
             HPANode end = null;
             if (data.getEnd() != null) {
                 HPARegion regionEnd = getRegionContaining(data.getEnd());
-                if (regionEnd != null) end = regionEnd.getOrCreateNode(data.getEnd(), NodeType.CUSTOM);
+                if (regionEnd != null) {
+                    end = regionEnd.getOrCreateNode(data.getEnd(), NodeType.CUSTOM);
+                    addInternalConnections(regionEnd, end);
+                }
             }
 
             if (start != null && end != null) {

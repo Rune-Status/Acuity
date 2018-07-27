@@ -46,8 +46,6 @@ public class HpaWebService {
         }
         log.info("Loaded {} SavedRegion(s).", graph.getRegions().size());
 
-        graph.addCustomNodes();
-
         Map<String, SavedNode> nodeMap = new HashMap<>();
         for (SavedNode savedNode : PathingEnviroment.loadFrom(PathingEnviroment.NODES, "nodes_" + version, SavedNode[].class).orElse(null)) {
             nodeMap.put(savedNode.getKey(), savedNode);
@@ -78,6 +76,8 @@ public class HpaWebService {
         }
         log.info("Loaded {} SavedEdge(s).", edgeCount);
 
+        graph.addCustomNodes();
+
         log.info("Finished loading HPA graph version {} into {}.", version, graph);
 
         return graph;
@@ -100,7 +100,7 @@ public class HpaWebService {
             savedRegions.add(savedRegion);
 
             for (HPANode hpaNode : hpaRegion.getNodes().values()) {
-                if (hpaNode.getType() == EdgeType.CUSTOM) continue;
+                if (hpaNode.getType() != NodeType.BASIC) continue;
 
                 SavedNode savedNode = createSavedNode(keySupplier.get(), savedRegion, hpaNode);
                 savedNode.setWebVersion(version);
@@ -113,6 +113,7 @@ public class HpaWebService {
         for (Map.Entry<HPANode, SavedNode> entry : nodeMap.entrySet()) {
             for (Edge edge : entry.getKey().getHpaEdges()) {
                 HPAEdge hpaEdge = (HPAEdge) edge;
+                if (hpaEdge.getEnd().getType() != NodeType.BASIC) continue;
 
                 SavedNode startNode = nodeMap.get(hpaEdge.getStart());
                 SavedNode endNode = nodeMap.get(hpaEdge.getEnd());
