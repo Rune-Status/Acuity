@@ -4,9 +4,11 @@ import com.acuitybotting.path_finding.algorithms.graph.Edge;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.HPAGraph;
 import com.acuitybotting.path_finding.rs.custom_edges.CustomEdgeData;
 import com.acuitybotting.path_finding.rs.custom_edges.edges.TeleportNode;
+import com.acuitybotting.path_finding.rs.custom_edges.requirements.abstractions.Player;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
 import com.acuitybotting.path_finding.rs.utils.EdgeType;
 import com.acuitybotting.path_finding.rs.utils.NodeType;
+import com.acuitybotting.path_finding.service.domain.abstractions.player.RsPlayer;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -18,7 +20,7 @@ public class TerminatingNode extends HPANode {
 
     private Set<Edge> edges = new HashSet<>();
 
-    public TerminatingNode(HPARegion region, Location location, boolean end) {
+    public TerminatingNode(HPARegion region, Location location, Player rsPlayer, boolean end) {
         super(region, location, NodeType.TERMINATING);
 
         HPANode hpaNode = region.getNodes().get(location);
@@ -36,11 +38,13 @@ public class TerminatingNode extends HPANode {
 
         if (!end){
             for (CustomEdgeData customEdgeData : TeleportNode.getEdges()) {
-                HPARegion regionContaining = region.getHpaGraph().getRegionContaining(customEdgeData.getEnd());
-                if (regionContaining != null){
-                    HPANode teleportEnd = regionContaining.getNodes().get(customEdgeData.getEnd());
-                    if (teleportEnd != null){
-                        edges.add(new HPAEdge(this, teleportEnd).setType(EdgeType.CUSTOM).setCustomEdgeData(customEdgeData).setCost(customEdgeData.getCostPenalty()));
+                if (rsPlayer == null || customEdgeData.getPlayerPredicates().stream().allMatch(playerPredicate -> playerPredicate.test(rsPlayer))){
+                    HPARegion regionContaining = region.getHpaGraph().getRegionContaining(customEdgeData.getEnd());
+                    if (regionContaining != null){
+                        HPANode teleportEnd = regionContaining.getNodes().get(customEdgeData.getEnd());
+                        if (teleportEnd != null){
+                            edges.add(new HPAEdge(this, teleportEnd).setType(EdgeType.CUSTOM).setCustomEdgeData(customEdgeData).setCost(customEdgeData.getCostPenalty()));
+                        }
                     }
                 }
 

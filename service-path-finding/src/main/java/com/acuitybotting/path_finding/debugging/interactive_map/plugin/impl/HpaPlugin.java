@@ -1,7 +1,6 @@
 package com.acuitybotting.path_finding.debugging.interactive_map.plugin.impl;
 
 import com.acuitybotting.common.utils.ExecutorUtil;
-import com.acuitybotting.path_finding.algorithms.astar.implmentation.AStarImplementation;
 import com.acuitybotting.path_finding.algorithms.graph.Edge;
 import com.acuitybotting.path_finding.algorithms.graph.Node;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.HPAGraph;
@@ -10,18 +9,14 @@ import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPANod
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPARegion;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.TerminatingNode;
 import com.acuitybotting.path_finding.debugging.interactive_map.plugin.Plugin;
-import com.acuitybotting.path_finding.debugging.interactive_map.util.Perspective;
-import com.acuitybotting.path_finding.rs.domain.location.LocateableHeuristic;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
 import com.acuitybotting.path_finding.rs.domain.location.LocationPair;
 import com.acuitybotting.path_finding.rs.utils.EdgeType;
 import com.acuitybotting.path_finding.service.HpaPathFindingService;
 import com.acuitybotting.path_finding.service.domain.PathResult;
-import org.springframework.expression.spel.ast.Projection;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.util.*;
 import java.util.List;
 import java.util.concurrent.Executor;
 
@@ -137,14 +132,14 @@ public class HpaPlugin extends Plugin {
                 end = getMapPanel().getMouseLocation();
                 endRegion = graph.getRegionContaining(end);
                 if (endRegion != null) {
-                    endNode = new TerminatingNode(endRegion, end, true);
+                    endNode = new TerminatingNode(endRegion, end, null, true);
                 }
                 getMapPanel().repaint();
             } else {
                 start = getMapPanel().getMouseLocation();
                 startRegion = graph.getRegionContaining(start);
                 if (startRegion != null) {
-                    startNode = new TerminatingNode(startRegion, start, false);
+                    startNode = new TerminatingNode(startRegion, start, null, false);
                 }
 
                 getMapPanel().repaint();

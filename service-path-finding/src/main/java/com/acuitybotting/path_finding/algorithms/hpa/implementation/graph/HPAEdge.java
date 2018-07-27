@@ -30,6 +30,7 @@ public class HPAEdge implements Edge {
     @Expose
     private String pathKey;
 
+    @Expose
     private CustomEdgeData customEdgeData;
 
     public HPAEdge(HPANode start, HPANode end) {

@@ -73,17 +73,6 @@ public class HpaPathFindingService {
         this.hpaWebService = hpaWebService;
     }
 
-    private boolean evaluateCustomEdge(HPAEdge hpaEdge, RsPlayer rsPlayer) {
-        Player player = new PlayerImplementation(rsPlayer);
-        Collection<PlayerPredicate> playerPredicates = hpaEdge.getCustomEdgeData().getPlayerPredicates();
-        if (playerPredicates != null) {
-            for (PlayerPredicate playerPredicate : playerPredicates) {
-                if (!playerPredicate.test(player)) return false;
-            }
-        }
-        return true;
-    }
-
     public void loadRsMap() {
         log.info("Started loading RsMap this may take a few moments..");
         for (RegionMap regionMap : PathingEnviroment.loadFrom(PathingEnviroment.REGION_FLAGS, "flags", RegionMap[].class).orElse(null)) {
@@ -271,9 +260,9 @@ public class HpaPathFindingService {
             }
         }
 
-
-        TerminatingNode startNode = new TerminatingNode(startRegion, startLocation, false);
-        TerminatingNode endNode = new TerminatingNode(endRegion, endLocation, true);
+        Player player = rsPlayer == null ? null : new PlayerImplementation(rsPlayer);
+        TerminatingNode startNode = new TerminatingNode(startRegion, startLocation, player, false);
+        TerminatingNode endNode = new TerminatingNode(endRegion, endLocation, player, true);
 
         List<Edge> hpaPath = null;
 
@@ -289,6 +278,7 @@ public class HpaPathFindingService {
 
         if (hpaPath == null){
             AStarImplementation astar = new AStarImplementation();
+            astar.setArgs(Collections.singletonMap("player", player));
             startNode.getEdges().forEach(edge -> astar.addStartingNode(edge.getEnd()));
             endNode.getEdges().forEach(edge -> astar.addDestinationNode(edge.getStart()));
             hpaPath = (List<Edge>) astar.findPath(new LocateableHeuristic()).orElse(null);
