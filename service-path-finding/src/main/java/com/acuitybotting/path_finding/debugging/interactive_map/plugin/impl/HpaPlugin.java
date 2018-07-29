@@ -106,6 +106,7 @@ public class HpaPlugin extends Plugin {
         }
 
 
+        PathResult pathResult = pathFindingService.getLastResult();
         if (pathResult != null){
             if (pathResult.getAStarImplementation() != null){
                 for (AStarStore store : pathResult.getAStarImplementation().getCostCache().keySet()) {

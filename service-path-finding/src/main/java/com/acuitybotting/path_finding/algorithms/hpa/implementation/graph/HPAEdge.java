@@ -46,10 +46,6 @@ public class HPAEdge implements Edge {
         return customEdgeData.getPlayerPredicates().stream().allMatch(playerPredicate -> playerPredicate.test(player));
     }
 
-    public boolean isInternal(){
-        return Objects.equals(start.getHpaRegion(), end.getHpaRegion());
-    }
-
     @Override
     public double getCostPenalty() {
         return costPenalty;

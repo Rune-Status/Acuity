@@ -59,6 +59,9 @@ public class HpaPathFindingService {
     private final XteaService xteaService;
     private final AStarService aStarService;
     private final HpaWebService hpaWebService;
+
+    private PathResult lastResult;
+
     private HPAGraph graph;
     @Value("${rabbit.host}")
     private String host;
@@ -313,6 +316,8 @@ public class HpaPathFindingService {
 
 
         pathResult.setPath(hpaPath);
+        lastResult = pathResult;
+
         return pathResult;
     }
 
