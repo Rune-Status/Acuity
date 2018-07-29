@@ -3,6 +3,7 @@ package com.acuitybotting.path_finding.algorithms.hpa.implementation.graph;
 
 import com.acuitybotting.path_finding.algorithms.graph.Edge;
 import com.acuitybotting.path_finding.algorithms.graph.GraphState;
+import com.acuitybotting.path_finding.algorithms.graph.Node;
 import com.acuitybotting.path_finding.rs.custom_edges.CustomEdgeData;
 import com.acuitybotting.path_finding.rs.custom_edges.requirements.abstractions.Player;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
@@ -18,19 +19,19 @@ import java.util.Objects;
 public class HPAEdge implements Edge {
 
     @Expose
-    private HPANode start, end;
+    protected HPANode start, end;
 
     @Expose
-    private double costPenalty;
+    protected double costPenalty;
 
     @Expose
-    private int type;
+    protected int type;
 
     @Expose
-    private String pathKey;
+    protected String pathKey;
 
     @Expose
-    private CustomEdgeData customEdgeData;
+    protected CustomEdgeData customEdgeData;
 
     public HPAEdge(HPANode start, HPANode end) {
         this.start = start;

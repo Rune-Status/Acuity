@@ -1,6 +1,8 @@
 package com.acuitybotting.path_finding.rs.custom_edges;
 
+import com.acuitybotting.path_finding.algorithms.graph.Edge;
 import com.acuitybotting.path_finding.algorithms.graph.GraphState;
+import com.acuitybotting.path_finding.algorithms.graph.Node;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPAEdge;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPANode;
 
@@ -12,6 +14,15 @@ public class CustomEdge extends HPAEdge {
 
     public CustomEdge(HPANode start, HPANode end) {
         super(start, end);
+    }
+
+    public CustomEdge(HPANode start, CustomEdge copy) {
+        super(start, copy.getEnd());
+        this.cost = copy.cost;
+        this.customEdgeData = copy.customEdgeData;
+        this.type = copy.type;
+        this.costPenalty = copy.costPenalty;
+        this.pathKey = copy.pathKey;
     }
 
     public double getCost() {
@@ -26,5 +37,10 @@ public class CustomEdge extends HPAEdge {
     @Override
     public boolean evaluate(GraphState state, Map<String, Object> args) {
         return super.evaluate(state, args);
+    }
+
+    @Override
+    public Edge copyWithStart(Node start) {
+        return new CustomEdge((HPANode) start, this);
     }
 }

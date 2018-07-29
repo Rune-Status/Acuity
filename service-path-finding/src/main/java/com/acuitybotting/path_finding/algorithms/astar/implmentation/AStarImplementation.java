@@ -1,13 +1,11 @@
 package com.acuitybotting.path_finding.algorithms.astar.implmentation;
 
 import com.acuitybotting.path_finding.algorithms.graph.Edge;
-import com.acuitybotting.path_finding.algorithms.graph.GraphState;
 import com.acuitybotting.path_finding.algorithms.graph.Node;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 @Slf4j
@@ -93,7 +91,13 @@ public class AStarImplementation {
                     nextStore.setPriority(newCost + heuristicSupplier.getHeuristic(startingNodes, next, destinationNodes, edge));
                     costCache.put(nextStore, newCost);
                     open.add(nextStore);
-                    pathCache.put(nextStore, edge);
+
+                    if (edge.getStart() == null){
+                        pathCache.put(nextStore, edge.copyWithStart(current.getNode()));
+                    }
+                    else {
+                        pathCache.put(nextStore, edge);
+                    }
                 }
             }
         }
