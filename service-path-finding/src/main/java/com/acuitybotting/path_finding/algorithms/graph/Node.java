@@ -6,6 +6,10 @@ import java.util.Map;
 
 public interface Node {
 
+    default GraphState effectState(GraphState graphState){
+        return graphState;
+    }
+
     default Collection<Edge> getNeighbors() {
         return getNeighbors(null, Collections.emptyMap());
     }

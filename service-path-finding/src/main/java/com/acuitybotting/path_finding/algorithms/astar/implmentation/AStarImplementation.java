@@ -1,6 +1,7 @@
 package com.acuitybotting.path_finding.algorithms.astar.implmentation;
 
 import com.acuitybotting.path_finding.algorithms.graph.Edge;
+import com.acuitybotting.path_finding.algorithms.graph.GraphState;
 import com.acuitybotting.path_finding.algorithms.graph.Node;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -79,14 +80,16 @@ public class AStarImplementation {
 
                 Node next = edge.getEnd();
 
-                double newCost = costCache.getOrDefault(AStarStore.get(current.getNode()), 0d) + heuristicSupplier.getHeuristic(startingNodes, current.getNode(), Collections.singleton(next), edge);
-                Double oldCost = costCache.get(AStarStore.get(next));
+                AStarStore nextStore = AStarStore.get(current.getNode()).setState(next.effectState(current.getState()));
+
+                double newCost = costCache.getOrDefault(nextStore, 0d) + heuristicSupplier.getHeuristic(startingNodes, current.getNode(), Collections.singleton(next), edge);
+                Double oldCost = costCache.get(nextStore);
                 if (oldCost == null || newCost < oldCost) {
                     double priority = newCost + heuristicSupplier.getHeuristic(startingNodes, next, destinationNodes, edge);
-                    AStarStore store = AStarStore.get(next).setPriority(priority);
-                    costCache.put(store, newCost);
-                    open.add(store);
-                    pathCache.put(store, edge);
+                    nextStore.setPriority(priority);
+                    costCache.put(nextStore, newCost);
+                    open.add(nextStore);
+                    pathCache.put(nextStore, edge);
                 }
             }
         }
