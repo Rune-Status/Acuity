@@ -21,6 +21,9 @@ public class CustomEdgeData {
     private Location start, end;
 
     @Expose
+    private double cost = 0;
+
+    @Expose
     private double costPenalty = 0;
 
     @Expose
@@ -49,7 +52,7 @@ public class CustomEdgeData {
     }
 
     public CustomEdgeData withCost(double cost){
-        this.costPenalty = cost;
+        this.cost = cost;
         return this;
     }
 }

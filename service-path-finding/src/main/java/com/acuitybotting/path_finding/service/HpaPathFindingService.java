@@ -247,7 +247,7 @@ public class HpaPathFindingService {
     }
 
     @SuppressWarnings("unchecked")
-    public PathResult findPath(Location startLocation, Location endLocation, RsPlayer rsPlayer) throws Exception {
+    public PathResult findPath(Location startLocation, Location endLocation, RsPlayer rsPlayer) {
         startLocation = adjustLocation(startLocation);
         endLocation = adjustLocation(endLocation);
 

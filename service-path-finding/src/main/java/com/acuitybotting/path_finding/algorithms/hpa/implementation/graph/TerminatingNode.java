@@ -8,7 +8,6 @@ import com.acuitybotting.path_finding.rs.custom_edges.requirements.abstractions.
 import com.acuitybotting.path_finding.rs.domain.location.Location;
 import com.acuitybotting.path_finding.rs.utils.EdgeType;
 import com.acuitybotting.path_finding.rs.utils.NodeType;
-import com.acuitybotting.path_finding.service.domain.abstractions.player.RsPlayer;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -29,7 +28,7 @@ public class TerminatingNode extends HPANode {
             else edges.add(new TerminatingEdge(this, hpaNode));
         }
         else {
-            Set<HPAGraph.InternalConnection> internalConnections = region.getHpaGraph().findInternalConnections(region, this, -1);
+            Set<HPAGraph.InternalConnection> internalConnections = region.getHpaGraph().findInternalConnections(region, this, -1, true);
             for (HPAGraph.InternalConnection internalConnection : internalConnections) {
                 if (end) edges.add(new TerminatingEdge(internalConnection.getEnd(), this).setPath(internalConnection.getPath(), true));
                 else edges.add(new TerminatingEdge(this, internalConnection.getEnd()).setPath(internalConnection.getPath(), false));
@@ -43,7 +42,7 @@ public class TerminatingNode extends HPANode {
                     if (regionContaining != null){
                         HPANode teleportEnd = regionContaining.getNodes().get(customEdgeData.getEnd());
                         if (teleportEnd != null){
-                            edges.add(new HPAEdge(this, teleportEnd).setType(EdgeType.CUSTOM).setCustomEdgeData(customEdgeData).setCost(customEdgeData.getCostPenalty()));
+                            edges.add(new HPAEdge(this, teleportEnd).setType(EdgeType.CUSTOM).setCustomEdgeData(customEdgeData).setCostPenalty(customEdgeData.getCostPenalty()));
                         }
                     }
                 }

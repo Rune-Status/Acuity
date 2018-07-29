@@ -7,12 +7,10 @@ import com.acuitybotting.path_finding.algorithms.graph.GraphState;
 import com.acuitybotting.path_finding.algorithms.graph.Node;
 import com.acuitybotting.path_finding.rs.domain.location.Locateable;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
-import com.acuitybotting.path_finding.rs.utils.EdgeType;
 import com.google.gson.annotations.Expose;
 import lombok.Getter;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 @Getter
@@ -50,7 +48,7 @@ public class HPANode implements Node, Locateable {
 
     public HPAEdge addHpaEdge(HPANode other, int edgeType, double cost){
         HPAEdge hpaEdge = new HPAEdge(this, other);
-        hpaEdge.setCost(cost);
+        hpaEdge.setCostPenalty(cost);
         hpaEdge.setType(edgeType);
         hpaEdges.add(hpaEdge);
         return hpaEdge;

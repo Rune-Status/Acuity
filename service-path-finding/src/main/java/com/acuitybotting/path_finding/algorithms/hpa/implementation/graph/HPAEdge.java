@@ -4,14 +4,12 @@ package com.acuitybotting.path_finding.algorithms.hpa.implementation.graph;
 import com.acuitybotting.path_finding.algorithms.graph.Edge;
 import com.acuitybotting.path_finding.algorithms.graph.GraphState;
 import com.acuitybotting.path_finding.rs.custom_edges.CustomEdgeData;
-import com.acuitybotting.path_finding.rs.custom_edges.requirements.PlayerPredicate;
 import com.acuitybotting.path_finding.rs.custom_edges.requirements.abstractions.Player;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
 import com.acuitybotting.path_finding.rs.utils.RsEnvironment;
 import com.google.gson.annotations.Expose;
 import lombok.Getter;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -23,7 +21,7 @@ public class HPAEdge implements Edge {
     private HPANode start, end;
 
     @Expose
-    private double cost;
+    private double costPenalty;
 
     @Expose
     private int type;
@@ -53,7 +51,7 @@ public class HPAEdge implements Edge {
 
     @Override
     public double getCostPenalty() {
-        return cost;
+        return costPenalty;
     }
 
     public HPAEdge setPathKey(String pathKey) {
@@ -61,8 +59,8 @@ public class HPAEdge implements Edge {
         return this;
     }
 
-    public HPAEdge setCost(double cost) {
-        this.cost = cost;
+    public HPAEdge setCostPenalty(double costPenalty) {
+        this.costPenalty = costPenalty;
         return this;
     }
 
@@ -87,7 +85,7 @@ public class HPAEdge implements Edge {
 
         HPAEdge hpaEdge = (HPAEdge) o;
 
-        if (Double.compare(hpaEdge.getCost(), getCost()) != 0) return false;
+        if (Double.compare(this.getCostPenalty(), this.getCostPenalty()) != 0) return false;
         if (getType() != hpaEdge.getType()) return false;
         if (getStart() != null ? !getStart().equals(hpaEdge.getStart()) : hpaEdge.getStart() != null) return false;
         if (getEnd() != null ? !getEnd().equals(hpaEdge.getEnd()) : hpaEdge.getEnd() != null) return false;
@@ -100,7 +98,7 @@ public class HPAEdge implements Edge {
         long temp;
         result = getStart() != null ? getStart().hashCode() : 0;
         result = 31 * result + (getEnd() != null ? getEnd().hashCode() : 0);
-        temp = Double.doubleToLongBits(getCost());
+        temp = Double.doubleToLongBits(this.getCostPenalty());
         result = 31 * result + (int) (temp ^ (temp >>> 32));
         result = 31 * result + getType();
         result = 31 * result + (getPathKey() != null ? getPathKey().hashCode() : 0);

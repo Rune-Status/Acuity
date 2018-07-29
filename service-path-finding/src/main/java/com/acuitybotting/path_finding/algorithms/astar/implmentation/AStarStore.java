@@ -5,7 +5,7 @@ import com.acuitybotting.path_finding.algorithms.graph.Node;
 
 public class AStarStore implements Comparable<AStarStore> {
 
-    private GraphState state = new GraphState();
+    private GraphState state;
     private Node node;
     private double priority;
 
@@ -13,7 +13,7 @@ public class AStarStore implements Comparable<AStarStore> {
         return new AStarStore(node, 0).setState(new GraphState());
     }
 
-    public AStarStore(Node node, double priority) {
+    private AStarStore(Node node, double priority) {
         this.node = node;
         this.priority = priority;
     }

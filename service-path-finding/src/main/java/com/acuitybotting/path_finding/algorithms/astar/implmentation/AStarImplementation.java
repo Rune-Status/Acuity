@@ -40,7 +40,7 @@ public class AStarImplementation {
             log.error("Error during AStar execute.", e);
         }
 
-        return null;
+        return Optional.empty();
     }
 
     public AStarImplementation addDestinationNode(Node node){
@@ -80,9 +80,9 @@ public class AStarImplementation {
 
                 Node next = edge.getEnd();
 
-                AStarStore nextStore = AStarStore.get(next).setState(next.effectState(current.getState()));
-
                 double newCost = costCache.getOrDefault(current, 0d) + heuristicSupplier.getHeuristic(startingNodes, current.getNode(), Collections.singleton(next), edge);
+
+                AStarStore nextStore = AStarStore.get(next).setState(next.effectState(current.getState()));
                 Double oldCost = costCache.get(nextStore);
                 if (oldCost == null || newCost < oldCost) {
                     nextStore.setPriority(newCost + heuristicSupplier.getHeuristic(startingNodes, next, destinationNodes, edge));

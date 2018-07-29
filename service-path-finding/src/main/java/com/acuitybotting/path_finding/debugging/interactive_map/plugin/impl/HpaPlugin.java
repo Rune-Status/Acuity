@@ -76,30 +76,31 @@ public class HpaPlugin extends Plugin {
             }
         }
 
-        Location click = getMapPanel().getMouseLocation();
-        HPARegion clickRegion = graph.getRegionContaining(click);
-        if (clickRegion != null){
-            Location l1 = clickRegion.getRoot().clone();
-            l1.setPlane(click.getPlane());
-            Location l2 = l1.clone(clickRegion.getWidth() - 1, 0);
-            Location l3 = l1.clone(clickRegion.getWidth() - 1 , clickRegion.getHeight() - 1);
-            Location l4 = l1.clone(0, clickRegion.getHeight() -  1);
+        Location mouseLocation = getMapPanel().getMouseLocation();
+        HPARegion mouseRegion = graph.getRegionContaining(mouseLocation);
+        if (mouseRegion != null){
+            Location l1 = mouseRegion.getRoot().clone();
+            l1.setPlane(mouseLocation.getPlane());
+            Location l2 = l1.clone(mouseRegion.getWidth() - 1, 0);
+            Location l3 = l1.clone(mouseRegion.getWidth() - 1 , mouseRegion.getHeight() - 1);
+            Location l4 = l1.clone(0, mouseRegion.getHeight() -  1);
 
             getPaintUtil().connectLocations(graphics, l1, l2, Color.MAGENTA);
             getPaintUtil().connectLocations(graphics, l2, l3, Color.MAGENTA);
             getPaintUtil().connectLocations(graphics, l3, l4, Color.MAGENTA);
             getPaintUtil().connectLocations(graphics, l4, l1, Color.MAGENTA);
 
-            List<LocationPair> externalConnections = graph.findExternalConnections(clickRegion, graph.getPathFindingSupplier());
+            List<LocationPair> externalConnections = graph.findExternalConnections(mouseRegion, graph.getPathFindingSupplier());
             for (LocationPair externalConnection : externalConnections) {
-                if (externalConnection.getStart().getPlane() != click.getPlane()) continue;
+                if (externalConnection.getStart().getPlane() != mouseLocation.getPlane()) continue;
                 getPaintUtil().connectLocations(graphics, externalConnection.getStart(), externalConnection.getEnd(), Color.BLUE);
             }
 
-            HPANode hpaNode = clickRegion.getNodes().get(click);
+            HPANode hpaNode = mouseRegion.getNodes().get(mouseLocation);
             if (hpaNode != null){
                 for (Edge edge : hpaNode.getNeighbors()) {
                     getPaintUtil().connectLocations(graphics, edge.getStart(), edge.getEnd(), Color.MAGENTA);
+                    getPaintUtil().markLocation(graphics, edge.getEnd(), Color.MAGENTA);
                 }
             }
         }

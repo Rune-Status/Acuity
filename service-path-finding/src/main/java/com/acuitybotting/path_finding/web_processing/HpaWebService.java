@@ -11,7 +11,6 @@ import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPANod
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPARegion;
 import com.acuitybotting.path_finding.enviroment.PathingEnviroment;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
-import com.acuitybotting.path_finding.rs.utils.EdgeType;
 import com.acuitybotting.path_finding.rs.utils.NodeType;
 import com.acuitybotting.path_finding.rs.utils.RsEnvironment;
 import lombok.extern.slf4j.Slf4j;
@@ -169,7 +168,7 @@ public class HpaWebService {
         savedEdge.setKey(key);
         savedEdge.setStartKey(startNode.getKey());
         savedEdge.setEndKey(endNode.getKey());
-        savedEdge.setCost(hpaEdge.getCost());
+        savedEdge.setCost(hpaEdge.getCostPenalty());
         savedEdge.setType(hpaEdge.getType());
         return savedEdge;
     }

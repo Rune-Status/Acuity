@@ -7,6 +7,7 @@ import com.acuitybotting.path_finding.algorithms.graph.Node;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPAEdge;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPANode;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPARegion;
+import com.acuitybotting.path_finding.rs.custom_edges.CustomEdge;
 import com.acuitybotting.path_finding.rs.custom_edges.CustomEdgeData;
 import com.acuitybotting.path_finding.rs.custom_edges.edges.CharterNode;
 import com.acuitybotting.path_finding.rs.custom_edges.edges.FairyRingEdgeData;
@@ -45,6 +46,7 @@ public class HPAGraph {
     private int internalConnectionCount = 0;
     private int stairNodeConnectionsAddedCount = 0;
     private int customNodeConnectionsCount = 0;
+    private int customNodeInternalConnectionsCount = 0;
 
     private PathFindingSupplier pathFindingSupplier;
 
@@ -108,7 +110,7 @@ public class HPAGraph {
         log.info("Found {} internal connections.", internalConnectionCount);
 
         addCustomNodes();
-        log.info("Found {} custom connections", customNodeConnectionsCount);
+        log.info("Found {} custom connections with {} internal connections.", customNodeConnectionsCount, customNodeInternalConnectionsCount);
 
         log.info("Finished creating HPA graph in {} seconds.", (System.currentTimeMillis() - startTimestamp) / 1000);
 
@@ -127,7 +129,7 @@ public class HPAGraph {
                 HPARegion regionStart = getRegionContaining(data.getStart());
                 if (regionStart != null) {
                     start = regionStart.getOrCreateNode(data.getStart(), NodeType.CUSTOM);
-                    addInternalConnections(regionStart, start);
+                    customNodeInternalConnectionsCount += addInternalConnections(regionStart, start);
                 }
             }
 
@@ -136,19 +138,21 @@ public class HPAGraph {
                 HPARegion regionEnd = getRegionContaining(data.getEnd());
                 if (regionEnd != null) {
                     end = regionEnd.getOrCreateNode(data.getEnd(), NodeType.CUSTOM);
-                    addInternalConnections(regionEnd, end);
+                    customNodeInternalConnectionsCount += addInternalConnections(regionEnd, end);
                 }
             }
 
             if (start != null && end != null) {
-                start.getTemporaryEdges().add(new HPAEdge(start, end).setType(EdgeType.CUSTOM).setCustomEdgeData(data).setCost(data.getCostPenalty()));
+                start.getTemporaryEdges().add(new CustomEdge(start, end).setCost(data.getCost()).setType(EdgeType.CUSTOM).setCustomEdgeData(data).setCostPenalty(data.getCostPenalty()));
                 customNodeConnectionsCount++;
             }
         }
     }
 
-    private void addInternalConnections(HPARegion region, HPANode startNode) {
-        for (InternalConnection internalConnection : findInternalConnections(region, startNode, internalNodeConnectionLimit)) {
+    private int addInternalConnections(HPARegion region, HPANode startNode) {
+        int found = 0;
+        for (InternalConnection internalConnection : findInternalConnections(region, startNode, internalNodeConnectionLimit, true)) {
+            found++;
             internalConnection.getStart()
                     .addHpaEdge(internalConnection.getEnd(), EdgeType.BASIC, internalConnection.getPath().size())
                     .setPathKey(RsEnvironment.getRsMap().addPath(internalConnection.getPath(), false));
@@ -157,12 +161,14 @@ public class HPAGraph {
                     .addHpaEdge(internalConnection.getStart(), EdgeType.BASIC, internalConnection.getPath().size())
                     .setPathKey(RsEnvironment.getRsMap().addPath(internalConnection.getPath(), true));
         }
+        return found;
     }
 
-    public Set<InternalConnection> findInternalConnections(HPARegion region, HPANode startNode, int limit) {
+    public Set<InternalConnection> findInternalConnections(HPARegion region, HPANode startNode, int limit, boolean ignoreStartBlocked) {
         Set<InternalConnection> internalConnections = new HashSet<>();
 
         List<HPANode> endNodes = region.getNodes().values().stream()
+                .filter(hpaNode -> hpaNode.getLocation().getPlane() == startNode.getLocation().getPlane())
                 .filter(hpaNode -> !startNode.equals(hpaNode)) //Order of this statement matters do not change it.
                 .sorted(Comparator.comparingDouble(o -> o.getLocation().getTraversalCost(startNode.getLocation())))
                 .collect(Collectors.toList());
@@ -170,23 +176,21 @@ public class HPAGraph {
         int found = 0;
         for (HPANode endNode : endNodes) {
             if (limit > 0 && found >= limit) {
-                evaluateInternalConnection(internalConnections, region, startNode, endNodes.get(endNodes.size() - 1));
+                evaluateInternalConnection(internalConnections, region, startNode, endNodes.get(endNodes.size() - 1), ignoreStartBlocked);
                 break;
             }
 
-            if (evaluateInternalConnection(internalConnections, region, startNode, endNode)) found++;
+            if (evaluateInternalConnection(internalConnections, region, startNode, endNode, ignoreStartBlocked)) found++;
         }
 
         return internalConnections;
     }
 
     @SuppressWarnings("unchecked")
-    private boolean evaluateInternalConnection(Set<InternalConnection> internalConnections, HPARegion region, HPANode startNode, HPANode endNode) {
+    private boolean evaluateInternalConnection(Set<InternalConnection> internalConnections, HPARegion region, HPANode startNode, HPANode endNode, boolean ignoreStartBlocked) {
         if (startNode.getHpaEdges().stream().anyMatch(edge -> edge.getEnd().equals(endNode))) {
             return true;
         }
-
-        Boolean ignoreStartBlocked = RsEnvironment.getRsMap().getFlagAt(startNode.getLocation()).map(flag -> MapFlags.check(flag, MapFlags.PLANE_CHANGE_DOWN | MapFlags.PLANE_CHANGE_UP)).orElse(false);
 
         List<TileEdge> path = (List<TileEdge>) findInternalPath(
                 startNode.getLocation(),
