@@ -7,7 +7,7 @@ public interface PlayerItems {
 
     int getCount(int itemId);
 
-    default boolean hasItem(int itemId){
+    default boolean hasItem(int itemId) {
         return getCount(itemId) > 0;
     }
 }

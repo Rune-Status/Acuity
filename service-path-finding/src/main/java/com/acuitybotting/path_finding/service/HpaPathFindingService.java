@@ -19,15 +19,15 @@ import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPANod
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPARegion;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.TerminatingNode;
 import com.acuitybotting.path_finding.enviroment.PathingEnviroment;
+import com.acuitybotting.path_finding.rs.custom_edges.CustomEdge;
+import com.acuitybotting.path_finding.rs.custom_edges.CustomEdgeData;
+import com.acuitybotting.path_finding.rs.custom_edges.edges.TeleportNode;
 import com.acuitybotting.path_finding.rs.custom_edges.requirements.abstractions.Player;
 import com.acuitybotting.path_finding.rs.custom_edges.requirements.implementations.PlayerImplementation;
 import com.acuitybotting.path_finding.rs.domain.graph.TileNode;
 import com.acuitybotting.path_finding.rs.domain.location.LocateableHeuristic;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
-import com.acuitybotting.path_finding.rs.utils.Direction;
-import com.acuitybotting.path_finding.rs.utils.MapFlags;
-import com.acuitybotting.path_finding.rs.utils.RsEnvironment;
-import com.acuitybotting.path_finding.rs.utils.RsMap;
+import com.acuitybotting.path_finding.rs.utils.*;
 import com.acuitybotting.path_finding.service.domain.PathRequest;
 import com.acuitybotting.path_finding.service.domain.PathResult;
 import com.acuitybotting.path_finding.service.domain.abstractions.player.RsPlayer;
@@ -120,7 +120,7 @@ public class HpaPathFindingService {
                         public void onConnect(MessagingChannel channel) {
 
                             try {
-                                channel.getQueue("acuitybotting.work.find-path")
+                                channel.getQueue("acuitybotting.work.find-path-test")
                                         .withListener(messageEvent -> {
                                             Message message = messageEvent.getMessage();
                                             PathRequest pathRequest = inGson.fromJson(message.getBody(), PathRequest.class);
@@ -128,7 +128,7 @@ public class HpaPathFindingService {
 
                                             try {
                                                 log.info("Finding path. {}", pathRequest);
-                                                pathResult = findPath(pathRequest.getStart(), pathRequest.getEnd(), pathRequest.getRsPlayer());
+                                                pathResult = findPath(pathRequest.getStart(), pathRequest.getEnd(), pathRequest.getPlayer());
                                                 List<? extends Edge> path = pathResult.getPath();
                                                 log.info("Found path. {}", path);
 
@@ -287,6 +287,15 @@ public class HpaPathFindingService {
 
         if (hpaPath == null) {
             AStarImplementation astar = new AStarImplementation();
+
+            for (CustomEdgeData customEdgeData : TeleportNode.getEdges()) {
+                HPARegion region = graph.getRegionContaining(customEdgeData.getEnd());
+                if (region == null) continue;
+                HPANode teleportEnd = region.getNodes().get(customEdgeData.getEnd());
+                if (teleportEnd == null) continue;
+                astar.getGlobalEdges().add(new CustomEdge(null, teleportEnd).setCost(customEdgeData.getCost()).setType(EdgeType.CUSTOM).setCustomEdgeData(customEdgeData));
+            }
+
             astar.setArgs(Collections.singletonMap("player", player));
             startNode.getEdges().forEach(edge -> astar.addStartingNode(edge.getEnd()));
             endNode.getEdges().forEach(edge -> astar.addDestinationNode(edge.getStart()));

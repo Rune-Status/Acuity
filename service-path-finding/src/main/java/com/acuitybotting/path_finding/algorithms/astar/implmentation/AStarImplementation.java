@@ -24,6 +24,8 @@ public class AStarImplementation {
     private Map<AStarStore, Double> costCache = new HashMap<>();
     private PriorityQueue<AStarStore> open = new PriorityQueue<>();
 
+    private Set<Edge> globalEdges = new HashSet<>();
+
     private Set<Node> startingNodes = new HashSet<>();
     private Set<Node> destinationNodes = new HashSet<>();
 
@@ -74,7 +76,10 @@ public class AStarImplementation {
                 return Optional.ofNullable(path);
             }
 
-            for (Edge edge : current.getNode().getNeighbors(current.getState(), args)) {
+            Collection<Edge> neighbors = new HashSet<>(current.getNode().getNeighbors(current.getState(), args));
+            neighbors.addAll(globalEdges);
+
+            for (Edge edge : neighbors) {
                 if (edgePredicate != null && !edgePredicate.test(edge)) continue;
                 if (!edge.evaluate(current.getState(), args)) continue;
 

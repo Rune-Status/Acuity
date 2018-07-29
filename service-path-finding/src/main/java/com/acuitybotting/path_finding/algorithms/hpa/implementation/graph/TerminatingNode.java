@@ -34,21 +34,6 @@ public class TerminatingNode extends HPANode {
                 else edges.add(new TerminatingEdge(this, internalConnection.getEnd()).setPath(internalConnection.getPath(), false));
             }
         }
-
-        if (!end){
-            for (CustomEdgeData customEdgeData : TeleportNode.getEdges()) {
-                if (player == null || customEdgeData.getPlayerPredicates().stream().allMatch(playerPredicate -> playerPredicate.test(player))){
-                    HPARegion regionContaining = region.getHpaGraph().getRegionContaining(customEdgeData.getEnd());
-                    if (regionContaining != null){
-                        HPANode teleportEnd = regionContaining.getNodes().get(customEdgeData.getEnd());
-                        if (teleportEnd != null){
-                            edges.add(new HPAEdge(this, teleportEnd).setType(EdgeType.CUSTOM).setCustomEdgeData(customEdgeData).setCostPenalty(customEdgeData.getCostPenalty()));
-                        }
-                    }
-                }
-
-            }
-        }
     }
 
     public Set<Edge> getEdges() {

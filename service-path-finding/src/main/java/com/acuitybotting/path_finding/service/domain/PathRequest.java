@@ -12,6 +12,6 @@ import lombok.ToString;
 public class PathRequest {
 
     private Location start, end;
-    private RsPlayer rsPlayer;
+    private RsPlayer player;
 
 }
