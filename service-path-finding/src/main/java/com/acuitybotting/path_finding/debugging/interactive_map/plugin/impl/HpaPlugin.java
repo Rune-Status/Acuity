@@ -1,6 +1,7 @@
 package com.acuitybotting.path_finding.debugging.interactive_map.plugin.impl;
 
 import com.acuitybotting.common.utils.ExecutorUtil;
+import com.acuitybotting.path_finding.algorithms.astar.implmentation.AStarStore;
 import com.acuitybotting.path_finding.algorithms.graph.Edge;
 import com.acuitybotting.path_finding.algorithms.graph.Node;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.HPAGraph;
@@ -106,8 +107,8 @@ public class HpaPlugin extends Plugin {
 
         if (pathResult != null){
             if (pathResult.getAStarImplementation() != null){
-                for (Node node : pathResult.getAStarImplementation().getCostCache().keySet()) {
-                    getPaintUtil().markLocation(graphics, node, Color.ORANGE);
+                for (AStarStore store : pathResult.getAStarImplementation().getCostCache().keySet()) {
+                    getPaintUtil().markLocation(graphics, store.getNode(), Color.ORANGE);
                 }
             }
 

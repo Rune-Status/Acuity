@@ -7,9 +7,9 @@ import java.util.Map;
 public interface Node {
 
     default Collection<Edge> getNeighbors() {
-        return getNeighbors(Collections.emptyMap());
+        return getNeighbors(null, Collections.emptyMap());
     }
 
-    Collection<Edge> getNeighbors(Map<String, Object> args);
+    Collection<Edge> getNeighbors(GraphState state, Map<String, Object> args);
 
 }

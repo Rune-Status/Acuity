@@ -2,6 +2,7 @@ package com.acuitybotting.path_finding.algorithms.hpa.implementation.graph;
 
 
 import com.acuitybotting.path_finding.algorithms.graph.Edge;
+import com.acuitybotting.path_finding.algorithms.graph.GraphState;
 import com.acuitybotting.path_finding.rs.custom_edges.CustomEdgeData;
 import com.acuitybotting.path_finding.rs.custom_edges.requirements.PlayerPredicate;
 import com.acuitybotting.path_finding.rs.custom_edges.requirements.abstractions.Player;
@@ -39,7 +40,7 @@ public class HPAEdge implements Edge {
     }
 
     @Override
-    public boolean evaluate(Map<String, Object> args) {
+    public boolean evaluate(GraphState state, Map<String, Object> args) {
         if (customEdgeData == null) return true;
         Player player = (Player) args.get("player");
         if (player == null) return true;

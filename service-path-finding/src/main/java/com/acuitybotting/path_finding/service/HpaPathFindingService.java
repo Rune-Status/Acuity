@@ -231,7 +231,7 @@ public class HpaPathFindingService {
             Location poll = open.poll();
             closed.add(poll);
 
-            Collection<Edge> neighbors = new TileNode(poll).getNeighbors(Collections.singletonMap(IGNORE_BLOCKED, poll));
+            Collection<Edge> neighbors = new TileNode(poll).getNeighbors(null, Collections.singletonMap(IGNORE_BLOCKED, poll));
             for (Edge neighbor : neighbors) {
                 Location end = ((TileNode) neighbor.getEnd()).getLocation();
                 if (!isBlocked(end)) return end;

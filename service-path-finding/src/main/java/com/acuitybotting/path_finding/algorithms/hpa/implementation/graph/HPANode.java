@@ -3,6 +3,7 @@ package com.acuitybotting.path_finding.algorithms.hpa.implementation.graph;
 
 
 import com.acuitybotting.path_finding.algorithms.graph.Edge;
+import com.acuitybotting.path_finding.algorithms.graph.GraphState;
 import com.acuitybotting.path_finding.algorithms.graph.Node;
 import com.acuitybotting.path_finding.rs.domain.location.Locateable;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
@@ -34,7 +35,7 @@ public class HPANode implements Node, Locateable {
     }
 
     @Override
-    public Set<Edge> getNeighbors(Map<String, Object> args) {
+    public Set<Edge> getNeighbors(GraphState state, Map<String, Object> args) {
         if (temporaryEdges.size() == 0) return hpaEdges;
 
         Set<Edge> combined = new HashSet<>(hpaEdges);

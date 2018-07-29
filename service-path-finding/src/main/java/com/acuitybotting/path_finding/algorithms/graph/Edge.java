@@ -12,7 +12,7 @@ public interface Edge {
         return 0;
     }
 
-    default boolean evaluate(Map<String, Object> args){
+    default boolean evaluate(GraphState state, Map<String, Object> args){
         return true;
     }
 }

@@ -19,8 +19,8 @@ public class AStarImplementation {
     private AStarHeuristicSupplier heuristicSupplier;
     private Predicate<Edge> edgePredicate = null;
 
-    private Map<Node, Edge> pathCache = new HashMap<>();
-    private Map<Node, Double> costCache = new HashMap<>();
+    private Map<AStarStore, Edge> pathCache = new HashMap<>();
+    private Map<AStarStore, Double> costCache = new HashMap<>();
     private PriorityQueue<AStarStore> open = new PriorityQueue<>();
 
     private Set<Node> startingNodes = new HashSet<>();
@@ -49,8 +49,9 @@ public class AStarImplementation {
 
     public AStarImplementation addStartingNode(Node node){
         startingNodes.add(node);
-        open.add(new AStarStore(node, 0));
-        costCache.put(node, 0d);
+        AStarStore store = AStarStore.get(node);
+        open.add(store);
+        costCache.put(store, 0d);
         return this;
     }
 
@@ -72,19 +73,20 @@ public class AStarImplementation {
                 return Optional.ofNullable(path);
             }
 
-            for (Edge edge : current.getNode().getNeighbors(args)) {
+            for (Edge edge : current.getNode().getNeighbors(current.getState(), args)) {
                 if (edgePredicate != null && !edgePredicate.test(edge)) continue;
-                if (!edge.evaluate(args)) continue;
+                if (!edge.evaluate(current.getState(), args)) continue;
 
                 Node next = edge.getEnd();
 
-                double newCost = costCache.getOrDefault(current.getNode(), 0d) + heuristicSupplier.getHeuristic(startingNodes, current.getNode(), Collections.singleton(next), edge);
-                Double oldCost = costCache.get(next);
+                double newCost = costCache.getOrDefault(AStarStore.get(current.getNode()), 0d) + heuristicSupplier.getHeuristic(startingNodes, current.getNode(), Collections.singleton(next), edge);
+                Double oldCost = costCache.get(AStarStore.get(next));
                 if (oldCost == null || newCost < oldCost) {
-                    costCache.put(next, newCost);
                     double priority = newCost + heuristicSupplier.getHeuristic(startingNodes, next, destinationNodes, edge);
-                    open.add(new AStarStore(next, priority));
-                    pathCache.put(next, edge);
+                    AStarStore store = AStarStore.get(next).setPriority(priority);
+                    costCache.put(store, newCost);
+                    open.add(store);
+                    pathCache.put(store, edge);
                 }
             }
         }
@@ -95,11 +97,11 @@ public class AStarImplementation {
 
     private List<Edge> collectPath(Node end) {
         List<Edge> path = new ArrayList<>();
-        Edge edge = pathCache.get(end);
+        Edge edge = pathCache.get(AStarStore.get(end));
         while (edge != null) {
             path.add(edge);
             if (startingNodes.contains(edge.getStart())) break;
-            edge = pathCache.get(edge.getStart());
+            edge = pathCache.get(AStarStore.get(edge.getStart()));
         }
         Collections.reverse(path);
         return path;

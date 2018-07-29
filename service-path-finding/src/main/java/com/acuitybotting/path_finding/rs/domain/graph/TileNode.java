@@ -1,6 +1,7 @@
 package com.acuitybotting.path_finding.rs.domain.graph;
 
 import com.acuitybotting.path_finding.algorithms.graph.Edge;
+import com.acuitybotting.path_finding.algorithms.graph.GraphState;
 import com.acuitybotting.path_finding.algorithms.graph.Node;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPANode;
 import com.acuitybotting.path_finding.rs.domain.location.Locateable;
@@ -48,7 +49,7 @@ public class TileNode implements Node, Locateable {
         return getLocation().getPlane();
     }
 
-    public Collection<Edge> getNeighbors(Map<String, Object> args) {
+    public Collection<Edge> getNeighbors(GraphState graphState, Map<String, Object> args) {
         boolean ignoreSelfBlocked = getLocation().equals(args.getOrDefault(IGNORE_BLOCKED, null));
 
         Set<Edge> edges = new HashSet<>(8);
