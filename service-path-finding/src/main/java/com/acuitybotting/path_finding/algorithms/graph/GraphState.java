@@ -9,10 +9,16 @@ public class GraphState {
     private String stateId = "default";
     private Map<String, Object> data = new HashMap<>();
 
-    public GraphState putData(String key, Object value){
-        stateId = UUID.randomUUID().toString();
-        data.put(key, value);
-        return this;
+    public GraphState() {
+    }
+
+    public GraphState(String stateId, Map<String, Object> data) {
+        this.stateId = stateId;
+        this.data = data;
+    }
+
+    public GraphState cloneDataToNewId(){
+        return new GraphState(UUID.randomUUID().toString(), new HashMap<>(data));
     }
 
     public Map<String, Object> getData() {
