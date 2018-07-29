@@ -10,7 +10,7 @@ public class AStarStore implements Comparable<AStarStore> {
     private double priority;
 
     public static AStarStore get(Node node){
-        return new AStarStore(node, 0);
+        return new AStarStore(node, 0).setState(new GraphState());
     }
 
     public AStarStore(Node node, double priority) {

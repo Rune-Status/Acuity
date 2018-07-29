@@ -1,15 +1,8 @@
 package com.acuitybotting.path_finding.algorithms.graph;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class GraphState {
 
-    private Map<String, Object> data = new HashMap<>();
-
-    public Map<String, Object> getData() {
-        return data;
-    }
+    private Object stateI = "default";
 
     @Override
     public boolean equals(Object o) {
@@ -18,11 +11,11 @@ public class GraphState {
 
         GraphState that = (GraphState) o;
 
-        return getData() != null ? getData().equals(that.getData()) : that.getData() == null;
+        return stateI != null ? stateI.equals(that.stateI) : that.stateI == null;
     }
 
     @Override
     public int hashCode() {
-        return getData() != null ? getData().hashCode() : 0;
+        return stateI != null ? stateI.hashCode() : 0;
     }
 }

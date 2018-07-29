@@ -80,13 +80,12 @@ public class AStarImplementation {
 
                 Node next = edge.getEnd();
 
-                AStarStore nextStore = AStarStore.get(current.getNode()).setState(next.effectState(current.getState()));
+                AStarStore nextStore = AStarStore.get(next).setState(next.effectState(current.getState()));
 
-                double newCost = costCache.getOrDefault(nextStore, 0d) + heuristicSupplier.getHeuristic(startingNodes, current.getNode(), Collections.singleton(next), edge);
+                double newCost = costCache.getOrDefault(current, 0d) + heuristicSupplier.getHeuristic(startingNodes, current.getNode(), Collections.singleton(next), edge);
                 Double oldCost = costCache.get(nextStore);
                 if (oldCost == null || newCost < oldCost) {
-                    double priority = newCost + heuristicSupplier.getHeuristic(startingNodes, next, destinationNodes, edge);
-                    nextStore.setPriority(priority);
+                    nextStore.setPriority(newCost + heuristicSupplier.getHeuristic(startingNodes, next, destinationNodes, edge));
                     costCache.put(nextStore, newCost);
                     open.add(nextStore);
                     pathCache.put(nextStore, edge);
