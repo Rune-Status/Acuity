@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.*;
 import java.util.function.Predicate;
 
+@SuppressWarnings("Duplicates")
 @Slf4j
 @Getter
 public class AStarImplementation {
@@ -66,7 +67,6 @@ public class AStarImplementation {
             AStarStore current = open.poll();
 
             if (attempts >= maxAttempts) {
-                log.warn("Failed to find path after {} attempts.", attempts);
                 break;
             }
 
@@ -78,7 +78,7 @@ public class AStarImplementation {
             }
 
             for (Edge globalEdge : globalEdges) {
-                evaluate(current, globalEdge);
+                evaluate(current, globalEdge.copyWithStart(current.getNode()));
             }
 
             for (Edge edge : current.getNode().getOutgoingEdges(current.getState(), args)) {
@@ -86,6 +86,7 @@ public class AStarImplementation {
             }
         }
 
+        log.warn("Failed to find path after {} attempts.", attempts);
         if (!debugMode) clear();
         return Optional.empty();
     }
@@ -104,7 +105,7 @@ public class AStarImplementation {
             nextStore.setPriority(newCost + heuristicSupplier.getHeuristic(startingNodes, next, destinationNodes, edge));
             costCache.put(nextStore, newCost);
             open.add(nextStore);
-            pathCache.put(nextStore, edge.getStart() == null ? edge.copyWithStart(current.getNode()) : edge);
+            pathCache.put(nextStore, edge);
         }
     }
 

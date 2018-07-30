@@ -33,13 +33,6 @@ public class HPAEdge implements Edge {
     @Expose
     protected CustomEdgeData customEdgeData;
 
-    @Override
-    public void reverse() {
-        HPANode temp = start;
-        start = end;
-        end = temp;
-    }
-
     public HPAEdge(HPANode start, HPANode end) {
         this.start = start;
         this.end = end;

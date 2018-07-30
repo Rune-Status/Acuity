@@ -8,14 +8,6 @@ public interface Edge {
         throw new UnsupportedOperationException();
     }
 
-    default Edge copyWithEnd(Node end){
-        throw new UnsupportedOperationException();
-    }
-
-    default void reverse(){
-        throw new UnsupportedOperationException();
-    }
-
     Node getStart();
 
     Node getEnd();

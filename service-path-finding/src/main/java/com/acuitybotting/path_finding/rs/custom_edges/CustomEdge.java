@@ -43,9 +43,4 @@ public class CustomEdge extends HPAEdge {
     public Edge copyWithStart(Node start) {
         return new CustomEdge((HPANode) start, getEnd(), this);
     }
-
-    @Override
-    public Edge copyWithEnd(Node end) {
-        return new CustomEdge(getStart(), (HPANode) end, this);
-    }
 }
