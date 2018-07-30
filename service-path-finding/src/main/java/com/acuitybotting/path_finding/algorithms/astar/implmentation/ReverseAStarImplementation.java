@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-@SuppressWarnings("Duplicates")
 @Slf4j
 @Getter
 public class ReverseAStarImplementation extends AStarImplementation{
