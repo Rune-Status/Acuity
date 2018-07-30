@@ -54,14 +54,13 @@ public class AStarImplementation {
     }
 
     protected Optional<List<? extends Edge>> execute() {
-        int attempts = 0;
-
         for (Node node : startingNodes) {
             AStarStore store = AStarStore.get(node);
             open.add(store);
             costCache.put(store, 0d);
         }
 
+        int attempts = 0;
         while (!open.isEmpty()) {
             attempts++;
             AStarStore current = open.poll();

@@ -16,8 +16,8 @@ public class CustomEdge extends HPAEdge {
         super(start, end);
     }
 
-    public CustomEdge(HPANode start, CustomEdge copy) {
-        super(start, copy.getEnd());
+    public CustomEdge(HPANode start, HPANode end, CustomEdge copy) {
+        super(start, end);
         this.cost = copy.cost;
         this.customEdgeData = copy.customEdgeData;
         this.type = copy.type;
@@ -35,17 +35,17 @@ public class CustomEdge extends HPAEdge {
     }
 
     @Override
-    public boolean isTwoWayEdge() {
-        return false;
-    }
-
-    @Override
     public boolean evaluate(GraphState state, Map<String, Object> args) {
         return super.evaluate(state, args);
     }
 
     @Override
     public Edge copyWithStart(Node start) {
-        return new CustomEdge((HPANode) start, this);
+        return new CustomEdge((HPANode) start, getEnd(), this);
+    }
+
+    @Override
+    public Edge copyWithEnd(Node end) {
+        return new CustomEdge(getStart(), (HPANode) end, this);
     }
 }

@@ -17,7 +17,6 @@ public class ReverseAStarImplementation extends AStarImplementation{
 
     @Override
     protected Optional<List<? extends Edge>> execute() {
-
         for (Node node : destinationNodes) {
             AStarStore store = AStarStore.get(node);
             open.add(store);
@@ -41,11 +40,15 @@ public class ReverseAStarImplementation extends AStarImplementation{
             }
 
             for (Edge globalEdge : globalEdges) {
-                evaluate(current, globalEdge);
+                if (globalEdge.getEnd().equals(current.getNode())){
+                    for (Node startNode : startingNodes) {
+                        evaluate(current, globalEdge.copyWithStart(startNode));
+                    }
+                }
             }
 
             for (Edge edge : current.getNode().getIncomingEdges()) {
-                if (edge.isTwoWayEdge()) evaluate(current, edge);
+                evaluate(current, edge);
             }
         }
 
@@ -70,7 +73,7 @@ public class ReverseAStarImplementation extends AStarImplementation{
             nextStore.setPriority(newCost + heuristicSupplier.getHeuristic(destinationNodes, next, startingNodes, edge));
             costCache.put(nextStore, newCost);
             open.add(nextStore);
-            pathCache.put(nextStore, edge);
+            pathCache.put(nextStore, edge.getEnd() == null ? edge.copyWithEnd(current.getNode()) : edge);
         }
     }
 
@@ -83,7 +86,6 @@ public class ReverseAStarImplementation extends AStarImplementation{
             if (destinationNodes.contains(edge.getEnd())) break;
             edge = pathCache.get(AStarStore.get(edge.getEnd()));
         }
-        Collections.reverse(path);
         return path;
     }
 }

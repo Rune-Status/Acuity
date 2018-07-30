@@ -8,7 +8,13 @@ public interface Edge {
         throw new UnsupportedOperationException();
     }
 
-    boolean isTwoWayEdge();
+    default Edge copyWithEnd(Node end){
+        throw new UnsupportedOperationException();
+    }
+
+    default void reverse(){
+        throw new UnsupportedOperationException();
+    }
 
     Node getStart();
 

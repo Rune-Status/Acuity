@@ -33,6 +33,13 @@ public class HPAEdge implements Edge {
     @Expose
     protected CustomEdgeData customEdgeData;
 
+    @Override
+    public void reverse() {
+        HPANode temp = start;
+        start = end;
+        end = temp;
+    }
+
     public HPAEdge(HPANode start, HPANode end) {
         this.start = start;
         this.end = end;
@@ -44,11 +51,6 @@ public class HPAEdge implements Edge {
         Player player = (Player) args.get("player");
         if (player == null) return true;
         return customEdgeData.getPlayerPredicates().stream().allMatch(playerPredicate -> playerPredicate.test(player));
-    }
-
-    @Override
-    public boolean isTwoWayEdge() {
-        return true;
     }
 
     @Override
