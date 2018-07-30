@@ -265,9 +265,7 @@ public class FairyRingEdgeData extends CustomEdgeData {
 
     private CustomEdgeData toHub() {
         return new FairyRingEdgeData()
-                .withInteraction(new Interaction().setType(Interaction.SCENE_ENTITY)
-                        .withData("NAME", "Fairy Ring")
-                        .withData("ACTION", "Zanaris"))
+                .withInteraction(new Interaction().setType(Interaction.FAIRY_RING))
                 .setStart(getEnd())
                 .setEnd(getStart());
     }

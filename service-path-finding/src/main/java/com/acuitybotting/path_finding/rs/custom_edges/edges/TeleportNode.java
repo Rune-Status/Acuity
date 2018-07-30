@@ -23,6 +23,8 @@ public class TeleportNode {
     private static final int BANANA = 1963;
 
     private static final String SPELL_NAME = "SPELL_NAME";
+    private static final String WILDERNESS = "WILDERNESS";
+    private static final String MAGIC = "MAGIC";
 
     private static Collection<CustomEdgeData> connections = new HashSet<>();
     private static Collection<TeleportNode> teleports = new HashSet<>();
@@ -43,7 +45,7 @@ public class TeleportNode {
                 .withRune(LAW_RUNE, 1)
                 .withRune(AIR_RUNE, 3)
                 .withTablet(8007)
-                .withLocation(new Location(3212, 3248, 0)));
+                .withLocation(new Location(3212, 3428, 0)));
 
         teleports.add(new TeleportNode()
                 .withName("FALADOR_TELEPORT")
@@ -207,23 +209,19 @@ public class TeleportNode {
 
     private static void buildConnections() {
         for (TeleportNode node : teleports) {
+            Interaction teleport = new Interaction().setType(Interaction.SPELL).withData(SPELL_NAME, node.name);
+            if (node.wilderness) {
+                teleport.withData(WILDERNESS, true);
+            }
+
             CustomEdgeData edgeData = new CustomEdgeData()
                     .setEnd(node.location)
                     .withCost(30)
-                    .withInteraction(new Interaction()
-                            .setType(Interaction.SPELL)
-                            .withData(SPELL_NAME, node.name))
-                    .withRequirement(player -> player.getSettings().getSpellBook() == node.spellbook &&
-                            (player.getItems().getCount(node.tablet) >= 0
+                    .withInteraction(teleport)
+                    .withRequirement(player -> player.getSettings().getSpellBook() == node.spellbook
+                            && player.getLevels().hasLevel(MAGIC, node.level)
+                            && (player.getItems().getCount(node.tablet) >= 0
                                     || hasRequiredRunes(player, node)));
-
-            if (node.wilderness) {
-                edgeData = edgeData
-                        .withInteraction(new Interaction()
-                                .setType(Interaction.INTERFACE)
-                                .withData("OPTION", "Yes, teleport me now.")
-                                .withData("WILDERNESS", true));
-            }
 
             connections.add(edgeData);
         }
