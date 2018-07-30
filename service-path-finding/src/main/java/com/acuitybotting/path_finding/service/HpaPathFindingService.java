@@ -13,6 +13,7 @@ import com.acuitybotting.path_finding.algorithms.astar.AStarService;
 import com.acuitybotting.path_finding.algorithms.astar.implmentation.AStarImplementation;
 import com.acuitybotting.path_finding.algorithms.graph.Edge;
 import com.acuitybotting.path_finding.algorithms.graph.GraphState;
+import com.acuitybotting.path_finding.algorithms.graph.Node;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.HPAGraph;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.PathFindingSupplier;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPAEdge;
@@ -23,7 +24,6 @@ import com.acuitybotting.path_finding.enviroment.PathingEnviroment;
 import com.acuitybotting.path_finding.rs.custom_edges.CustomEdge;
 import com.acuitybotting.path_finding.rs.custom_edges.CustomEdgeData;
 import com.acuitybotting.path_finding.rs.custom_edges.edges.TeleportNode;
-import com.acuitybotting.path_finding.rs.custom_edges.requirements.abstractions.Player;
 import com.acuitybotting.path_finding.rs.custom_edges.requirements.implementations.PlayerImplementation;
 import com.acuitybotting.path_finding.rs.domain.graph.TileNode;
 import com.acuitybotting.path_finding.rs.domain.location.LocateableHeuristic;
@@ -45,6 +45,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static com.acuitybotting.data.flow.messaging.services.client.MessagingClient.RESPONSE_QUEUE;
@@ -250,34 +251,36 @@ public class HpaPathFindingService {
         return in;
     }
 
+    private Set<TerminatingNode> getTerminatingNodes(Collection<Location> locations, boolean end){
+        Set<TerminatingNode> nodes = new HashSet<>();
+        for (Location endLocation : locations) {
+            Location adjustedLocation = adjustLocation(endLocation);
+            HPARegion regionContaining = graph.getRegionContaining(adjustedLocation);
+            if (regionContaining == null) continue;
+            nodes.add(new TerminatingNode(regionContaining, adjustedLocation, end));
+        }
+        return nodes;
+    }
+
+    private Edge getEdgeTo(Set<TerminatingNode> nodes, HPANode hpaNode){
+        for (TerminatingNode node : nodes) {
+            Edge edgeTo = node.getEdgeTo(hpaNode);
+            if (edgeTo != null) return edgeTo;
+        }
+        return null;
+    }
+
     @SuppressWarnings("unchecked")
-    public PathResult findPath(Location startLocation, Location endLocation, RsPlayer rsPlayer) {
-        startLocation = adjustLocation(startLocation);
-        endLocation = adjustLocation(endLocation);
-
-        HPARegion startRegion = graph.getRegionContaining(startLocation);
-        HPARegion endRegion = graph.getRegionContaining(endLocation);
-
-        Objects.requireNonNull(startRegion);
-        Objects.requireNonNull(endRegion);
-
+    public PathResult findPath(Collection<Location> startLocations, Collection<Location> endLocations, RsPlayer rsPlayer) {
         PathResult pathResult = new PathResult();
 
-        if (startRegion.equals(endRegion)) {
-            List<Edge> internalPath = (List<Edge>) graph.findInternalPath(startLocation, endLocation, startRegion, true);
-            if (internalPath != null) {
-                pathResult.setPath(internalPath);
-                return pathResult;
-            }
-        }
-
-        Player player = rsPlayer == null ? null : new PlayerImplementation(rsPlayer);
-        TerminatingNode startNode = new TerminatingNode(startRegion, startLocation, player, false);
-        TerminatingNode endNode = new TerminatingNode(endRegion, endLocation, player, true);
-
-
         AStarImplementation astar = new AStarImplementation();
-        astar.setArgs(Collections.singletonMap("player", player));
+        astar.setArgs(Collections.singletonMap("player", rsPlayer == null ? null : new PlayerImplementation(rsPlayer)));
+
+        Set<TerminatingNode> startNodes = getTerminatingNodes(startLocations, false);
+        startNodes.stream().map(terminatingNode -> terminatingNode.getEdges().stream()).flatMap(Function.identity()).forEach(edge -> astar.addStartingNode(edge.getEnd()));
+        Set<TerminatingNode> endNodes = getTerminatingNodes(endLocations, true);
+        endNodes.stream().map(terminatingNode -> terminatingNode.getEdges().stream()).flatMap(Function.identity()).forEach(edge -> astar.addDestinationNode(edge.getStart()));
 
         for (CustomEdgeData customEdgeData : TeleportNode.getEdges()) {
             HPARegion region = graph.getRegionContaining(customEdgeData.getEnd());
@@ -286,38 +289,27 @@ public class HpaPathFindingService {
             if (teleportEnd == null) continue;
             HPAEdge hpaEdge = new CustomEdge(null, teleportEnd).setCost(customEdgeData.getCost()).setType(EdgeType.CUSTOM).setCustomEdgeData(customEdgeData);
             astar.getGlobalEdges().add(hpaEdge);
-            if (hpaEdge.evaluate(new GraphState(), astar.getArgs())) startNode.getEdges().add(hpaEdge.copyWithStart(startNode));
         }
 
         List<Edge> hpaPath = null;
-
-        out:
-        for (Edge se : startNode.getEdges()) {
-            for (Edge ee : endNode.getEdges()) {
-                if (se.getEnd().equals(ee.getStart())) {
-                    hpaPath = new ArrayList<>();
-                    hpaPath.add(se);
-                    hpaPath.add(ee);
-                    break out;
-                }
+        for (Node node : astar.getStartingNodes()) {
+            if (astar.getDestinationNodes().contains(node)){
+                hpaPath = new ArrayList<>();
+                hpaPath.add(new HPAEdge((HPANode) node, (HPANode) node));
+                break;
             }
         }
 
-        if (hpaPath == null) {
-            startNode.getEdges().forEach(edge -> astar.addStartingNode(edge.getEnd()));
-            endNode.getEdges().forEach(edge -> astar.addDestinationNode(edge.getStart()));
-            hpaPath = (List<Edge>) astar.findPath(new LocateableHeuristic()).orElse(null);
-            if (hpaPath != null) {
-                Edge edgeTo = startNode.getEdgeTo((HPANode) hpaPath.get(0).getStart());
-                if (edgeTo != null) hpaPath.add(0, edgeTo);
+        if (hpaPath == null) hpaPath = (List<Edge>) astar.findPath(new LocateableHeuristic()).orElse(null);
+        pathResult.setAStarImplementation(astar);
 
-                edgeTo = endNode.getEdgeTo((HPANode) hpaPath.get(hpaPath.size() - 1).getEnd());
-                if (edgeTo != null) hpaPath.add(edgeTo);
-            }
+        if (hpaPath != null) {
+            Edge edgeTo = getEdgeTo(startNodes, (HPANode) hpaPath.get(0).getStart());
+            if (edgeTo != null) hpaPath.add(0, edgeTo);
 
-            pathResult.setAStarImplementation(astar);
+            edgeTo = getEdgeTo(endNodes, (HPANode) hpaPath.get(hpaPath.size() - 1).getEnd());
+            if (edgeTo != null) hpaPath.add(edgeTo);
         }
-
 
         pathResult.setPath(hpaPath);
         lastResult = pathResult;

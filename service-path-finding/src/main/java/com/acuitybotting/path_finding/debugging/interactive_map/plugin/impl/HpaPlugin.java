@@ -18,6 +18,7 @@ import com.acuitybotting.path_finding.service.domain.PathResult;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
 
@@ -136,14 +137,14 @@ public class HpaPlugin extends Plugin {
                 end = getMapPanel().getMouseLocation();
                 endRegion = graph.getRegionContaining(end);
                 if (endRegion != null) {
-                    endNode = new TerminatingNode(endRegion, end, null, true);
+                    endNode = new TerminatingNode(endRegion, end, true);
                 }
                 getMapPanel().repaint();
             } else {
                 start = getMapPanel().getMouseLocation();
                 startRegion = graph.getRegionContaining(start);
                 if (startRegion != null) {
-                    startNode = new TerminatingNode(startRegion, start, null, false);
+                    startNode = new TerminatingNode(startRegion, start, false);
                 }
 
                 getMapPanel().repaint();
@@ -152,7 +153,7 @@ public class HpaPlugin extends Plugin {
             if (startNode != null && endNode != null) {
                 executor.execute(() -> {
                     try {
-                        pathResult = pathFindingService.findPath(start, end, null);
+                        pathResult = pathFindingService.findPath(Collections.singleton(start), Collections.singleton(end), null);
                     } catch (Exception e1) {
                         e1.printStackTrace();
                     }

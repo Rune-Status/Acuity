@@ -58,6 +58,7 @@ public class AStarImplementation {
 
     private Optional<List<? extends Edge>> execute() {
         int attempts = 0;
+
         while (!open.isEmpty()) {
             attempts++;
             AStarStore current = open.poll();

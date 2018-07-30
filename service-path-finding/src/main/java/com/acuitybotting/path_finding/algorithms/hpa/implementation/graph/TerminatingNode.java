@@ -2,11 +2,7 @@ package com.acuitybotting.path_finding.algorithms.hpa.implementation.graph;
 
 import com.acuitybotting.path_finding.algorithms.graph.Edge;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.HPAGraph;
-import com.acuitybotting.path_finding.rs.custom_edges.CustomEdgeData;
-import com.acuitybotting.path_finding.rs.custom_edges.edges.TeleportNode;
-import com.acuitybotting.path_finding.rs.custom_edges.requirements.abstractions.Player;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
-import com.acuitybotting.path_finding.rs.utils.EdgeType;
 import com.acuitybotting.path_finding.rs.utils.NodeType;
 
 import java.util.HashSet;
@@ -19,7 +15,7 @@ public class TerminatingNode extends HPANode {
 
     private Set<Edge> edges = new HashSet<>();
 
-    public TerminatingNode(HPARegion region, Location location, Player player, boolean end) {
+    public TerminatingNode(HPARegion region, Location location, boolean end) {
         super(region, location, NodeType.TERMINATING);
 
         HPANode hpaNode = region.getNodes().get(location);
