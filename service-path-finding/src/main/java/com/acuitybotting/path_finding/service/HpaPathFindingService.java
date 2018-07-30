@@ -12,6 +12,7 @@ import com.acuitybotting.db.arango.path_finding.domain.xtea.Xtea;
 import com.acuitybotting.path_finding.algorithms.astar.AStarService;
 import com.acuitybotting.path_finding.algorithms.astar.implmentation.AStarImplementation;
 import com.acuitybotting.path_finding.algorithms.graph.Edge;
+import com.acuitybotting.path_finding.algorithms.graph.GraphState;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.HPAGraph;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.PathFindingSupplier;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPAEdge;
@@ -274,6 +275,20 @@ public class HpaPathFindingService {
         TerminatingNode startNode = new TerminatingNode(startRegion, startLocation, player, false);
         TerminatingNode endNode = new TerminatingNode(endRegion, endLocation, player, true);
 
+
+        AStarImplementation astar = new AStarImplementation();
+        astar.setArgs(Collections.singletonMap("player", player));
+
+        for (CustomEdgeData customEdgeData : TeleportNode.getEdges()) {
+            HPARegion region = graph.getRegionContaining(customEdgeData.getEnd());
+            if (region == null) continue;
+            HPANode teleportEnd = region.getNodes().get(customEdgeData.getEnd());
+            if (teleportEnd == null) continue;
+            HPAEdge hpaEdge = new CustomEdge(null, teleportEnd).setCost(customEdgeData.getCost()).setType(EdgeType.CUSTOM).setCustomEdgeData(customEdgeData);
+            astar.getGlobalEdges().add(hpaEdge);
+            if (hpaEdge.evaluate(new GraphState(), astar.getArgs())) startNode.getEdges().add(hpaEdge.copyWithStart(startNode));
+        }
+
         List<Edge> hpaPath = null;
 
         out:
@@ -289,22 +304,9 @@ public class HpaPathFindingService {
         }
 
         if (hpaPath == null) {
-            AStarImplementation astar = new AStarImplementation();
-
-            for (CustomEdgeData customEdgeData : TeleportNode.getEdges()) {
-                HPARegion region = graph.getRegionContaining(customEdgeData.getEnd());
-                if (region == null) continue;
-                HPANode teleportEnd = region.getNodes().get(customEdgeData.getEnd());
-                if (teleportEnd == null) continue;
-                astar.getGlobalEdges().add(new CustomEdge(null, teleportEnd).setCost(customEdgeData.getCost()).setType(EdgeType.CUSTOM).setCustomEdgeData(customEdgeData));
-            }
-
-            astar.setArgs(Collections.singletonMap("player", player));
             startNode.getEdges().forEach(edge -> astar.addStartingNode(edge.getEnd()));
             endNode.getEdges().forEach(edge -> astar.addDestinationNode(edge.getStart()));
             hpaPath = (List<Edge>) astar.findPath(new LocateableHeuristic()).orElse(null);
-            pathResult.setAStarImplementation(astar);
-
             if (hpaPath != null) {
                 Edge edgeTo = startNode.getEdgeTo((HPANode) hpaPath.get(0).getStart());
                 if (edgeTo != null) hpaPath.add(0, edgeTo);
@@ -312,6 +314,8 @@ public class HpaPathFindingService {
                 edgeTo = endNode.getEdgeTo((HPANode) hpaPath.get(hpaPath.size() - 1).getEnd());
                 if (edgeTo != null) hpaPath.add(edgeTo);
             }
+
+            pathResult.setAStarImplementation(astar);
         }
 
 
