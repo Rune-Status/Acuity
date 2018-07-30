@@ -20,7 +20,7 @@ public class LocateableHeuristic implements AStarHeuristicSupplier {
         else {
             Location currentLocation = ((Locateable) current).getLocation();
             for (Node node : end) {
-                cost = Math.min(cost, currentLocation.getTraversalCost(((Locateable) node).getLocation()));
+                cost =+ currentLocation.getTraversalCost(((Locateable) node).getLocation());
             }
         }
 

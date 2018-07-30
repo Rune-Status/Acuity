@@ -47,6 +47,11 @@ public class HPAEdge implements Edge {
     }
 
     @Override
+    public boolean isTwoWayEdge() {
+        return true;
+    }
+
+    @Override
     public double getCostPenalty() {
         return costPenalty;
     }

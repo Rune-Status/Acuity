@@ -18,8 +18,6 @@ public class SavedNode {
     private Integer webVersion;
 
     private String regionKey;
-    private List<String> edgeKeys;
     private Location location;
     private Integer type;
-
 }

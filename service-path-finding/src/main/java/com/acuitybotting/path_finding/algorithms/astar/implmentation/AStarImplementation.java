@@ -13,21 +13,21 @@ import java.util.function.Predicate;
 public class AStarImplementation {
 
     public static boolean debugMode = false;
-    private int maxAttempts = 1000000;
+    protected int maxAttempts = 1000000;
 
-    private AStarHeuristicSupplier heuristicSupplier;
-    private Predicate<Edge> edgePredicate = null;
+    protected AStarHeuristicSupplier heuristicSupplier;
+    protected Predicate<Edge> edgePredicate = null;
 
-    private Map<AStarStore, Edge> pathCache = new HashMap<>();
-    private Map<AStarStore, Double> costCache = new HashMap<>();
-    private PriorityQueue<AStarStore> open = new PriorityQueue<>();
+    protected Map<AStarStore, Edge> pathCache = new HashMap<>();
+    protected Map<AStarStore, Double> costCache = new HashMap<>();
+    protected PriorityQueue<AStarStore> open = new PriorityQueue<>();
 
-    private Set<Edge> globalEdges = new HashSet<>();
+    protected Set<Edge> globalEdges = new HashSet<>();
 
-    private Set<Node> startingNodes = new HashSet<>();
-    private Set<Node> destinationNodes = new HashSet<>();
+    protected Set<Node> startingNodes = new HashSet<>();
+    protected Set<Node> destinationNodes = new HashSet<>();
 
-    private Map<String, Object> args = Collections.emptyMap();
+    protected Map<String, Object> args = Collections.emptyMap();
 
     public Optional<List<? extends Edge>> findPath(AStarHeuristicSupplier heuristicSupplier) {
         Objects.requireNonNull(heuristicSupplier);
@@ -50,14 +50,17 @@ public class AStarImplementation {
 
     public AStarImplementation addStartingNode(Node node){
         startingNodes.add(node);
-        AStarStore store = AStarStore.get(node);
-        open.add(store);
-        costCache.put(store, 0d);
         return this;
     }
 
-    private Optional<List<? extends Edge>> execute() {
+    protected Optional<List<? extends Edge>> execute() {
         int attempts = 0;
+
+        for (Node node : startingNodes) {
+            AStarStore store = AStarStore.get(node);
+            open.add(store);
+            costCache.put(store, 0d);
+        }
 
         while (!open.isEmpty()) {
             attempts++;
@@ -79,7 +82,7 @@ public class AStarImplementation {
                 evaluate(current, globalEdge);
             }
 
-            for (Edge edge : current.getNode().getNeighbors(current.getState(), args)) {
+            for (Edge edge : current.getNode().getOutgoingEdges(current.getState(), args)) {
                 evaluate(current, edge);
             }
         }
@@ -88,7 +91,7 @@ public class AStarImplementation {
         return Optional.empty();
     }
 
-    private void evaluate(AStarStore current, Edge edge){
+    protected void evaluate(AStarStore current, Edge edge){
         if (edgePredicate != null && !edgePredicate.test(edge)) return;
         if (!edge.evaluate(current.getState(), args)) return;
 
@@ -106,7 +109,7 @@ public class AStarImplementation {
         }
     }
 
-    private List<Edge> collectPath(Node end) {
+    protected List<Edge> collectPath(Node end) {
         List<Edge> path = new ArrayList<>();
         Edge edge = pathCache.get(AStarStore.get(end));
         while (edge != null) {
@@ -118,7 +121,7 @@ public class AStarImplementation {
         return path;
     }
 
-    private void clear() {
+    protected void clear() {
         open.clear();
         costCache.clear();
         pathCache.clear();

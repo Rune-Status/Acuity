@@ -26,10 +26,10 @@ public class PositionPlugin extends Plugin {
         if (mouseLocation != null){
             flags = MapFlags.toString(RsEnvironment.getRsMap().getFlagAt(mouseLocation).orElse(0));
             getPaintUtil().markLocation(graphics, mouseLocation, Color.BLUE);
-            for (Edge edge : RsEnvironment.getRsMap().getNode(mouseLocation).getNeighbors()) {
+            for (Edge edge : RsEnvironment.getRsMap().getNode(mouseLocation).getOutgoingEdges()) {
                 getPaintUtil().markLocation(graphics, edge.getEnd(), Color.BLACK);
             }
-            getPaintUtil().connectLocations(graphics, RsEnvironment.getRsMap().getNode(mouseLocation).getNeighbors(), Color.BLACK);
+            getPaintUtil().connectLocations(graphics, RsEnvironment.getRsMap().getNode(mouseLocation).getOutgoingEdges(), Color.BLACK);
 
         }
         getPaintUtil().debug("Flags: " + flags);

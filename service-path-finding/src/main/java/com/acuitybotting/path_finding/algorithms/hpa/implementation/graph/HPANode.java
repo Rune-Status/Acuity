@@ -5,19 +5,19 @@ package com.acuitybotting.path_finding.algorithms.hpa.implementation.graph;
 import com.acuitybotting.path_finding.algorithms.graph.Edge;
 import com.acuitybotting.path_finding.algorithms.graph.GraphState;
 import com.acuitybotting.path_finding.algorithms.graph.Node;
+import com.acuitybotting.path_finding.rs.custom_edges.CustomEdge;
 import com.acuitybotting.path_finding.rs.domain.location.Locateable;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
 import com.google.gson.annotations.Expose;
 import lombok.Getter;
 
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 @Getter
 public class HPANode implements Node, Locateable {
 
-    private Set<Edge> hpaEdges = new HashSet<>();
-    private Set<Edge> temporaryEdges = new CopyOnWriteArraySet<>();
+    private Set<Edge> outgoingEdges = new HashSet<>();
+    private Set<Edge> incomingEdges = new HashSet<>();
 
     @Expose
     private Location location;
@@ -33,13 +33,8 @@ public class HPANode implements Node, Locateable {
     }
 
     @Override
-    public Set<Edge> getNeighbors(GraphState state, Map<String, Object> args) {
-        if (temporaryEdges.size() == 0) return hpaEdges;
-
-        Set<Edge> combined = new HashSet<>(hpaEdges);
-        combined.addAll(temporaryEdges);
-
-        return combined;
+    public Set<Edge> getOutgoingEdges(GraphState state, Map<String, Object> args) {
+        return outgoingEdges;
     }
 
     public HPAEdge addHpaEdge(HPANode other, int edgeType){
@@ -50,8 +45,16 @@ public class HPANode implements Node, Locateable {
         HPAEdge hpaEdge = new HPAEdge(this, other);
         hpaEdge.setCostPenalty(cost);
         hpaEdge.setType(edgeType);
-        hpaEdges.add(hpaEdge);
+
+        outgoingEdges.add(hpaEdge);
+        hpaEdge.getEnd().getIncomingEdges().add(hpaEdge);
+
         return hpaEdge;
+    }
+
+    public void addHpaEdge(CustomEdge customEdge) {
+        outgoingEdges.add(customEdge);
+        customEdge.getEnd().getIncomingEdges().add(customEdge);
     }
 
     @Override

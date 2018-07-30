@@ -10,10 +10,13 @@ public interface Node {
         return graphState;
     }
 
-    default Collection<Edge> getNeighbors() {
-        return getNeighbors(null, Collections.emptyMap());
+    default Collection<Edge> getOutgoingEdges() {
+        return getOutgoingEdges(null, Collections.emptyMap());
     }
 
-    Collection<Edge> getNeighbors(GraphState state, Map<String, Object> args);
+    Collection<Edge> getOutgoingEdges(GraphState state, Map<String, Object> args);
 
+    default Collection<Edge> getIncomingEdges(){
+        return Collections.emptySet();
+    }
 }

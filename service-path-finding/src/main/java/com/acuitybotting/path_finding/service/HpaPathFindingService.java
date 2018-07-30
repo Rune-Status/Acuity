@@ -11,8 +11,8 @@ import com.acuitybotting.db.arango.path_finding.domain.xtea.RegionMap;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.Xtea;
 import com.acuitybotting.path_finding.algorithms.astar.AStarService;
 import com.acuitybotting.path_finding.algorithms.astar.implmentation.AStarImplementation;
+import com.acuitybotting.path_finding.algorithms.astar.implmentation.ReverseAStarImplementation;
 import com.acuitybotting.path_finding.algorithms.graph.Edge;
-import com.acuitybotting.path_finding.algorithms.graph.GraphState;
 import com.acuitybotting.path_finding.algorithms.graph.Node;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.HPAGraph;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.PathFindingSupplier;
@@ -236,7 +236,7 @@ public class HpaPathFindingService {
             Location poll = open.poll();
             closed.add(poll);
 
-            Collection<Edge> neighbors = new TileNode(poll).getNeighbors(null, Collections.singletonMap(IGNORE_BLOCKED, poll));
+            Collection<Edge> neighbors = new TileNode(poll).getOutgoingEdges(null, Collections.singletonMap(IGNORE_BLOCKED, poll));
             for (Edge neighbor : neighbors) {
                 Location end = ((TileNode) neighbor.getEnd()).getLocation();
                 if (!isBlocked(end)) return end;
@@ -274,7 +274,7 @@ public class HpaPathFindingService {
     public PathResult findPath(Collection<Location> startLocations, Collection<Location> endLocations, RsPlayer rsPlayer) {
         PathResult pathResult = new PathResult();
 
-        AStarImplementation astar = new AStarImplementation();
+        AStarImplementation astar = new ReverseAStarImplementation();
         astar.setArgs(Collections.singletonMap("player", rsPlayer == null ? null : new PlayerImplementation(rsPlayer)));
 
         Set<TerminatingNode> startNodes = getTerminatingNodes(startLocations, false);
@@ -334,7 +334,7 @@ public class HpaPathFindingService {
             public boolean isDirectlyConnected(Location start, Location end) {
                 TileNode sNode = RsEnvironment.getRsMap().getNode(start);
                 TileNode endNode = RsEnvironment.getRsMap().getNode(end);
-                return sNode.getNeighbors().stream().anyMatch(edge -> edge.getEnd().equals(endNode));
+                return sNode.getOutgoingEdges().stream().anyMatch(edge -> edge.getEnd().equals(endNode));
             }
         };
     }

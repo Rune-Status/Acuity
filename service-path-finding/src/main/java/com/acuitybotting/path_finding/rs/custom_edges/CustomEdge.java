@@ -35,6 +35,11 @@ public class CustomEdge extends HPAEdge {
     }
 
     @Override
+    public boolean isTwoWayEdge() {
+        return false;
+    }
+
+    @Override
     public boolean evaluate(GraphState state, Map<String, Object> args) {
         return super.evaluate(state, args);
     }

@@ -35,6 +35,11 @@ public class TileEdge implements Edge {
     }
 
     @Override
+    public boolean isTwoWayEdge() {
+        return false;
+    }
+
+    @Override
     public Node getStart() {
         return start;
     }

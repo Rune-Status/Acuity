@@ -1,14 +1,14 @@
 package com.acuitybotting.path_finding.web_processing;
 
-import com.acuitybotting.path_finding.domain.hpa.SavedEdge;
-import com.acuitybotting.path_finding.domain.hpa.SavedNode;
-import com.acuitybotting.path_finding.domain.hpa.SavedPath;
-import com.acuitybotting.path_finding.domain.hpa.SavedRegion;
 import com.acuitybotting.path_finding.algorithms.graph.Edge;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.HPAGraph;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPAEdge;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPANode;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPARegion;
+import com.acuitybotting.path_finding.domain.hpa.SavedEdge;
+import com.acuitybotting.path_finding.domain.hpa.SavedNode;
+import com.acuitybotting.path_finding.domain.hpa.SavedPath;
+import com.acuitybotting.path_finding.domain.hpa.SavedRegion;
 import com.acuitybotting.path_finding.enviroment.PathingEnviroment;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
 import com.acuitybotting.path_finding.rs.utils.NodeType;
@@ -70,7 +70,8 @@ public class HpaWebService {
             HPANode startNode = startRegion.getOrCreateNode(startSavedNode.getLocation(), startSavedNode.getType());
             HPANode endNode = endRegion.getOrCreateNode(endSavedNode.getLocation(), endSavedNode.getType());
 
-            startNode.addHpaEdge(endNode, savedEdge.getType(), savedEdge.getCost()).setPathKey(savedEdge.getPathKey());
+            HPAEdge hpaEdge = startNode.addHpaEdge(endNode, savedEdge.getType(), savedEdge.getCost()).setPathKey(savedEdge.getPathKey());
+            endNode.getIncomingEdges().add(hpaEdge);
             edgeCount++;
         }
         log.info("Loaded {} SavedEdge(s).", edgeCount);
@@ -110,7 +111,7 @@ public class HpaWebService {
         }
 
         for (Map.Entry<HPANode, SavedNode> entry : nodeMap.entrySet()) {
-            for (Edge edge : entry.getKey().getHpaEdges()) {
+            for (Edge edge : entry.getKey().getOutgoingEdges()) {
                 HPAEdge hpaEdge = (HPAEdge) edge;
                 if (hpaEdge.getEnd().getType() != NodeType.BASIC) continue;
 
@@ -137,7 +138,6 @@ public class HpaWebService {
         log.info("Finished processing {}, starting write to db.", graph);
 
         long saveStartTime = System.currentTimeMillis();
-        int poolSize = 100;
 
         log.info("Saving {} regions.", savedRegions.size());
         PathingEnviroment.save(PathingEnviroment.REGIONS, "regions_" + version, savedRegions);

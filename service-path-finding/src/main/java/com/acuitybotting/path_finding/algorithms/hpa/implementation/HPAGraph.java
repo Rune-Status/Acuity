@@ -4,7 +4,6 @@ package com.acuitybotting.path_finding.algorithms.hpa.implementation;
 import com.acuitybotting.common.utils.ExecutorUtil;
 import com.acuitybotting.path_finding.algorithms.graph.Edge;
 import com.acuitybotting.path_finding.algorithms.graph.Node;
-import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPAEdge;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPANode;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPARegion;
 import com.acuitybotting.path_finding.rs.custom_edges.CustomEdge;
@@ -143,7 +142,7 @@ public class HPAGraph {
             }
 
             if (start != null && end != null) {
-                start.getTemporaryEdges().add(new CustomEdge(start, end).setCost(data.getCost()).setType(EdgeType.CUSTOM).setCustomEdgeData(data).setCostPenalty(data.getCostPenalty()));
+                start.addHpaEdge((CustomEdge) new CustomEdge(start, end).setCost(data.getCost()).setType(EdgeType.CUSTOM).setCustomEdgeData(data).setCostPenalty(data.getCostPenalty()));
                 customNodeConnectionsCount++;
             }
         }
@@ -188,7 +187,7 @@ public class HPAGraph {
 
     @SuppressWarnings("unchecked")
     private boolean evaluateInternalConnection(Set<InternalConnection> internalConnections, HPARegion region, HPANode startNode, HPANode endNode, boolean ignoreStartBlocked) {
-        if (startNode.getHpaEdges().stream().anyMatch(edge -> edge.getEnd().equals(endNode))) {
+        if (startNode.getOutgoingEdges().stream().anyMatch(edge -> edge.getEnd().equals(endNode))) {
             return true;
         }
 

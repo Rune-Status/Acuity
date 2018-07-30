@@ -3,7 +3,6 @@ package com.acuitybotting.path_finding.debugging.interactive_map.plugin.impl;
 import com.acuitybotting.common.utils.ExecutorUtil;
 import com.acuitybotting.path_finding.algorithms.astar.implmentation.AStarStore;
 import com.acuitybotting.path_finding.algorithms.graph.Edge;
-import com.acuitybotting.path_finding.algorithms.graph.Node;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.HPAGraph;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPAEdge;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPANode;
@@ -69,7 +68,7 @@ public class HpaPlugin extends Plugin {
             }
 
             for (HPANode hpaNode : HPARegion.getNodes().values()) {
-                for (Edge edge : hpaNode.getNeighbors()) {
+                for (Edge edge : hpaNode.getOutgoingEdges()) {
                     if (edge instanceof HPAEdge) {
                         getPaintUtil().connectLocations(graphics, edge.getStart(), edge.getEnd(), Color.BLUE);
                     }
@@ -100,7 +99,7 @@ public class HpaPlugin extends Plugin {
 
                 HPANode hpaNode = mouseRegion.getNodes().get(mouseLocation);
                 if (hpaNode != null) {
-                    for (Edge edge : hpaNode.getNeighbors()) {
+                    for (Edge edge : hpaNode.getOutgoingEdges()) {
                         getPaintUtil().connectLocations(graphics, edge.getStart(), edge.getEnd(), Color.MAGENTA);
                         getPaintUtil().markLocation(graphics, edge.getEnd(), Color.MAGENTA);
                     }

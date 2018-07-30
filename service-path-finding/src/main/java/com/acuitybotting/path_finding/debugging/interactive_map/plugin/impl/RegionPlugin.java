@@ -99,7 +99,7 @@ public class RegionPlugin extends Plugin {
         getPaintUtil().markLocation(graphics, location, Color.RED);
 
         if (location != null){
-            getPaintUtil().connectLocations(graphics, RsEnvironment.getRsMap().getNode(location).getNeighbors(), Color.RED);
+            getPaintUtil().connectLocations(graphics, RsEnvironment.getRsMap().getNode(location).getOutgoingEdges(), Color.RED);
         }
     }
 }

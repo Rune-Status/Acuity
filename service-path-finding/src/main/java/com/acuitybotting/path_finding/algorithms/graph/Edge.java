@@ -8,6 +8,8 @@ public interface Edge {
         throw new UnsupportedOperationException();
     }
 
+    boolean isTwoWayEdge();
+
     Node getStart();
 
     Node getEnd();

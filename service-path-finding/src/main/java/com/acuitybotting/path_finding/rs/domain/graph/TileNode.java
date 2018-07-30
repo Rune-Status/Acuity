@@ -49,7 +49,7 @@ public class TileNode implements Node, Locateable {
         return getLocation().getPlane();
     }
 
-    public Collection<Edge> getNeighbors(GraphState graphState, Map<String, Object> args) {
+    public Collection<Edge> getOutgoingEdges(GraphState graphState, Map<String, Object> args) {
         boolean ignoreSelfBlocked = getLocation().equals(args.getOrDefault(IGNORE_BLOCKED, null));
 
         Set<Edge> edges = new HashSet<>(8);
