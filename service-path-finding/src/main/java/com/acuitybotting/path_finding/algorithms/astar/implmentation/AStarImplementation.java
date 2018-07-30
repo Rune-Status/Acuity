@@ -74,36 +74,35 @@ public class AStarImplementation {
                 return Optional.ofNullable(path);
             }
 
-            Collection<Edge> neighbors = new HashSet<>(current.getNode().getNeighbors(current.getState(), args));
-            neighbors.addAll(globalEdges);
+            for (Edge globalEdge : globalEdges) {
+                evaluate(current, globalEdge);
+            }
 
-            for (Edge edge : neighbors) {
-                if (edgePredicate != null && !edgePredicate.test(edge)) continue;
-                if (!edge.evaluate(current.getState(), args)) continue;
-
-                Node next = edge.getEnd();
-
-                double newCost = costCache.getOrDefault(current, 0d) + heuristicSupplier.getHeuristic(startingNodes, current.getNode(), Collections.singleton(next), edge);
-
-                AStarStore nextStore = AStarStore.get(next).setState(next.effectState(current.getState()));
-                Double oldCost = costCache.get(nextStore);
-                if (oldCost == null || newCost < oldCost) {
-                    nextStore.setPriority(newCost + heuristicSupplier.getHeuristic(startingNodes, next, destinationNodes, edge));
-                    costCache.put(nextStore, newCost);
-                    open.add(nextStore);
-
-                    if (edge.getStart() == null){
-                        pathCache.put(nextStore, edge.copyWithStart(current.getNode()));
-                    }
-                    else {
-                        pathCache.put(nextStore, edge);
-                    }
-                }
+            for (Edge edge : current.getNode().getNeighbors(current.getState(), args)) {
+                evaluate(current, edge);
             }
         }
 
         if (!debugMode) clear();
         return Optional.empty();
+    }
+
+    private void evaluate(AStarStore current, Edge edge){
+        if (edgePredicate != null && !edgePredicate.test(edge)) return;
+        if (!edge.evaluate(current.getState(), args)) return;
+
+        Node next = edge.getEnd();
+
+        double newCost = costCache.getOrDefault(current, 0d) + heuristicSupplier.getHeuristic(startingNodes, current.getNode(), Collections.singleton(next), edge);
+
+        AStarStore nextStore = AStarStore.get(next).setState(next.effectState(current.getState()));
+        Double oldCost = costCache.get(nextStore);
+        if (oldCost == null || newCost < oldCost) {
+            nextStore.setPriority(newCost + heuristicSupplier.getHeuristic(startingNodes, next, destinationNodes, edge));
+            costCache.put(nextStore, newCost);
+            open.add(nextStore);
+            pathCache.put(nextStore, edge.getStart() == null ? edge.copyWithStart(current.getNode()) : edge);
+        }
     }
 
     private List<Edge> collectPath(Node end) {
