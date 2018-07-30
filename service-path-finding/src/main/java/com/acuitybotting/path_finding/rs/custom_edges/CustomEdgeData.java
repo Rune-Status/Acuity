@@ -1,15 +1,16 @@
 package com.acuitybotting.path_finding.rs.custom_edges;
 
+import com.acuitybotting.path_finding.algorithms.hpa.implementation.HPAGraph;
+import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPANode;
+import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPARegion;
 import com.acuitybotting.path_finding.rs.custom_edges.interaction.Interaction;
 import com.acuitybotting.path_finding.rs.custom_edges.requirements.PlayerPredicate;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
+import com.acuitybotting.path_finding.rs.utils.EdgeType;
 import com.google.gson.annotations.Expose;
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by Zachary Herridge on 6/21/2018.
@@ -54,5 +55,11 @@ public class CustomEdgeData {
     public CustomEdgeData withCost(double cost){
         this.cost = cost;
         return this;
+    }
+
+    public CustomEdge toEdge(HPAGraph hpaGraph){
+        HPANode startNode = Optional.ofNullable(hpaGraph.getRegionContaining(start)).map(region -> region.getNodes().get(start)).orElse(null);
+        HPANode endNode = Optional.ofNullable(hpaGraph.getRegionContaining(end)).map(region -> region.getNodes().get(end)).orElse(null);
+        return (CustomEdge) new CustomEdge(startNode, endNode).setCost(costPenalty).setCostPenalty(costPenalty).setType(EdgeType.CUSTOM).setCustomEdgeData(this);
     }
 }

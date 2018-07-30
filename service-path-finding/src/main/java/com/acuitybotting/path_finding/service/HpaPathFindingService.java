@@ -283,12 +283,7 @@ public class HpaPathFindingService {
         endNodes.stream().map(terminatingNode -> terminatingNode.getEdges().stream()).flatMap(Function.identity()).forEach(edge -> astar.addDestinationNode(edge.getStart()));
 
         for (CustomEdgeData customEdgeData : TeleportNode.getEdges()) {
-            HPARegion region = graph.getRegionContaining(customEdgeData.getEnd());
-            if (region == null) continue;
-            HPANode teleportEnd = region.getNodes().get(customEdgeData.getEnd());
-            if (teleportEnd == null) continue;
-            HPAEdge hpaEdge = new CustomEdge(null, teleportEnd).setCost(customEdgeData.getCost()).setType(EdgeType.CUSTOM).setCustomEdgeData(customEdgeData);
-            astar.getGlobalEdges().add(hpaEdge);
+            astar.getGlobalEdges().add(customEdgeData.toEdge(graph));
         }
 
         List<Edge> hpaPath = null;

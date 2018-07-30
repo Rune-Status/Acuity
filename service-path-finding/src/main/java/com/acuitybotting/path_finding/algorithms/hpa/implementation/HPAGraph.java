@@ -142,7 +142,7 @@ public class HPAGraph {
             }
 
             if (start != null && end != null) {
-                start.addHpaEdge((CustomEdge) new CustomEdge(start, end).setCost(data.getCost()).setType(EdgeType.CUSTOM).setCustomEdgeData(data).setCostPenalty(data.getCostPenalty()));
+                start.addHpaEdge(data.toEdge(this));
                 customNodeConnectionsCount++;
             }
         }
