@@ -73,7 +73,7 @@ public class ReverseAStarImplementation extends AStarImplementation{
             nextStore.setPriority(newCost + heuristicSupplier.getHeuristic(destinationNodes, next, startingNodes, edge));
             costCache.put(nextStore, newCost);
             open.add(nextStore);
-            pathCache.put(nextStore, edge.getEnd() == null ? edge.copyWithEnd(current.getNode()) : edge);
+            pathCache.put(nextStore, edge);
         }
     }
 
