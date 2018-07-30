@@ -16,7 +16,6 @@ import java.util.function.Predicate;
 @Service
 public class AStarService {
 
-    private boolean debugMode;
     private int maxAttempts = 50000;
 
     public Optional<List<? extends Edge>> findPath(AStarHeuristicSupplier heuristicSupplier, Node start, Node end) {
@@ -32,7 +31,7 @@ public class AStarService {
     }
 
     public AStarImplementation build(){
-        return new AStarImplementation().setMaxAttempts(maxAttempts).setDebugMode(debugMode);
+        return new AStarImplementation().setMaxAttempts(maxAttempts);
     }
 
     public void setMaxAttempts(int maxAttempts) {

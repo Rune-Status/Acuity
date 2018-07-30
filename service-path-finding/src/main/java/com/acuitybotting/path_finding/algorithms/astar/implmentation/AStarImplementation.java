@@ -12,7 +12,7 @@ import java.util.function.Predicate;
 @Getter
 public class AStarImplementation {
 
-    private boolean debugMode = false;
+    public static boolean debugMode = false;
     private int maxAttempts = 1000000;
 
     private AStarHeuristicSupplier heuristicSupplier;

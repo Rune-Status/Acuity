@@ -4,6 +4,7 @@ import com.acuitybotting.common.utils.ExecutorUtil;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.SceneEntityDefinition;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.Xtea;
 import com.acuitybotting.db.arango.utils.ArangoUtils;
+import com.acuitybotting.path_finding.algorithms.astar.implmentation.AStarImplementation;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.HPAGraph;
 import com.acuitybotting.path_finding.debugging.interactive_map.plugin.impl.HpaPlugin;
 import com.acuitybotting.path_finding.debugging.interactive_map.plugin.impl.PositionPlugin;
@@ -54,6 +55,7 @@ public class PathFindingRunner implements CommandLineRunner {
     }
 
     private MapFrame openUi() throws Exception {
+        AStarImplementation.debugMode = true;
         MapFrame mapFrame = new MapFrame();
         mapFrame.getMapPanel().addPlugin(new PositionPlugin());
         mapFrame.show();
