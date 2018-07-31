@@ -1,1 +1,15 @@
+sudo: required
+
 language: java
+
+services:
+  - docker
+
+before_install:
+ - docker build -t service-bot-control/ .
+
+deploy:
+  provider: script
+  script: bash docker_push
+  on:
+    branch: master
