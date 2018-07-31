@@ -11,6 +11,7 @@ import com.acuitybotting.path_finding.rs.custom_edges.CustomEdgeData;
 import com.acuitybotting.path_finding.rs.custom_edges.edges.CharterNode;
 import com.acuitybotting.path_finding.rs.custom_edges.edges.FairyRingEdgeData;
 import com.acuitybotting.path_finding.rs.custom_edges.edges.TeleportNode;
+import com.acuitybotting.path_finding.rs.custom_edges.edges.WildernessEdge;
 import com.acuitybotting.path_finding.rs.domain.graph.TileEdge;
 import com.acuitybotting.path_finding.rs.domain.location.Locateable;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
@@ -121,6 +122,7 @@ public class HPAGraph {
         edges.addAll(FairyRingEdgeData.getEdges());
         edges.addAll(CharterNode.getEdges());
         edges.addAll(TeleportNode.getEdges());
+        edges.addAll(WildernessEdge.getEdges());
 
         for (CustomEdgeData data : edges) {
             HPANode start = null;

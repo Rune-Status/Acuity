@@ -1,5 +1,6 @@
 package com.acuitybotting.path_finding.rs.custom_edges.edges;
 
+import com.acuitybotting.path_finding.rs.custom_edges.CustomEdge;
 import com.acuitybotting.path_finding.rs.custom_edges.CustomEdgeData;
 import com.acuitybotting.path_finding.rs.custom_edges.interaction.Interaction;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
@@ -24,13 +25,13 @@ public class CharterNode {
 
     private static final String DESTINATION = "DESTINATION";
 
-    private static Collection<CustomEdgeData> connections = new HashSet<>(60);
-    private static Collection<CharterNode> charters = new HashSet<>(8);
+    private static Collection<CustomEdgeData> connections = new HashSet<>();
+    private static Collection<CharterNode> charters = new HashSet<>();
 
     static {
         charters.add(new CharterNode()
                 .withLocation(new Location(2142, 3122, 0))
-                .withShip(new Location(2142, 3125, 1))
+                .withShip(new Location(2141, 3125, 1))
                 .withName(PORT_TYRAS));
 
         charters.add(new CharterNode()
@@ -87,25 +88,25 @@ public class CharterNode {
     private String name;
 
     public static void buildGangplankEdges() {
-        Interaction cross = new Interaction()
-                .setType(Interaction.SCENE_ENTITY)
-                .withData("OBJECT_NAME", "Gangplank")
-                .withData("OBJECT_ACTION", "Cross")
-                .withData("STRICT", false);
-
         for (CharterNode node : charters) {
-            CustomEdgeData inside = new CustomEdgeData()
+            CustomEdgeData inside = new ObstacleEdgeData()
+                    .withAction("Cross")
+                    .withName("Gangplank")
+                    .withSelection(ObstacleEdgeData.SelectionMode.NEAREST_TO_START)
+                    .build()
                     .setStart(node.getShip())
-                    .setEnd(node.getLocation())
-                    .withInteraction(cross);
+                    .setEnd(node.getLocation());
 
-            CustomEdgeData outside = new CustomEdgeData()
+            // Don't think we actually need from outside to inside
+/*            CustomEdgeData outside = new ObstacleEdgeData()
+                    .withAction("Cross")
+                    .withName("Gangplank")
+                    .withSelection(ObstacleEdgeData.SelectionMode.NEAREST_TO_START)
+                    .build()
                     .setStart(node.getLocation())
-                    .setEnd(node.getShip())
-                    .withInteraction(cross);
+                    .setEnd(node.getShip());*/
 
             connections.add(inside);
-            connections.add(outside);
         }
     }
 
