@@ -55,7 +55,6 @@ import static com.acuitybotting.path_finding.rs.domain.graph.TileNode.IGNORE_BLO
 @Setter
 @Service
 @Slf4j
-@PropertySource("classpath:general-worker-rabbit.credentials")
 public class HpaPathFindingService {
 
     private final XteaService xteaService;

@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
 @Configuration
-@PropertySource("classpath:arango.credentials")
 @EnableArangoRepositories(basePackages = { "com.acuitybotting.db.arango.path_finding" })
 public class ArangoDBConfigPathFinding extends AbstractArangoConfiguration{
 
