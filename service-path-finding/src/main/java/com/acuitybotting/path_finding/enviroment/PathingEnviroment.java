@@ -1,18 +1,17 @@
 package com.acuitybotting.path_finding.enviroment;
 
 import com.acuitybotting.common.utils.ExecutorUtil;
+import com.acuitybotting.db.arango.path_finding.domain.xtea.Xtea;
 import com.acuitybotting.db.dropbox.DropboxService;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Created by Zachary Herridge on 7/23/2018.
@@ -68,6 +67,19 @@ public class PathingEnviroment {
         dropboxService.download("/pathing/json/hpa/nodes/nodes_" + version + ".json", new File(NODES, "nodes_" + version + ".json"));
         dropboxService.download("/pathing/json/hpa/edges/edges_" + version + ".json", new File(EDGES, "edges_" + version + ".json"));
         dropboxService.download("/pathing/json/hpa/flags/flags.json", new File(REGION_FLAGS, "flags.json"));
+    }
+
+    public static Set<Xtea> loadXteas() throws FileNotFoundException {
+        Gson gson = new Gson();
+        JsonObject jsonObject1 = gson.fromJson(new BufferedReader(new FileReader(new File(XTEAS, "xteas.json"))), JsonObject.class);
+        Set<Xtea> results = new HashSet<>();
+        for (Map.Entry<String, JsonElement> entry : jsonObject1.entrySet()) {
+            JsonArray xteas = entry.getValue().getAsJsonArray();
+            for (JsonElement xteaJson : xteas) {
+                results.add(gson.fromJson(xteaJson, Xtea.class));
+            }
+        }
+        return results;
     }
 
     public static void save(File directory, String key, Object value) {

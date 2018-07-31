@@ -8,6 +8,7 @@ import com.acuitybotting.db.arango.acuity.bot_control.repositories.RabbitDocumen
 import com.arangodb.springframework.core.ArangoOperations;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
  * Created by Zachary Herridge on 7/19/2018.
  */
 @Service
+@Getter
 @Slf4j
 public class RabbitDbService {
 

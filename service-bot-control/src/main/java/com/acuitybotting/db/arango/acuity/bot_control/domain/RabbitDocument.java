@@ -17,6 +17,7 @@ import java.util.Map;
 @Getter
 @Setter
 @ToString
+@Document("RabbitDocument")
 public class RabbitDocument {
 
     private String _key;

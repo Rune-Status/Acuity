@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
@@ -71,7 +72,12 @@ public class XteaService {
     }
 
     private Map<String, Set<Xtea>> findUniqueAfter(int rev) {
-        return xteaRepository.findAllByRevisionGreaterThanEqual(rev).stream().collect(Collectors.groupingBy(object -> String.valueOf(object.getRegion()), Collectors.toSet()));
+        try {
+            return PathingEnviroment.loadXteas().stream().collect(Collectors.groupingBy(object -> String.valueOf(object.getRegion()), Collectors.toSet()));
+        } catch (FileNotFoundException e) {
+            log.error("Error loading xteas.", e);
+        }
+        return Collections.emptyMap();
     }
 
     public void exportXteasGreaterThanRev(int rev, File out) {

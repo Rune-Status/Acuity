@@ -220,7 +220,7 @@ public class TeleportNode {
                     .withInteraction(teleport)
                     .withRequirement(player -> player.getSettings().getSpellBook() == node.spellbook
                             && player.getLevels().hasLevel(MAGIC, node.level)
-                            && (player.getItems().getCount(node.tablet) >= 0
+                            && (player.getItems().getCount(node.tablet) > 0
                                     || hasRequiredRunes(player, node)));
 
             connections.add(edgeData);

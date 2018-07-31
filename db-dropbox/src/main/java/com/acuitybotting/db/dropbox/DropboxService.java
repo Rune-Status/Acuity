@@ -6,6 +6,7 @@ import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.DownloadErrorException;
 import com.dropbox.core.v2.files.FileMetadata;
+import com.dropbox.core.v2.files.WriteMode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,7 @@ public class DropboxService {
 
     public FileMetadata upload(String path, File file) {
         try (InputStream in = new FileInputStream(file)) {
-            return getClient().files().uploadBuilder(path).uploadAndFinish(in);
+            return getClient().files().uploadBuilder(path).withMode(WriteMode.OVERWRITE).uploadAndFinish(in);
         } catch (IOException | DbxException e) {
             e.printStackTrace();
         }

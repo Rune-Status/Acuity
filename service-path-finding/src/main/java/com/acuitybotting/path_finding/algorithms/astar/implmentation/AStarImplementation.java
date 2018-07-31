@@ -71,7 +71,7 @@ public class AStarImplementation {
             }
 
             if (destinationNodes.contains(current.getNode())) {
-                log.debug("Found path from in {} attempts.", attempts);
+                log.trace("Found path from in {} attempts.", attempts);
                 List<Edge> path = collectPath(current.getNode());
                 if (!debugMode) clear();
                 return Optional.ofNullable(path);
@@ -86,7 +86,7 @@ public class AStarImplementation {
             }
         }
 
-        log.warn("Failed to find path after {} attempts.", attempts);
+        log.trace("Failed to find path after {} attempts.", attempts);
         if (!debugMode) clear();
         return Optional.empty();
     }
