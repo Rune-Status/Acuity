@@ -58,8 +58,8 @@ public class CustomEdgeData {
     }
 
     public CustomEdge toEdge(HPAGraph hpaGraph){
-        HPANode startNode = Optional.ofNullable(hpaGraph.getRegionContaining(start)).map(region -> region.getNodes().get(start)).orElse(null);
-        HPANode endNode = Optional.ofNullable(hpaGraph.getRegionContaining(end)).map(region -> region.getNodes().get(end)).orElse(null);
+        HPANode startNode = Optional.ofNullable(start).map(hpaGraph::getRegionContaining).map(region -> region.getNodes().get(start)).orElse(null);
+        HPANode endNode = Optional.ofNullable(end).map(hpaGraph::getRegionContaining).map(region -> region.getNodes().get(end)).orElse(null);
         return (CustomEdge) new CustomEdge(startNode, endNode).setCost(costPenalty).setCostPenalty(costPenalty).setType(EdgeType.CUSTOM).setCustomEdgeData(this);
     }
 }
