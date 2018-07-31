@@ -23,7 +23,6 @@ import java.util.UUID;
 /**
  * Created by Zachary Herridge on 7/18/2018.
  */
-@PropertySource("classpath:general-worker-rabbit.credentials")
 @Service
 @Slf4j
 public class DashboardRabbitService implements CommandLineRunner {

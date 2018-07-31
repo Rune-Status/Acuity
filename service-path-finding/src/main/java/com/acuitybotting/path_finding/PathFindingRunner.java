@@ -1,6 +1,7 @@
 package com.acuitybotting.path_finding;
 
 import com.acuitybotting.db.arango.path_finding.domain.xtea.Xtea;
+import com.acuitybotting.db.dropbox.DropboxService;
 import com.acuitybotting.path_finding.algorithms.astar.implmentation.AStarImplementation;
 import com.acuitybotting.path_finding.debugging.interactive_map.plugin.impl.HpaPlugin;
 import com.acuitybotting.path_finding.debugging.interactive_map.plugin.impl.PositionPlugin;
@@ -30,11 +31,13 @@ public class PathFindingRunner implements CommandLineRunner {
 
     private final WebImageProcessingService webImageProcessingService;
     private final HpaPathFindingService hpaPathFindingService;
+    private final DropboxService dropboxService;
 
     @Autowired
-    public PathFindingRunner(WebImageProcessingService webImageProcessingService, HpaPathFindingService hpaPathFindingService) {
+    public PathFindingRunner(WebImageProcessingService webImageProcessingService, HpaPathFindingService hpaPathFindingService, DropboxService dropboxService) {
         this.webImageProcessingService = webImageProcessingService;
         this.hpaPathFindingService = hpaPathFindingService;
+        this.dropboxService = dropboxService;
     }
 
     private void exportXteas() {
@@ -78,6 +81,7 @@ public class PathFindingRunner implements CommandLineRunner {
             //hpaPathFindingService.buildHpa(1);
             hpaPathFindingService.consumeJobs();
             openUi().getMapPanel().addPlugin(new HpaPlugin(hpaPathFindingService.getGraph()).setPathFindingService(hpaPathFindingService));
+            PathingEnviroment.downloadFromDropbox(dropboxService, 1);
         } catch (Throwable e) {
             e.printStackTrace();
         }

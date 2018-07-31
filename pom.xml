@@ -23,5 +23,6 @@
         <module>common-utils</module>
         <module>security-influxdb</module>
         <module>security-rabbit-mq</module>
+        <module>db-dropbox</module>
     </modules>
 </project>
