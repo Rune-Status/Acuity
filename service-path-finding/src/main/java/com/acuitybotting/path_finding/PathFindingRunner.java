@@ -76,7 +76,7 @@ public class PathFindingRunner implements CommandLineRunner {
     public void run(String... args) {
         try {
             hpaPathFindingService.buildHpa(1);
-          hpaPathFindingService.consumeJobs();
+            hpaPathFindingService.consumeJobs();
             openUi().getMapPanel().addPlugin(new HpaPlugin(hpaPathFindingService.getGraph()).setPathFindingService(hpaPathFindingService));
         } catch (Throwable e) {
             e.printStackTrace();
