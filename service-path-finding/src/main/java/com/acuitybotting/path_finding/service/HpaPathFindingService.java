@@ -180,7 +180,7 @@ public class HpaPathFindingService {
                 }
             });
 
-            rabbitClient.connect("APW_" + UUID.randomUUID().toString());
+            rabbitClient.connect("APW_001_" + UUID.randomUUID().toString());
         } catch (Throwable e) {
             e.printStackTrace();
         }
