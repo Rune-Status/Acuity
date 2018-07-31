@@ -1,6 +1,7 @@
 package com.acuitybotting.path_finding.enviroment;
 
 import com.acuitybotting.common.utils.ExecutorUtil;
+import com.acuitybotting.db.dropbox.DropboxService;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,6 +52,22 @@ public class PathingEnviroment {
         for (File directory : IMG_DIRECTORIES) {
             if (!directory.exists()) directory.mkdirs();
         }
+    }
+
+    public static void uploadToDropbox(DropboxService dropboxService, int version){
+        dropboxService.upload("/pathing/json/hpa/regions/regions_" + version + ".json", new File(REGIONS, "regions_" + version + ".json"));
+        dropboxService.upload("/pathing/json/hpa/paths/paths" + version + ".json", new File(PATHS, "paths_" + version + ".json"));
+        dropboxService.upload("/pathing/json/hpa/nodes/nodes_" + version + ".json", new File(NODES, "nodes_" + version + ".json"));
+        dropboxService.upload("/pathing/json/hpa/edges/edges_" + version + ".json", new File(EDGES, "edges_" + version + ".json"));
+        dropboxService.upload("/pathing/json/hpa/flags/flags.json", new File(REGION_FLAGS, "flags.json"));
+    }
+
+    public static void downloadFromDropbox(DropboxService dropboxService, int version){
+        dropboxService.download("/pathing/json/hpa/regions/regions_" + version + ".json", new File(REGIONS, "regions_" + version + ".json"));
+        dropboxService.download("/pathing/json/hpa/paths/paths" + version + ".json", new File(PATHS, "paths_" + version + ".json"));
+        dropboxService.download("/pathing/json/hpa/nodes/nodes_" + version + ".json", new File(NODES, "nodes_" + version + ".json"));
+        dropboxService.download("/pathing/json/hpa/edges/edges_" + version + ".json", new File(EDGES, "edges_" + version + ".json"));
+        dropboxService.download("/pathing/json/hpa/flags/flags.json", new File(REGION_FLAGS, "flags.json"));
     }
 
     public static void save(File directory, String key, Object value) {

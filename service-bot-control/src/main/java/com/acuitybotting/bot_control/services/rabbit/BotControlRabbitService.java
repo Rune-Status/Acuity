@@ -26,7 +26,6 @@ import java.util.UUID;
 /**
  * Created by Zachary Herridge on 7/19/2018.
  */
-@PropertySource("classpath:general-worker-rabbit.credentials")
 @Service
 @Slf4j
 public class BotControlRabbitService implements CommandLineRunner {
@@ -93,7 +92,7 @@ public class BotControlRabbitService implements CommandLineRunner {
                 }
             });
 
-            rabbitClient.connect("ABW_" + UUID.randomUUID().toString());
+            rabbitClient.connect("ABW_001_" + UUID.randomUUID().toString());
         } catch (Throwable e) {
             log.error("Error during dashboard RabbitMQ setup.", e);
         }

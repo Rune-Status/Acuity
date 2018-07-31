@@ -11,7 +11,6 @@ import org.springframework.context.annotation.PropertySource;
 
 @SpringBootApplication()
 @ComponentScan("com.acuitybotting")
-@PropertySource("classpath:influx.credentials")
 public class InfluxDbAuthApplication {
 
     public static void main(String[] args) {
