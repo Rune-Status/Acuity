@@ -8,7 +8,6 @@ import com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbi
 import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.ChannelListenerAdapter;
 import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.ClientListenerAdapter;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.RegionMap;
-import com.acuitybotting.db.arango.path_finding.domain.xtea.Xtea;
 import com.acuitybotting.path_finding.algorithms.astar.AStarService;
 import com.acuitybotting.path_finding.algorithms.astar.implmentation.AStarImplementation;
 import com.acuitybotting.path_finding.algorithms.astar.implmentation.ReverseAStarImplementation;
@@ -21,14 +20,16 @@ import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPANod
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPARegion;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.TerminatingNode;
 import com.acuitybotting.path_finding.enviroment.PathingEnviroment;
-import com.acuitybotting.path_finding.rs.custom_edges.CustomEdge;
 import com.acuitybotting.path_finding.rs.custom_edges.CustomEdgeData;
 import com.acuitybotting.path_finding.rs.custom_edges.edges.TeleportNode;
 import com.acuitybotting.path_finding.rs.custom_edges.requirements.implementations.PlayerImplementation;
 import com.acuitybotting.path_finding.rs.domain.graph.TileNode;
 import com.acuitybotting.path_finding.rs.domain.location.LocateableHeuristic;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
-import com.acuitybotting.path_finding.rs.utils.*;
+import com.acuitybotting.path_finding.rs.utils.Direction;
+import com.acuitybotting.path_finding.rs.utils.MapFlags;
+import com.acuitybotting.path_finding.rs.utils.RsEnvironment;
+import com.acuitybotting.path_finding.rs.utils.RsMap;
 import com.acuitybotting.path_finding.service.domain.PathRequest;
 import com.acuitybotting.path_finding.service.domain.PathResult;
 import com.acuitybotting.path_finding.service.domain.abstractions.player.RsPlayer;
@@ -41,7 +42,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -124,7 +124,7 @@ public class HpaPathFindingService {
                         public void onConnect(MessagingChannel channel) {
 
                             try {
-                                channel.getQueue("acuitybotting.work.find-path-test")
+                                channel.getQueue("acuitybotting.work.find-path-1")
                                         .withListener(messageEvent -> {
                                             Message message = messageEvent.getMessage();
                                             PathRequest pathRequest = inGson.fromJson(message.getBody(), PathRequest.class);
@@ -161,33 +161,6 @@ public class HpaPathFindingService {
                                                 channel.acknowledge(message);
                                             } catch (MessagingException e) {
                                                 e.printStackTrace();
-                                            }
-                                        })
-                                        .consume(false);
-                            } catch (MessagingException e) {
-                                e.printStackTrace();
-                            }
-
-                            try {
-                                channel.getQueue("acuitybotting.work.xtea-dump")
-                                        .withListener(messageEvent -> {
-                                            String routing = messageEvent.getRouting();
-                                            Message message = messageEvent.getMessage();
-
-                                            if (routing.endsWith("xtea-dump")) {
-                                                int[] emptyKeys = {0, 0, 0, 0};
-                                                Xtea[] xteas = inGson.fromJson(message.getBody(), Xtea[].class);
-                                                for (Xtea xtea : xteas) {
-                                                    if (xtea.getKeys() == null || Arrays.equals(xtea.getKeys(), emptyKeys))
-                                                        continue;
-                                                    xteaService.getXteaRepository().save(xtea);
-                                                    log.info("Saved Xtea Key {}.", xtea);
-                                                }
-                                                try {
-                                                    channel.acknowledge(message);
-                                                } catch (MessagingException e) {
-                                                    e.printStackTrace();
-                                                }
                                             }
                                         })
                                         .consume(false);
@@ -250,7 +223,7 @@ public class HpaPathFindingService {
         return in;
     }
 
-    private Set<TerminatingNode> getTerminatingNodes(Collection<Location> locations, boolean end){
+    private Set<TerminatingNode> getTerminatingNodes(Collection<Location> locations, boolean end) {
         Set<TerminatingNode> nodes = new HashSet<>();
         for (Location endLocation : locations) {
             Location adjustedLocation = adjustLocation(endLocation);
@@ -261,7 +234,7 @@ public class HpaPathFindingService {
         return nodes;
     }
 
-    private Edge getEdgeTo(Set<TerminatingNode> nodes, HPANode hpaNode){
+    private Edge getEdgeTo(Set<TerminatingNode> nodes, HPANode hpaNode) {
         for (TerminatingNode node : nodes) {
             Edge edgeTo = node.getEdgeTo(hpaNode);
             if (edgeTo != null) return edgeTo;
@@ -287,7 +260,7 @@ public class HpaPathFindingService {
 
         List<Edge> hpaPath = null;
         for (Node node : astar.getStartingNodes()) {
-            if (astar.getDestinationNodes().contains(node)){
+            if (astar.getDestinationNodes().contains(node)) {
                 hpaPath = new ArrayList<>();
                 hpaPath.add(new HPAEdge((HPANode) node, (HPANode) node));
                 break;
