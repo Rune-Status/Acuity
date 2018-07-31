@@ -252,6 +252,7 @@ public class HPAGraph {
     }
 
     public HPARegion getRegionContaining(Locateable locateable) {
+        if (locateable == null) return null;
         Location offset = locateable.getLocation().subtract(lower);
         int offX = ((int) (offset.getX() / (double) regionWidth)) * regionWidth;
         int offY = ((int) (offset.getY() / (double) regionHeight)) * regionHeight;

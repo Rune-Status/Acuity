@@ -11,15 +11,7 @@ public interface PlayerSettings {
 
     int getCombatLevel();
 
-    default int getWildernessLevel(){
-        return 0;
-    }
-
-    default boolean isModernSpellbook() {
-        return getSpellBook() == SPELLBOOK_MODERN;
-    }
-
-    default int getValue(int setting) {
+    default int getVarp(int index) {
         return -1;
     }
 }
