@@ -1,11 +1,7 @@
 package com.acuitybotting.path_finding;
 
-import com.acuitybotting.common.utils.ExecutorUtil;
-import com.acuitybotting.db.arango.path_finding.domain.xtea.SceneEntityDefinition;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.Xtea;
-import com.acuitybotting.db.arango.utils.ArangoUtils;
 import com.acuitybotting.path_finding.algorithms.astar.implmentation.AStarImplementation;
-import com.acuitybotting.path_finding.algorithms.hpa.implementation.HPAGraph;
 import com.acuitybotting.path_finding.debugging.interactive_map.plugin.impl.HpaPlugin;
 import com.acuitybotting.path_finding.debugging.interactive_map.plugin.impl.PositionPlugin;
 import com.acuitybotting.path_finding.debugging.interactive_map.ui.MapFrame;
@@ -26,9 +22,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.stream.Collectors;
 
 @Component
@@ -65,7 +58,7 @@ public class PathFindingRunner implements CommandLineRunner {
     private void loadXteasIn() throws IOException {
         Gson gson = new Gson();
         JsonObject jsonObject = gson.fromJson(
-                Files.readAllLines(new File(PathingEnviroment.BASE , "xteas.json").toPath()).stream().collect(Collectors.joining("")),
+                Files.readAllLines(new File(PathingEnviroment.BASE, "xteas.json").toPath()).stream().collect(Collectors.joining("")),
                 JsonObject.class
         );
 
@@ -82,9 +75,9 @@ public class PathFindingRunner implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try {
-            //hpaPathFindingService.consumeJobs();
-            hpaPathFindingService.loadHpa(1);
+            hpaPathFindingService.consumeJobs();
             openUi().getMapPanel().addPlugin(new HpaPlugin(hpaPathFindingService.getGraph()).setPathFindingService(hpaPathFindingService));
+            //hpaPathFindingService.buildHpa(1);
         } catch (Throwable e) {
             e.printStackTrace();
         }

@@ -9,6 +9,8 @@ import java.util.HashSet;
 
 public class CharterNode {
 
+    private static final int COINS = 995;
+
     private static final String PORT_TYRAS = "Port Tyras";
     private static final String PORT_PHASMATYS = "Port Phasmatys";
     private static final String CATHERBY = "Catherby";
@@ -20,55 +22,92 @@ public class CharterNode {
     private static final String HARMLESS = "Mos Le'Harmless";
     private static final String CORSAIR_COVE = "Corsair Cove";
 
+    private static final String DESTINATION = "DESTINATION";
+
     private static Collection<CustomEdgeData> connections = new HashSet<>(60);
     private static Collection<CharterNode> charters = new HashSet<>(8);
 
     static {
         charters.add(new CharterNode()
                 .withLocation(new Location(2142, 3122, 0))
+                .withShip(new Location(2142, 3125, 1))
                 .withName(PORT_TYRAS));
 
         charters.add(new CharterNode()
                 .withLocation(new Location(3702, 3503, 0))
+                .withShip(new Location(3705, 3503, 1))
                 .withName(PORT_PHASMATYS));
 
         charters.add(new CharterNode()
                 .withLocation(new Location(2792, 3414, 0))
+                .withShip(new Location(2792, 3417, 1))
                 .withName(CATHERBY));
 
         charters.add(new CharterNode()
                 .withLocation(new Location(3001, 3032, 0))
+                .withShip(new Location(2998, 3032, 1))
                 .withName(SHIPYARD));
 
         charters.add(new CharterNode()
                 .withLocation(new Location(2954, 3155, 0))
+                .withShip(new Location(2957, 3104, 1))
                 .withName(MUSA_POINT));
 
         charters.add(new CharterNode()
                 .withLocation(new Location(2760, 3239, 0))
+                .withShip(new Location(2763, 3238, 1))
                 .withName(BRIMHAVEN));
 
         charters.add(new CharterNode()
                 .withLocation(new Location(2674, 3144, 0))
+                .withShip(new Location(2674, 3141, 1))
                 .withName(PORT_KHAZARD));
 
         charters.add(new CharterNode()
                 .withLocation(new Location(3038, 3192, 0))
+                .withShip(new Location(3038, 3189, 1))
                 .withName(PORT_SARIM));
 
         charters.add(new CharterNode()
                 .withLocation(new Location(3671, 2931, 0))
+                .withShip(new Location(3668, 2931, 1))
                 .withName(HARMLESS));
 
         charters.add(new CharterNode()
                 .withLocation(new Location(2587, 2851, 0))
+                .withShip(new Location(2592, 2851, 1))
                 .withName(CORSAIR_COVE));
 
+        buildGangplankEdges();
         buildEdges();
     }
 
     private Location location;
+    private Location ship;
     private String name;
+
+    public static void buildGangplankEdges() {
+        Interaction cross = new Interaction()
+                .setType(Interaction.SCENE_ENTITY)
+                .withData("OBJECT_NAME", "Gangplank")
+                .withData("OBJECT_ACTION", "Cross")
+                .withData("STRICT", false);
+
+        for (CharterNode node : charters) {
+            CustomEdgeData inside = new CustomEdgeData()
+                    .setStart(node.getShip())
+                    .setEnd(node.getLocation())
+                    .withInteraction(cross);
+
+            CustomEdgeData outside = new CustomEdgeData()
+                    .setStart(node.getLocation())
+                    .setEnd(node.getShip())
+                    .withInteraction(cross);
+
+            connections.add(inside);
+            connections.add(outside);
+        }
+    }
 
     public static Collection<CustomEdgeData> getEdges() {
         return connections;
@@ -219,10 +258,10 @@ public class CharterNode {
 
         CustomEdgeData fromTo = new CustomEdgeData()
                 .setStart(getLocation())
-                .setEnd(to.getLocation())
+                .setEnd(to.getShip())
                 .withInteraction(new Interaction().setType(Interaction.CHARTER)
-                        .withData("DESTINATION", to))
-                .withRequirement(player -> player.getItems().getCount(995) >= cost);
+                        .withData(DESTINATION, toString))
+                .withRequirement(player -> player.getItems().getCount(COINS) >= cost);
 
         connections.add(fromTo);
 
@@ -232,6 +271,15 @@ public class CharterNode {
     public CharterNode withLocation(Location location) {
         this.location = location;
         return this;
+    }
+
+    public CharterNode withShip(Location ship) {
+        this.ship = ship;
+        return this;
+    }
+
+    public Location getShip() {
+        return ship;
     }
 
     public Location getLocation() {
