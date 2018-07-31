@@ -47,7 +47,16 @@ public class WildernessEdge {
                 .setStart(start)
                 .setEnd(end);
 
+        CustomEdgeData out = new ObstacleEdgeData()
+                .withAction("Cross")
+                .withName("Wilderness Ditch")
+                .withSelection(ObstacleEdgeData.SelectionMode.NEAREST_TO_PLAYER)
+                .build()
+                .setEnd(start)
+                .setStart(end);
+
         customEdgeData.add(ditch);
+        customEdgeData.add(out);
     }
 
     public static Collection<CustomEdgeData> getEdges() {
