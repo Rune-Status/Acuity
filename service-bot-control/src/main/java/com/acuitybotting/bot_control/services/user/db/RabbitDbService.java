@@ -39,17 +39,17 @@ public class RabbitDbService {
 
     private boolean isDeleteAccessible(String userId, String db) {
         if (db == null) return false;
-        return "script-settings".equals(db) || db.startsWith("user.db.");
+        return db.startsWith("services.") || db.startsWith("user.db.");
     }
 
     private boolean isWriteAccessible(String userId, String db) {
         if (db == null) return false;
-        return "registered-connections".equals(db) || "script-settings".equals(db) || db.startsWith("user.db.");
+        return db.startsWith("services.") || db.startsWith("user.db.");
     }
 
     private boolean isReadAccessible(String userId, String db) {
         if (db == null) return false;
-        return "registered-connections".equals(db) || "script-settings".equals(db) || db.startsWith("user.db.");
+        return db.startsWith("services.") || db.startsWith("user.db.");
     }
 
     public void save(String principalId, RabbitDbRequest request, Map<String, Object> headers) {

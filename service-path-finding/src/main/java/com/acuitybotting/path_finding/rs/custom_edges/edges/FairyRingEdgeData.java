@@ -12,7 +12,7 @@ public class FairyRingEdgeData extends CustomEdgeData {
     private static final String FAIRY_CODE = "FAIRY_CODE";
     private static final Location FAIRY_HUB = new Location(2412, 4434, 0);
     private static final int DRAMEN_STAFF_ID = 772;
-    private static final int LUNAR_STAFF_ID = 2345;
+    private static final int LUNAR_STAFF_ID = 9084;
     private static Collection<CustomEdgeData> customEdgeData = new HashSet<>();
 
     static {
@@ -241,7 +241,7 @@ public class FairyRingEdgeData extends CustomEdgeData {
     private FairyRingEdgeData() {
         this.setStart(FAIRY_HUB);
         //TODO: Actually add in the correct values
-        this.withRequirement(player -> player.getItems().hasItem(DRAMEN_STAFF_ID) || player.getItems().hasItem(LUNAR_STAFF_ID) || player.getSettings().getVarp(-1) == -1);
+        this.withRequirement(player -> player.getItems().hasItem(DRAMEN_STAFF_ID) || player.getItems().hasItem(LUNAR_STAFF_ID));
     }
 
     private static void add(CustomEdgeData edge) {

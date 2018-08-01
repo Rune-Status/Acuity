@@ -124,7 +124,7 @@ public class HpaPathFindingService {
                         public void onConnect(MessagingChannel channel) {
 
                             try {
-                                channel.getQueue("acuitybotting.work.find-path-1")
+                                channel.getQueue("acuitybotting.work.find-path-2")
                                         .withListener(messageEvent -> {
                                             Message message = messageEvent.getMessage();
                                             PathRequest pathRequest = inGson.fromJson(message.getBody(), PathRequest.class);

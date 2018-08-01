@@ -11,13 +11,13 @@ public class AgilityObstacleEdgeData extends ObstacleEdgeData {
     private static Collection<CustomEdgeData> connections = new HashSet<>();
 
     static {
-        add(new AgilityObstacleEdgeData()
+/*        add(new AgilityObstacleEdgeData()
                 .withLevel(21)
                 .withName("Underwall tunnel")
                 .withAction("Climb-into")
                 .withSelection(SelectionMode.NEAREST_TO_START)
                 .setStart(new Location(3142, 3513, 0))
-                .setEnd(new Location(3137, 3516, 0)));
+                .setEnd(new Location(3137, 3516, 0)));*/
     }
 
     public static void add(CustomEdgeData data) {

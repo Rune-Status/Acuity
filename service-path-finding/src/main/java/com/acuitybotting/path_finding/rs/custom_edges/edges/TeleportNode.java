@@ -33,10 +33,10 @@ public class TeleportNode {
         /*
          * MODERN SPELLBOOK
          */
-        teleports.add(new TeleportNode()
+/*        teleports.add(new TeleportNode()
                 .withName("HOME_TELEPORT")
                 .withSpellbook(PlayerSettings.SPELLBOOK_MODERN)
-                .withLocation(new Location(3222, 3219, 0)));
+                .withLocation(new Location(3222, 3219, 0)));*/
 
         teleports.add(new TeleportNode()
                 .withName("VARROCK_TELEPORT")
