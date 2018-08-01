@@ -90,7 +90,7 @@
                 <version>0.26.1</version>
                 <executions>
                     <execution>
-                        <phase>package</phase>
+                        <phase>compile</phase>
                         <goals>
                             <goal>build</goal>
                         </goals>
