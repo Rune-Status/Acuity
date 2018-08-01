@@ -57,7 +57,7 @@
                 <version>0.26.1</version>
                 <executions>
                     <execution>
-                        <phase>validate</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>build</goal>
                         </goals>
