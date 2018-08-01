@@ -25,7 +25,7 @@ public class ArangoDBConfigAcuity extends AbstractArangoConfiguration {
 
     @Override
     public Builder arango() {
-        return new Builder().host(host, port).user(username).password(password);
+        return new Builder().host(host, port).password(password).user(username);
     }
 
     @Override
