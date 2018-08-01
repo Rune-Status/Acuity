@@ -16,3 +16,12 @@ script:
       docker build website-acuity-dashboard/ -t acuitybotting/website-acuity-dashboard ;
       docker push acuitybotting/website-acuity-dashboard ;
     fi
+  - if [[ "$TRAVIS_BRANCH" == "development" ]]; then
+      docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" ;
+      docker build service-bot-control/ -t acuitybotting/dev-service-bot-control ;
+      docker push acuitybotting/dev-service-bot-control ;
+      docker build service-path-finding/ -t acuitybotting/dev-service-path-finding ;
+      docker push acuitybotting/dev-service-path-finding ;
+      docker build website-acuity-dashboard/ -t acuitybotting/dev-website-acuity-dashboard ;
+      docker push acuitybotting/dev-website-acuity-dashboard ;
+    fi
