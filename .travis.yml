@@ -17,7 +17,6 @@ script:
 deploy:
   provider: script
   script:
-    - docker build
     - docker push acuitybotting/service-bot-control
     - docker push acuitybotting/service-path-finding
     - docker push acuitybotting/website-acuity-dashboard
