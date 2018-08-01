@@ -5,13 +5,16 @@ services:
 
 language: java
 
-script: mvn clean package
+script: mvn clean package validate
 
 before_deploy:
   - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
 
 deploy:
   provider: script
-  script: docker push acuitybotting/service-bot-control
+  script:
+    - docker push acuitybotting/service-bot-control
+    - docker push acuitybotting/service-path-finding
+    - docker push acuitybotting/website-acuity-dashboard
   on:
     branch: master
