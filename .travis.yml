@@ -5,14 +5,12 @@ services:
 
 language: java
 
-before_deploy:
-  - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
-
 script:
   - mvn package
+  - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
   - docker build service-bot-control/ -t acuitybotting/service-bot-control
-  - docker build service-path-finding/ -t acuitybotting/service-path-finding
-  - docker build website-acuity-dashboard/ -t acuitybotting/website-acuity-dashboard
   - docker push acuitybotting/service-bot-control
+  - docker build service-path-finding/ -t acuitybotting/service-path-finding
   - docker push acuitybotting/service-path-finding
+  - docker build website-acuity-dashboard/ -t acuitybotting/website-acuity-dashboard
   - docker push acuitybotting/website-acuity-dashboard
