@@ -1,6 +1,15 @@
 sudo: required
 
-language: java
-
 services:
   - docker
+
+language: java
+
+before_deploy:
+  - docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASS"
+
+deploy:
+  provider: script
+  script: docker push acuitybotting/service-bot-control
+  on:
+    branch: master

@@ -73,10 +73,6 @@ public class BotControlRabbitService implements CommandLineRunner {
                                         .withListener(publisher::publishEvent)
                                         .consume(false);
 
-                                channel.getQueue("acuitybotting.work.connections")
-                                        .withListener(publisher::publishEvent)
-                                        .consume(false);
-
                             } catch (MessagingException e) {
                                 log.error("Error during queue setup.", e);
                             }
