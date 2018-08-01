@@ -5,6 +5,8 @@ services:
 
 language: java
 
+script: mvn clean package
+
 before_deploy:
   - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
 

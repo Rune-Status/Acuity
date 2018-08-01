@@ -46,7 +46,7 @@
                 <version>0.26.1</version>
                 <executions>
                     <execution>
-                        <phase>compile</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>build</goal>
                         </goals>
