@@ -25,3 +25,9 @@ script:
       docker build website-acuity-dashboard/ -t acuitybotting/dev-website-acuity-dashboard ;
       docker push acuitybotting/dev-website-acuity-dashboard ;
     fi
+
+deploy:
+  provider: packagecloud
+  repository: "acuitybotting"
+  username: "Zach"
+  token: "$PACKAGE_CLOUD_TOKEN"
