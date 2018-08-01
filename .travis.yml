@@ -7,7 +7,6 @@ language: java
 
 script:
   - mvn package
-
   - if [[ "$TRAVIS_BRANCH" == "master" ]]; then
       docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" ;
       docker build service-bot-control/ -t acuitybotting/service-bot-control ;
