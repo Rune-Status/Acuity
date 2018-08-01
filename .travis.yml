@@ -31,3 +31,5 @@ deploy:
   repository: "acuitybotting"
   username: "Zach"
   token: "$PACKAGE_CLOUD_TOKEN"
+  on:
+    branch: master
