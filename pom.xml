@@ -24,5 +24,6 @@
         <module>security-influxdb</module>
         <module>security-rabbit-mq</module>
         <module>db-dropbox</module>
+        <module>service-discord-bot</module>
     </modules>
 </project>
