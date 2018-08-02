@@ -1,6 +1,7 @@
 package com.acuitybotting.data.flow.messaging.services.client;
 
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitQueue;
 import com.acuitybotting.data.flow.messaging.services.client.listeners.MessagingQueueListener;
 
 /**
@@ -16,5 +17,5 @@ public interface MessagingQueue {
 
     String getName();
 
-    void connect();
+    RabbitQueue connect();
 }

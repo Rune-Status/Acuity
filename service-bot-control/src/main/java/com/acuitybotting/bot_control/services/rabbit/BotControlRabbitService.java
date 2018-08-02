@@ -59,62 +59,20 @@ public class BotControlRabbitService implements CommandLineRunner {
 
             MessagingChannel channel = rabbitClient.createChannel();
 
-            MessagingQueue queue = channel.createQueue("a-test-queue", true);
-            queue.bind("amq.rabbitmq.event", "queue.#");
-            queue.withListener(System.out::println);
+            channel.createQueue("bot-control-worker-" + UUID.randomUUID().toString(), true)
+                    .bind("amq.rabbitmq.event", "queue.#")
+                    .withListener(publisher::publishEvent)
+                    .connect();
+
+/*            channel.createQueue("acuitybotting.work.acuity-db.request", false)
+                    .withListener(publisher::publishEvent)
+                    .connect();*/
+
+            channel.createQueue("acuitybotting.work.bot-control", false)
+                    .withListener(publisher::publishEvent)
+                    .connect();
 
             rabbitClient.connect("ABW_001_" + UUID.randomUUID().toString());
-       /*     queue.connect();*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-            rabbitClient.getListeners().add(new ClientListenerAdapter() {
-                @Override
-                public void onConnect(MessagingClient client) {
-                    *//*rabbitChannel = (RabbitChannel) client.createChannel();
-                    rabbitChannel.getListeners().add(new ChannelListenerAdapter() {
-                        @Override
-                        public void onConnect(MessagingChannel channel) {
-                            String localQueue = "bot-control-worker-" + UUID.randomUUID().toString();
-
-                            try {
-                                channel.createQueue(localQueue)
-                                        .create()
-                                        .withListener(publisher::publishEvent)
-                                        .bind("amq.rabbitmq.event", "queue.#")
-                                        .consume(true);
-
-                  *//**//*              channel.createQueue("acuitybotting.work.acuity-db.request")
-                                        .withListener(publisher::publishEvent)
-                                        .consume(false);*//**//*
-
-                                channel.createQueue("acuitybotting.work.bot-control")
-                                        .withListener(publisher::publishEvent)
-                                        .consume(false);
-
-                            } catch (MessagingException e) {
-                                log.error("Error during queue setup.", e);
-                            }
-                        }
-                    });
-                    rabbitChannel.connect();*//*
-                }
-            });*/
-
         } catch (Throwable e) {
             log.error("Error during dashboard RabbitMQ setup.", e);
         }

@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Zachary Herridge on 7/26/2018.
@@ -59,8 +58,9 @@ public class RabbitQueue implements MessagingQueue {
     }
 
     @Override
-    public void connect() {
+    public RabbitQueue connect() {
         started = true;
+        return this;
     }
 
     public void checkConnection() {
