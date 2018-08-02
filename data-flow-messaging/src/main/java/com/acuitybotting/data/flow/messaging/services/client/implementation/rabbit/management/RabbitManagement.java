@@ -1,7 +1,7 @@
-package com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit.management;
+package com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.management;
 
 import com.acuitybotting.common.utils.HttpUtil;
-import com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit.management.domain.RabbitConnection;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.management.domain.RabbitConnection;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.gson.Gson;

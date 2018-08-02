@@ -1,5 +1,6 @@
 package com.acuitybotting.bot_control;
 
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitClient;
 import com.acuitybotting.db.arango.acuity.identities.service.PrincipalLinkService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,5 +24,7 @@ public class BotControlRunner implements CommandLineRunner {
 
     @Override
     public void run(String... strings) throws Exception {
+
+
     }
 }

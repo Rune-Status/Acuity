@@ -1,4 +1,4 @@
-package com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit.management.domain;
+package com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.management.domain;
 
 import lombok.Getter;
 import lombok.ToString;

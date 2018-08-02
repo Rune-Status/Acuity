@@ -18,8 +18,6 @@ public interface MessagingClient {
 
     void connect(String connectionId);
 
-    List<MessagingClientListener> getListeners();
-
     Consumer<Throwable> getExceptionHandler();
 
     boolean isConnected();

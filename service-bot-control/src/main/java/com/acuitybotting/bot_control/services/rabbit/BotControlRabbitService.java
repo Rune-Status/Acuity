@@ -3,10 +3,10 @@ package com.acuitybotting.bot_control.services.rabbit;
 import com.acuitybotting.bot_control.services.user.db.RabbitDbService;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingClient;
+import com.acuitybotting.data.flow.messaging.services.client.MessagingQueue;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
-import com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit.RabbitChannel;
-import com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit.RabbitClient;
-import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.ChannelListenerAdapter;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitChannel;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitClient;
 import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.ClientListenerAdapter;
 import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
@@ -57,27 +57,52 @@ public class BotControlRabbitService implements CommandLineRunner {
             RabbitClient rabbitClient = new RabbitClient();
             rabbitClient.auth(host, username, password);
 
+            MessagingChannel channel = rabbitClient.createChannel();
+
+            MessagingQueue queue = channel.createQueue("a-test-queue", true);
+            queue.bind("amq.rabbitmq.event", "queue.#");
+            queue.withListener(System.out::println);
+
+            rabbitClient.connect("ABW_001_" + UUID.randomUUID().toString());
+       /*     queue.connect();*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
             rabbitClient.getListeners().add(new ClientListenerAdapter() {
                 @Override
                 public void onConnect(MessagingClient client) {
-                    rabbitChannel = (RabbitChannel) client.createChannel();
+                    *//*rabbitChannel = (RabbitChannel) client.createChannel();
                     rabbitChannel.getListeners().add(new ChannelListenerAdapter() {
                         @Override
                         public void onConnect(MessagingChannel channel) {
                             String localQueue = "bot-control-worker-" + UUID.randomUUID().toString();
 
                             try {
-                                channel.getQueue(localQueue)
+                                channel.createQueue(localQueue)
                                         .create()
                                         .withListener(publisher::publishEvent)
                                         .bind("amq.rabbitmq.event", "queue.#")
                                         .consume(true);
 
-                  /*              channel.getQueue("acuitybotting.work.acuity-db.request")
+                  *//**//*              channel.createQueue("acuitybotting.work.acuity-db.request")
                                         .withListener(publisher::publishEvent)
-                                        .consume(false);*/
+                                        .consume(false);*//**//*
 
-                                channel.getQueue("acuitybotting.work.bot-control")
+                                channel.createQueue("acuitybotting.work.bot-control")
                                         .withListener(publisher::publishEvent)
                                         .consume(false);
 
@@ -86,11 +111,10 @@ public class BotControlRabbitService implements CommandLineRunner {
                             }
                         }
                     });
-                    rabbitChannel.connect();
+                    rabbitChannel.connect();*//*
                 }
-            });
+            });*/
 
-            rabbitClient.connect("ABW_001_" + UUID.randomUUID().toString());
         } catch (Throwable e) {
             log.error("Error during dashboard RabbitMQ setup.", e);
         }

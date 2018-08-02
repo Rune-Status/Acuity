@@ -3,11 +3,10 @@ package com.acuitybotting.website.dashboard;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingClient;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
-import com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit.RabbitChannel;
-import com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit.RabbitClient;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitChannel;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitClient;
 import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.ChannelListenerAdapter;
 import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.ClientListenerAdapter;
-import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.website.dashboard.views.RootLayout;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +14,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -52,15 +50,15 @@ public class DashboardRabbitService implements CommandLineRunner {
             RabbitClient rabbitClient = new RabbitClient();
             rabbitClient.auth(host, username, password);
 
-            rabbitClient.getListeners().add(new ClientListenerAdapter(){
+/*            rabbitClient.getListeners().add(new ClientListenerAdapter(){
                 @Override
                 public void onConnect(MessagingClient client) {
-                    rabbitChannel = (RabbitChannel) client.createChannel();
+       *//*             rabbitChannel = (RabbitChannel) client.createChannel();
                     rabbitChannel.getListeners().add(new ChannelListenerAdapter(){
                         @Override
                         public void onConnect(MessagingChannel channel) {
                             try {
-                                channel.getQueue("testQueue")
+                                channel.createQueue("testQueue")
                                         .withListener(messageEvent -> RootLayout.getGlobalEventBus().post(messageEvent.getMessage()))
                                         .create()
                                         .bind("amq.rabbitmq.event", "queue.#")
@@ -71,9 +69,9 @@ public class DashboardRabbitService implements CommandLineRunner {
                             }
                         }
                     });
-                    rabbitChannel.connect();
+                    rabbitChannel.connect();*//*
                 }
-            });
+            });*/
 
             rabbitClient.connect("ADB_" + UUID.randomUUID().toString());
         }

@@ -4,7 +4,7 @@ import com.acuitybotting.data.flow.messaging.services.Message;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingClient;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
-import com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit.RabbitClient;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitClient;
 import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.ChannelListenerAdapter;
 import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.ClientListenerAdapter;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.RegionMap;
@@ -123,8 +123,8 @@ public class HpaPathFindingService {
                         @Override
                         public void onConnect(MessagingChannel channel) {
 
-                            try {
-                                channel.getQueue("acuitybotting.work.find-path-1")
+                           /* try {
+                                channel.createQueue("acuitybotting.work.find-path-1")
                                         .withListener(messageEvent -> {
                                             Message message = messageEvent.getMessage();
                                             PathRequest pathRequest = inGson.fromJson(message.getBody(), PathRequest.class);
@@ -166,7 +166,7 @@ public class HpaPathFindingService {
                                         .consume(false);
                             } catch (MessagingException e) {
                                 e.printStackTrace();
-                            }
+                            }*/
                         }
 
                         @Override

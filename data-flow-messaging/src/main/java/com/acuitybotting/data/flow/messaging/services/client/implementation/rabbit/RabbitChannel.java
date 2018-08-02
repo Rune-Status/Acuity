@@ -1,21 +1,21 @@
-package com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit;
+package com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit;
 
 import com.acuitybotting.data.flow.messaging.services.Message;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
-import com.acuitybotting.data.flow.messaging.services.client.MessagingClient;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingQueue;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.listeners.MessagingChannelListener;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.data.flow.messaging.services.futures.MessageFuture;
-import com.rabbitmq.client.*;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeoutException;
 
 import static com.acuitybotting.data.flow.messaging.services.client.MessagingClient.*;
 
@@ -23,7 +23,7 @@ import static com.acuitybotting.data.flow.messaging.services.client.MessagingCli
 /**
  * Created by Zachary Herridge on 7/10/2018.
  */
-public class RabbitChannel implements MessagingChannel, ShutdownListener {
+public class RabbitChannel implements MessagingChannel {
 
     private final Object connectLock = new Object();
 
@@ -35,54 +35,47 @@ public class RabbitChannel implements MessagingChannel, ShutdownListener {
 
     private ScheduledFuture<?> scheduledFuture;
 
+    private Collection<RabbitQueue> queues = new CopyOnWriteArrayList<>();
+
     public RabbitChannel(RabbitClient rabbitClient) {
         this.rabbitClient = rabbitClient;
     }
 
-    @Override
-    public void connect() {
-        if (scheduledFuture != null) throw new IllegalStateException("Client already connected.");
-        scheduledFuture = rabbitClient.getScheduledExecutorService().scheduleAtFixedRate(this::checkConnection, 0, 20, TimeUnit.SECONDS);
-    }
-
-    private void checkConnection(){
-        if (rabbitChannel != null && rabbitChannel.isOpen()) return;
-
-        synchronized (connectLock){
-            long now = System.currentTimeMillis();
-            if ((now - lastConnectionAttempt) > TimeUnit.SECONDS.toMillis(9)){
-                lastConnectionAttempt = now;
-
-                if (rabbitChannel != null && rabbitChannel.isOpen()) return;
-
-                try {
-                    rabbitChannel = rabbitClient.getConnection().createChannel();
+    public void checkConnection() {
+        if (rabbitChannel == null || !rabbitChannel.isOpen()) {
+            try {
+                Connection connection = rabbitClient.getConnection();
+                if (connection == null) return;
+                rabbitChannel = connection.createChannel();
+                if (rabbitChannel.isOpen()) {
                     rabbitClient.getLog().accept("Channel opened.");
-                    rabbitChannel.addShutdownListener(this);
                     rabbitChannel.basicQos(6);
+                } else {
+                    rabbitClient.getLog().accept("Failed to open channel connection, waiting 10 seconds and trying again.");
+                }
+            } catch (Throwable e) {
+                rabbitClient.getExceptionHandler().accept(e);
+            }
+        }
 
-                    for (MessagingChannelListener listener : listeners) {
-                        try {
-                            listener.onConnect(this);
-                        }
-                        catch (Throwable e){
-                            rabbitClient.getExceptionHandler().accept(e);
-                        }
-                    }
 
-                    return;
-                } catch (Throwable e) {
+        if (rabbitChannel != null && rabbitChannel.isOpen()) {
+            for (RabbitQueue queue : queues) {
+                try {
+                    queue.checkConnection();
+                }
+                catch (Throwable e){
                     rabbitClient.getExceptionHandler().accept(e);
                 }
             }
         }
-
-        rabbitClient.getLog().accept("Failed to open channel connection, waiting 20 seconds and trying again.");
     }
 
     @Override
-    public MessagingQueue getQueue(String queue) {
-        return new RabbitQueue(this, queue);
+    public MessagingQueue createQueue(String queue, boolean create) {
+        RabbitQueue rabbitQueue = new RabbitQueue(this, queue).setCreateQueue(create);
+        queues.add(rabbitQueue);
+        return rabbitQueue;
     }
 
     @Override
@@ -98,7 +91,7 @@ public class RabbitChannel implements MessagingChannel, ShutdownListener {
     }
 
     @Override
-    public MessagingClient getClient() {
+    public RabbitClient getClient() {
         return rabbitClient;
     }
 
@@ -172,18 +165,5 @@ public class RabbitChannel implements MessagingChannel, ShutdownListener {
 
     public Channel getChannel() {
         return rabbitChannel;
-    }
-
-    @Override
-    public void shutdownCompleted(ShutdownSignalException shutdownEvent) {
-        rabbitClient.getLog().accept("Channel shutdown complete. " + shutdownEvent);
-        rabbitChannel = null;
-        for (MessagingChannelListener listener : listeners) {
-            try {
-                listener.onShutdown(this, shutdownEvent.getCause());
-            } catch (Throwable e) {
-                rabbitClient.getExceptionHandler().accept(e);
-            }
-        }
     }
 }

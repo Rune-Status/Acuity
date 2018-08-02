@@ -1,4 +1,4 @@
-package com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit;
+package com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit;
 
 import com.acuitybotting.common.utils.ExecutorUtil;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
@@ -10,9 +10,7 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 
@@ -36,10 +34,11 @@ public class RabbitClient implements MessagingClient {
     private Connection connection;
 
     private Map<String, MessageFuture> messageFutures = new HashMap<>();
-    private List<MessagingClientListener> listeners = new CopyOnWriteArrayList<>();
 
     private Consumer<Throwable> throwableConsumer = throwable -> log.error("Error from Rabbit.", throwable);
     private Consumer<String> logConsumer = s -> log.info(s);
+
+    private Collection<RabbitChannel> channels = new CopyOnWriteArrayList<>();
 
     private ScheduledFuture<?> scheduledFuture;
 
@@ -79,37 +78,26 @@ public class RabbitClient implements MessagingClient {
     }
 
     private void checkConnection() {
-        if (connection != null && connection.isOpen()) return;
-
-        try {
-            if (close()) {
-                connection = factory.newConnection(rabbitId);
-                if (connection.isOpen()) {
-                    connection.addShutdownListener(e -> {
-                        for (MessagingClientListener listener : listeners) {
-                            try {
-                                listener.onShutdown(this);
-                            } catch (Throwable e1) {
-                                getExceptionHandler().accept(e1);
-                            }
-                        }
-                    });
-                    getLog().accept("RabbitMq connection opened.");
-                    for (MessagingClientListener listener : listeners) {
-                        try {
-                            listener.onConnect(this);
-                        } catch (Throwable e) {
-                            getExceptionHandler().accept(e);
-                        }
-                    }
-                    return;
+        if (connection == null || !connection.isOpen()){
+            try {
+                if (close()) {
+                    connection = factory.newConnection(rabbitId);
+                    if (!connection.isOpen()) getLog().accept("Failed to open RabbitMQ connection, waiting 10 seconds and trying again.");
                 }
+            } catch (Throwable e) {
+                getExceptionHandler().accept(e);
             }
-        } catch (Throwable e) {
-            getExceptionHandler().accept(e);
         }
 
-        getLog().accept("Failed to open RabbitMQ connection, waiting 10 seconds and trying again.");
+        if (connection != null && connection.isOpen()){
+            for (RabbitChannel channel : channels) {
+                try {
+                    channel.checkConnection();
+                } catch (Throwable e) {
+                    getExceptionHandler().accept(e);
+                }
+            }
+        }
     }
 
     public RabbitClient setVirtualHost(String virtualHost) {
@@ -130,11 +118,6 @@ public class RabbitClient implements MessagingClient {
     }
 
     @Override
-    public List<MessagingClientListener> getListeners() {
-        return listeners;
-    }
-
-    @Override
     public Consumer<Throwable> getExceptionHandler() {
         return throwableConsumer;
     }
@@ -146,7 +129,9 @@ public class RabbitClient implements MessagingClient {
 
     @Override
     public MessagingChannel createChannel() throws RuntimeException {
-        return new RabbitChannel(this);
+        RabbitChannel rabbitChannel = new RabbitChannel(this);
+        channels.add(rabbitChannel);
+        return rabbitChannel;
     }
 
     public Gson getGson() {
