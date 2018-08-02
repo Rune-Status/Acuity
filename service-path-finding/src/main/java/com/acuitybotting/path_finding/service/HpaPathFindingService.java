@@ -7,6 +7,7 @@ import com.acuitybotting.data.flow.messaging.services.client.exceptions.Messagin
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitClient;
 import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.ChannelListenerAdapter;
 import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.ClientListenerAdapter;
+import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.RegionMap;
 import com.acuitybotting.path_finding.algorithms.astar.AStarService;
 import com.acuitybotting.path_finding.algorithms.astar.implmentation.AStarImplementation;
@@ -110,57 +111,59 @@ public class HpaPathFindingService {
         try {
             loadHpa(1);
 
-            Gson outGson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-            Gson inGson = new Gson();
-
             RabbitClient rabbitClient = new RabbitClient();
             rabbitClient.auth(host, username, password);
 
             MessagingChannel channel = rabbitClient.createChannel();
 
             channel.createQueue("acuitybotting.work.find-path-1", false)
-                    .withListener(messageEvent -> {
-                        Message message = messageEvent.getMessage();
-                        PathRequest pathRequest = inGson.fromJson(message.getBody(), PathRequest.class);
-                        PathResult pathResult = new PathResult();
-
-                        try {
-                            log.info("Finding path. {}", pathRequest);
-                            pathResult = findPath(pathRequest.getStart(), pathRequest.getEnd(), pathRequest.getPlayer());
-                            List<? extends Edge> path = pathResult.getPath();
-                            log.info("Found path. {}", path);
-
-                            pathResult.setSubPaths(new HashMap<>());
-                            if (path != null) {
-                                for (Edge edge : path) {
-                                    if (edge instanceof HPAEdge) {
-                                        String pathKey = ((HPAEdge) edge).getPathKey();
-                                        List<Location> subPath = ((HPAEdge) edge).getPath();
-                                        if (pathKey != null && subPath != null) {
-                                            pathResult.getSubPaths().put(pathKey, subPath);
-                                        }
-                                    }
-                                }
-                            }
-
-                        } catch (Exception e) {
-                            log.error("Error during finding path. {}", e);
-                            pathResult.setError(e.getMessage());
-                        }
-
-                        String json = outGson.toJson(pathResult);
-                        log.info("Responding. {} {}", message.getAttributes().get(RESPONSE_QUEUE), json);
-                        try {
-                            channel.respond(message, json);
-                            channel.acknowledge(message);
-                        } catch (MessagingException e) {
-                            e.printStackTrace();
-                        }
-                    })
+                    .withListener(this::handleRequest)
                     .connect();
 
             rabbitClient.connect("APW_001_" + UUID.randomUUID().toString());
         } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void handleRequest(MessageEvent messageEvent){
+        Gson outGson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+        Gson inGson = new Gson();
+
+        Message message = messageEvent.getMessage();
+        PathRequest pathRequest = inGson.fromJson(message.getBody(), PathRequest.class);
+        PathResult pathResult = new PathResult();
+
+        try {
+            log.info("Finding path. {}", pathRequest);
+            pathResult = findPath(pathRequest.getStart(), pathRequest.getEnd(), pathRequest.getPlayer());
+            List<? extends Edge> path = pathResult.getPath();
+            log.info("Found path. {}", path);
+
+            pathResult.setSubPaths(new HashMap<>());
+            if (path != null) {
+                for (Edge edge : path) {
+                    if (edge instanceof HPAEdge) {
+                        String pathKey = ((HPAEdge) edge).getPathKey();
+                        List<Location> subPath = ((HPAEdge) edge).getPath();
+                        if (pathKey != null && subPath != null) {
+                            pathResult.getSubPaths().put(pathKey, subPath);
+                        }
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            log.error("Error during finding path. {}", e);
+            pathResult.setError(e.getMessage());
+        }
+
+        String json = outGson.toJson(pathResult);
+        log.info("Responding. {} {}", message.getAttributes().get(RESPONSE_QUEUE), json);
+        try {
+            messageEvent.getQueue().getChannel().respond(message, json);
+            messageEvent.getQueue().getChannel().acknowledge(message);
+        } catch (MessagingException e) {
             e.printStackTrace();
         }
     }
