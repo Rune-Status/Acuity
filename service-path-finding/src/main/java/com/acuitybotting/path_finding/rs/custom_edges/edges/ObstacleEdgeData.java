@@ -2,7 +2,9 @@ package com.acuitybotting.path_finding.rs.custom_edges.edges;
 
 import com.acuitybotting.path_finding.rs.custom_edges.CustomEdgeData;
 import com.acuitybotting.path_finding.rs.custom_edges.interaction.Interaction;
+import lombok.Getter;
 
+@Getter
 public class ObstacleEdgeData extends CustomEdgeData {
 
     private static final String OBJECT_NAME = "OBJECT_NAME";
@@ -39,7 +41,9 @@ public class ObstacleEdgeData extends CustomEdgeData {
         Interaction result = new Interaction().setType(Interaction.SCENE_ENTITY);
         if (id != 0) {
             result.withData(OBJECT_ID, id);
-        } else {
+        }
+
+        if (name != null){
             result.withData(OBJECT_NAME, name);
         }
 

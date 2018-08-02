@@ -116,7 +116,7 @@ public class HpaPathFindingService {
 
             MessagingChannel channel = rabbitClient.createChannel();
 
-            channel.createQueue("acuitybotting.work.find-path-1", false)
+            channel.createQueue("acuitybotting.work.find-path-dev", false)
                     .withListener(this::handleRequest)
                     .connect();
 
