@@ -1,6 +1,5 @@
 package com.acuitybotting.bot_control;
 
-import com.acuitybotting.bot_control.services.user.db.RabbitDbService;
 import com.acuitybotting.db.arango.acuity.identities.service.PrincipalLinkService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -16,9 +16,6 @@ public class PrincipalLink {
     @Id
     private String id;
 
-    private String sourceType;
-    private String sourceUid;
-
-    private String linkType;
-    private String linkUid;
+    private Principal principal1;
+    private Principal principal2;
 }

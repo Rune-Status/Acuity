@@ -1,20 +1,21 @@
 package com.acuitybotting.discord.bot;
 
-import com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit.management.RabbitManagement;
-import com.acuitybotting.db.arango.acuity.identities.service.PrincipalLinkService;
-import net.dv8tion.jda.core.AccountType;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.JDABuilder;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.core.hooks.ListenerAdapter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
+        import com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit.management.RabbitManagement;
+        import com.acuitybotting.db.arango.acuity.identities.domain.Principal;
+        import com.acuitybotting.db.arango.acuity.identities.service.PrincipalLinkService;
+        import net.dv8tion.jda.core.AccountType;
+        import net.dv8tion.jda.core.JDA;
+        import net.dv8tion.jda.core.JDABuilder;
+        import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
+        import net.dv8tion.jda.core.hooks.ListenerAdapter;
+        import org.springframework.beans.factory.annotation.Autowired;
+        import org.springframework.beans.factory.annotation.Value;
+        import org.springframework.boot.CommandLineRunner;
+        import org.springframework.stereotype.Component;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Collection;
-import java.util.function.Function;
+        import java.io.UnsupportedEncodingException;
+        import java.util.Collection;
+        import java.util.function.Function;
 
 @Component
 public class DiscordBotRunner implements CommandLineRunner {
@@ -52,6 +53,21 @@ public class DiscordBotRunner implements CommandLineRunner {
                             event.getChannel().sendMessage(new StringBuilder().append("Connected: " + count)).queue();
                         } catch (Exception e) {
                             e.printStackTrace();
+                        }
+                    }
+                }
+                else {
+                    if (event.getMessage().getContentRaw().equals("!count")){
+                        for (Principal principal : linkService.findLinksContaining(event.getMessage().getAuthor().getId())) {
+                            if (principal.getType().equals("rspeer")){
+                                try {
+                                    RabbitManagement.loadAll("http://" + host + ":" + "15672", username, password);
+                                    int size = RabbitManagement.getConnections().get(principal.getUid()).size();
+                                    event.getChannel().sendMessage(new StringBuilder().append("You have " + size + " connections.")).queue();
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
                         }
                     }
                 }
