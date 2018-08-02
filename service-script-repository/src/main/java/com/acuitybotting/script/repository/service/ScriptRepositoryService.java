@@ -1,10 +1,7 @@
 package com.acuitybotting.script.repository.service;
 
-import com.acuitybotting.db.arango.acuity.script.repository.domain.Script;
-import com.acuitybotting.db.arango.acuity.script.repository.domain.ScriptAuth;
 import com.acuitybotting.db.arango.acuity.script.repository.repositories.ScriptAuthRepository;
 import com.acuitybotting.db.arango.acuity.script.repository.repositories.ScriptRepository;
-import com.acuitybotting.db.arango.acuity.identities.domain.AcuityIdentity;
 import com.acuitybotting.script.repository.compile.CompileService;
 import com.acuitybotting.script.repository.github.GitHubService;
 import com.acuitybotting.script.repository.obfuscator.ObfuscatorService;
@@ -13,8 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Objects;
+import java.util.UUID;
 
 @Getter
 @Service
@@ -70,51 +67,4 @@ public class ScriptRepositoryService {
         return parentFile;
     }
 
-    public boolean isAuthedForScript(String identityId, Script script){
-        Objects.requireNonNull(script);
-
-        if (script.getAccessLevel() == Script.ACCESS_PUBLIC) return true;
-        if (identityId != null && script.getAuthor().getId().equals(identityId)) return true;
-        return scriptAuthRepository.findAllByScriptAndPrincipal(script.getId(), identityId).stream().anyMatch(ScriptAuth::isActive);
-    }
-
-    public Collection<Script> findAllScripts(String identityID){
-        Set<Script> allByAuthorOrAccessLevel = scriptRepository.findAllByAuthorOrAccessLevel(identityID, Script.ACCESS_PUBLIC);
-        if (identityID != null) scriptAuthRepository.findAllByPrincipal(identityID).stream().map(ScriptAuth::getScript).forEach(allByAuthorOrAccessLevel::add);
-        return allByAuthorOrAccessLevel;
-    }
-
-    public void addScriptAuth(Script script, AcuityIdentity principal, int authType, Long expiration){
-        Objects.requireNonNull(script);
-        Objects.requireNonNull(principal);
-
-        if (expiration == null) expiration = 0L;
-        ScriptAuth scriptAuth = new ScriptAuth();
-        scriptAuth.setCreationTime(System.currentTimeMillis());
-        scriptAuth.setExpirationTime(expiration);
-        scriptAuth.setPrincipal(principal);
-        scriptAuth.setScript(script);
-        scriptAuth.setAuthType(authType);
-        scriptAuthRepository.save(scriptAuth);
-    }
-
-    public Script createRepository(AcuityIdentity author, int access, String repositoryName, String title, String desc, String category) throws Exception {
-        Objects.requireNonNull(author);
-        Objects.requireNonNull(repositoryName);
-        Objects.requireNonNull(title);
-        Objects.requireNonNull(desc);
-        Objects.requireNonNull(category);
-
-        String url = gitHubService.createRepo(repositoryName);
-        Script script = new Script();
-        script.setGithubRepoName(repositoryName);
-        script.setAuthor(author);
-        script.setGithubUrl(url);
-        script.setTitle(title);
-        script.setAccessLevel(access);
-        script.setCreationTime(System.currentTimeMillis());
-        script.setDescription(desc);
-        script.setCategory(category);
-        return scriptRepository.save(script);
-    }
 }
