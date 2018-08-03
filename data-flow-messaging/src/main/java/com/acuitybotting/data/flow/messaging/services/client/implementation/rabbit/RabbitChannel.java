@@ -4,18 +4,17 @@ import com.acuitybotting.data.flow.messaging.services.Message;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingQueue;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
-import com.acuitybotting.data.flow.messaging.services.client.listeners.MessagingChannelListener;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.data.flow.messaging.services.futures.MessageFuture;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeoutException;
 
 import static com.acuitybotting.data.flow.messaging.services.client.MessagingClient.*;
 
@@ -26,7 +25,6 @@ import static com.acuitybotting.data.flow.messaging.services.client.MessagingCli
 public class RabbitChannel implements MessagingChannel {
 
     private RabbitClient rabbitClient;
-    private List<MessagingChannelListener> listeners = new CopyOnWriteArrayList<>();
 
     private Channel rabbitChannel;
 
@@ -130,14 +128,6 @@ public class RabbitChannel implements MessagingChannel {
         message.setAttributes(messageAttributes);
         message.setBody(body);
 
-        for (MessagingChannelListener listener : listeners) {
-            try {
-                listener.beforeMessageSend(this, message);
-            } catch (Throwable e) {
-                rabbitClient.getExceptionHandler().accept(e);
-            }
-        }
-
         try {
             channel.basicPublish(targetExchange, targetRouting, null, rabbitClient.getGson().toJson(message).getBytes());
             return future;
@@ -158,11 +148,6 @@ public class RabbitChannel implements MessagingChannel {
     @Override
     public MessageFuture getMessageFuture(String id) {
         return rabbitClient.getMessageFutures().get(id);
-    }
-
-    @Override
-    public List<MessagingChannelListener> getListeners() {
-        return listeners;
     }
 
     public Channel getChannel() {
