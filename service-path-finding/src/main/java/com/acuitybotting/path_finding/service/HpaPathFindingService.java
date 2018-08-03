@@ -2,11 +2,8 @@ package com.acuitybotting.path_finding.service;
 
 import com.acuitybotting.data.flow.messaging.services.Message;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
-import com.acuitybotting.data.flow.messaging.services.client.MessagingClient;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitClient;
-import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.ChannelListenerAdapter;
-import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.ClientListenerAdapter;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.RegionMap;
 import com.acuitybotting.path_finding.algorithms.astar.AStarService;
@@ -114,11 +111,11 @@ public class HpaPathFindingService {
             RabbitClient rabbitClient = new RabbitClient();
             rabbitClient.auth(host, username, password);
 
-            MessagingChannel channel = rabbitClient.createChannel();
+            MessagingChannel channel = rabbitClient.openChannel();
 
             channel.createQueue("acuitybotting.work.find-path-dev", false)
                     .withListener(this::handleRequest)
-                    .connect();
+                    .open();
 
             rabbitClient.connect("APW_001_" + UUID.randomUUID().toString());
         } catch (Throwable e) {

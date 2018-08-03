@@ -3,7 +3,6 @@ package com.acuitybotting.data.flow.messaging.services.client.implementation.rab
 import com.acuitybotting.common.utils.ExecutorUtil;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingClient;
-import com.acuitybotting.data.flow.messaging.services.client.listeners.MessagingClientListener;
 import com.acuitybotting.data.flow.messaging.services.futures.MessageFuture;
 import com.google.gson.Gson;
 import com.rabbitmq.client.Connection;
@@ -19,6 +18,8 @@ import java.util.function.Consumer;
  */
 @Slf4j
 public class RabbitClient implements MessagingClient {
+
+    public final Object CONFIRM_STATE_LOCK = new Object();
 
     private String rabbitId;
     private String endpoint;
@@ -61,7 +62,7 @@ public class RabbitClient implements MessagingClient {
         factory.setAutomaticRecoveryEnabled(false);
         if (virtualHost != null) factory.setVirtualHost(virtualHost);
 
-        scheduledFuture = scheduledExecutorService.scheduleAtFixedRate(this::checkConnection, 0, 10, TimeUnit.SECONDS);
+        scheduledFuture = scheduledExecutorService.scheduleAtFixedRate(this::confirmState, 0, 10, TimeUnit.SECONDS);
     }
 
     private boolean close() {
@@ -77,24 +78,26 @@ public class RabbitClient implements MessagingClient {
         return connection == null;
     }
 
-    private void checkConnection() {
-        if (connection == null || !connection.isOpen()){
-            try {
-                if (close()) {
-                    connection = factory.newConnection(rabbitId);
-                    if (!connection.isOpen()) getLog().accept("Failed to open RabbitMQ connection, waiting 10 seconds and trying again.");
-                }
-            } catch (Throwable e) {
-                getExceptionHandler().accept(e);
-            }
-        }
-
-        if (connection != null && connection.isOpen()){
-            for (RabbitChannel channel : channels) {
+    private void confirmState() {
+        synchronized (CONFIRM_STATE_LOCK){
+            if (connection == null || !connection.isOpen()){
                 try {
-                    channel.checkConnection();
+                    if (close()) {
+                        connection = factory.newConnection(rabbitId);
+                        if (!connection.isOpen()) getLog().accept("Failed to open RabbitMQ connection, waiting 10 seconds and trying again.");
+                    }
                 } catch (Throwable e) {
                     getExceptionHandler().accept(e);
+                }
+            }
+
+            if (connection != null && connection.isOpen()){
+                for (RabbitChannel channel : channels) {
+                    try {
+                        channel.confirmState();
+                    } catch (Throwable e) {
+                        getExceptionHandler().accept(e);
+                    }
                 }
             }
         }
@@ -128,9 +131,10 @@ public class RabbitClient implements MessagingClient {
     }
 
     @Override
-    public MessagingChannel createChannel() throws RuntimeException {
+    public MessagingChannel openChannel() throws RuntimeException {
         RabbitChannel rabbitChannel = new RabbitChannel(this);
         channels.add(rabbitChannel);
+        confirmState();
         return rabbitChannel;
     }
 

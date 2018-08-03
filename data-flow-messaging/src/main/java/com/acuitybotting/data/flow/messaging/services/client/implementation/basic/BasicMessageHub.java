@@ -13,6 +13,6 @@ public class BasicMessageHub {
 
     public BasicMessageHub(MessagingClient client) {
         this.client = client;
-        this.channel = client.createChannel();
+        this.channel = client.openChannel();
     }
 }

@@ -17,5 +17,5 @@ public interface MessagingQueue {
 
     String getName();
 
-    RabbitQueue connect();
+    RabbitQueue open(boolean autoAcknowledge);
 }

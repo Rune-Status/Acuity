@@ -2,12 +2,9 @@ package com.acuitybotting.bot_control.services.rabbit;
 
 import com.acuitybotting.bot_control.services.user.db.RabbitDbService;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
-import com.acuitybotting.data.flow.messaging.services.client.MessagingClient;
-import com.acuitybotting.data.flow.messaging.services.client.MessagingQueue;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitChannel;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitClient;
-import com.acuitybotting.data.flow.messaging.services.client.listeners.adapters.ClientListenerAdapter;
 import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.data.flow.messaging.services.identity.RoutingUtil;
@@ -56,23 +53,22 @@ public class BotControlRabbitService implements CommandLineRunner {
         try {
             RabbitClient rabbitClient = new RabbitClient();
             rabbitClient.auth(host, username, password);
-
-            MessagingChannel channel = rabbitClient.createChannel();
+            rabbitClient.connect("ABW_001_" + UUID.randomUUID().toString());
+            MessagingChannel channel = rabbitClient.openChannel();
 
             channel.createQueue("bot-control-worker-" + UUID.randomUUID().toString(), true)
                     .bind("amq.rabbitmq.event", "queue.#")
                     .withListener(publisher::publishEvent)
-                    .connect();
+                    .open(false);
 
 /*            channel.createQueue("acuitybotting.work.acuity-db.request", false)
                     .withListener(publisher::publishEvent)
-                    .connect();*/
+                    .open();*/
 
             channel.createQueue("acuitybotting.work.bot-control", false)
                     .withListener(publisher::publishEvent)
-                    .connect();
+                    .open(false);
 
-            rabbitClient.connect("ABW_001_" + UUID.randomUUID().toString());
         } catch (Throwable e) {
             log.error("Error during dashboard RabbitMQ setup.", e);
         }

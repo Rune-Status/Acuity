@@ -22,5 +22,5 @@ public interface MessagingClient {
 
     boolean isConnected();
 
-    MessagingChannel createChannel();
+    MessagingChannel openChannel();
 }

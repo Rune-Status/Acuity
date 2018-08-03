@@ -53,7 +53,7 @@ public class DashboardRabbitService implements CommandLineRunner {
 /*            rabbitClient.getListeners().add(new ClientListenerAdapter(){
                 @Override
                 public void onConnect(MessagingClient client) {
-       *//*             rabbitChannel = (RabbitChannel) client.createChannel();
+       *//*             rabbitChannel = (RabbitChannel) client.openChannel();
                     rabbitChannel.getListeners().add(new ChannelListenerAdapter(){
                         @Override
                         public void onConnect(MessagingChannel channel) {
@@ -69,7 +69,7 @@ public class DashboardRabbitService implements CommandLineRunner {
                             }
                         }
                     });
-                    rabbitChannel.connect();*//*
+                    rabbitChannel.open();*//*
                 }
             });*/
 

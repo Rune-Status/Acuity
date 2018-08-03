@@ -8,6 +8,7 @@ public class RabbitQueueBinding {
     private RabbitQueue rabbitQueue;
     private String exchange;
     private String routing;
+    private String consumeId;
 
     public RabbitQueue getRabbitQueue() {
         return rabbitQueue;
@@ -33,6 +34,15 @@ public class RabbitQueueBinding {
 
     public RabbitQueueBinding setRouting(String routing) {
         this.routing = routing;
+        return this;
+    }
+
+    public String getConsumeId() {
+        return consumeId;
+    }
+
+    public RabbitQueueBinding setConsumeId(String consumeId) {
+        this.consumeId = consumeId;
         return this;
     }
 }

@@ -41,31 +41,33 @@ public class RabbitChannel implements MessagingChannel {
         this.rabbitClient = rabbitClient;
     }
 
-    public void checkConnection() {
-        if (rabbitChannel == null || !rabbitChannel.isOpen()) {
-            try {
-                Connection connection = rabbitClient.getConnection();
-                if (connection == null) return;
-                rabbitChannel = connection.createChannel();
-                if (rabbitChannel.isOpen()) {
-                    rabbitClient.getLog().accept("Channel opened.");
-                    rabbitChannel.basicQos(6);
-                } else {
-                    rabbitClient.getLog().accept("Failed to open channel connection, waiting 10 seconds and trying again.");
-                }
-            } catch (Throwable e) {
-                rabbitClient.getExceptionHandler().accept(e);
-            }
-        }
-
-
-        if (rabbitChannel != null && rabbitChannel.isOpen()) {
-            for (RabbitQueue queue : queues) {
+    public void confirmState() {
+        synchronized (rabbitClient.CONFIRM_STATE_LOCK){
+            if (rabbitChannel == null || !rabbitChannel.isOpen()) {
                 try {
-                    queue.checkConnection();
-                }
-                catch (Throwable e){
+                    Connection connection = rabbitClient.getConnection();
+                    if (connection == null) return;
+                    rabbitChannel = connection.createChannel();
+                    if (rabbitChannel.isOpen()) {
+                        rabbitClient.getLog().accept("Channel opened.");
+                        rabbitChannel.basicQos(6);
+                    } else {
+                        rabbitClient.getLog().accept("Failed to open channel connection, waiting 10 seconds and trying again.");
+                    }
+                } catch (Throwable e) {
                     rabbitClient.getExceptionHandler().accept(e);
+                }
+            }
+
+
+            if (rabbitChannel != null && rabbitChannel.isOpen()) {
+                for (RabbitQueue queue : queues) {
+                    try {
+                        queue.confirmState();
+                    }
+                    catch (Throwable e){
+                        rabbitClient.getExceptionHandler().accept(e);
+                    }
                 }
             }
         }
@@ -74,7 +76,6 @@ public class RabbitChannel implements MessagingChannel {
     @Override
     public MessagingQueue createQueue(String queue, boolean create) {
         RabbitQueue rabbitQueue = new RabbitQueue(this, queue).setCreateQueue(create);
-        queues.add(rabbitQueue);
         return rabbitQueue;
     }
 
@@ -151,6 +152,10 @@ public class RabbitChannel implements MessagingChannel {
 
     private String generateId() {
         return UUID.randomUUID().toString();
+    }
+
+    public Collection<RabbitQueue> getQueues() {
+        return queues;
     }
 
     @Override
