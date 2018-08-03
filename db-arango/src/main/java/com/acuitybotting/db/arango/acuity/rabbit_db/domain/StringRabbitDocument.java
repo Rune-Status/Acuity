@@ -1,7 +1,6 @@
-package com.acuitybotting.acuity.rabbit_db.domain;
+package com.acuitybotting.db.arango.acuity.rabbit_db.domain;
 
 import com.arangodb.springframework.annotation.Document;
-import com.google.gson.JsonElement;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -9,13 +8,13 @@ import lombok.ToString;
 import java.util.Map;
 
 /**
- * Created by Zachary Herridge on 7/19/2018.
+ * Created by Zachary Herridge on 8/3/2018.
  */
 @Getter
 @Setter
 @ToString
 @Document("RabbitDocument")
-public class JsonRabbitDocument {
+public class StringRabbitDocument {
 
     private String _key;
 
@@ -27,7 +26,8 @@ public class JsonRabbitDocument {
     private String subGroup;
     private String subKey;
 
-    private JsonElement subDocument;
+    private String subDocument;
 
     private Map<String, Object> headers;
+
 }

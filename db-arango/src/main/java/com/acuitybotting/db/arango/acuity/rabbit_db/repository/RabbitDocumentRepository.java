@@ -1,6 +1,6 @@
-package com.acuitybotting.acuity.rabbit_db.repository;
+package com.acuitybotting.db.arango.acuity.rabbit_db.repository;
 
-import com.acuitybotting.acuity.rabbit_db.domain.StringRabbitDocument;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.StringRabbitDocument;
 import com.arangodb.springframework.repository.ArangoRepository;
 
 import java.util.Optional;
