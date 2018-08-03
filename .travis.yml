@@ -8,11 +8,11 @@ language: java
 script:
   - mvn package
   - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" ;
-  - if [[ "$TRAVIS_TAG" = *"pathing-"* ]]; then
+  - if [[ "$TRAVIS_TAG" = *"bot-control-"* ]]; then
       docker build service-bot-control/ -t acuitybotting/service-bot-control ;
       docker push acuitybotting/service-bot-control ;
     fi
-  - if [[ "$TRAVIS_TAG" = *"bot-control-"* ]]; then
+  - if [[ "$TRAVIS_TAG" = *"path-finding-"* ]]; then
       docker build service-path-finding/ -t acuitybotting/service-path-finding ;
       docker push acuitybotting/service-path-finding ;
     fi
