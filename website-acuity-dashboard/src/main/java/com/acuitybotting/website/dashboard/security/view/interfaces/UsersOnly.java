@@ -12,9 +12,10 @@ public interface UsersOnly extends BeforeEnterObserver {
 
     @Override
     default void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
-        Object loggedIn = UI.getCurrent().getSession().getAttribute("loggedIn");
-        if (loggedIn == null){
-            beforeEnterEvent.rerouteTo(LoginView.class);
-        }
+        if (getPrincipalUid() == null) beforeEnterEvent.rerouteTo(LoginView.class);
+    }
+
+    default String getPrincipalUid(){
+        return (String) UI.getCurrent().getSession().getAttribute("principalUid");
     }
 }

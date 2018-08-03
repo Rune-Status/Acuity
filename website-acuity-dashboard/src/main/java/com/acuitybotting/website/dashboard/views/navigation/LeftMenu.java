@@ -1,6 +1,8 @@
 package com.acuitybotting.website.dashboard.views.navigation;
 
 import com.acuitybotting.website.dashboard.components.general.nav.NavigationButton;
+import com.acuitybotting.website.dashboard.views.connections.ConnectionListComponent;
+import com.acuitybotting.website.dashboard.views.connections.ConnectionsListView;
 import com.acuitybotting.website.dashboard.views.user.Profile;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -18,6 +20,7 @@ public class LeftMenu extends VerticalLayout {
         setSpacing(false);
         setPadding(false);
 
+        add(new NavigationButton("Connections", VaadinIcon.CLOUD.create(), ConnectionsListView.class));
         add(new NavigationButton("Profile", VaadinIcon.HOME.create(), Profile.class));
     }
 }

@@ -20,7 +20,7 @@ public class Profile extends Div implements UsersOnly {
 
     @Override
     protected void onAttach(AttachEvent attachEvent) {
-        add(new Span("Logged in: " + UI.getCurrent().getSession().getAttribute("loggedIn")), lastMessage);
+        add(new Span("Logged in: " + getPrincipalUid()), lastMessage);
     }
 
     @Subscribe
