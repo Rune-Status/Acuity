@@ -1,10 +1,10 @@
 package com.acuitybotting.bot_control.services.user.db;
 
+import com.acuitybotting.acuity.rabbit_db.domain.JsonRabbitDocument;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
-import com.acuitybotting.db.arango.acuity.bot_control.domain.RabbitDocument;
-import com.acuitybotting.db.arango.acuity.bot_control.repositories.RabbitDocumentRepository;
+
 import com.arangodb.springframework.core.ArangoOperations;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -29,16 +29,15 @@ public class RabbitDbService {
     public static final String COLLECTION = "RabbitDocument";
 
     private final ArangoOperations arangoOperations;
-    private final RabbitDocumentRepository repository;
     private final Gson gson = new Gson();
 
-    public RabbitDbService(ArangoOperations operations, RabbitDocumentRepository repository) {
+    public RabbitDbService(ArangoOperations operations) {
         this.arangoOperations = operations;
-        this.repository = repository;
     }
 
     private boolean isDeleteAccessible(String userId, String db) {
         if (db == null) return false;
+        if (db.equals("services.registered-connections")) return false;
         return db.startsWith("services.") || db.startsWith("user.db.");
     }
 
@@ -53,18 +52,18 @@ public class RabbitDbService {
     }
 
     public void save(String principalId, RabbitDbRequest request, Map<String, Object> headers) {
-        RabbitDocument rabbitDocument = new RabbitDocument();
-        rabbitDocument.setPrincipalId(principalId);
-        rabbitDocument.setSubGroup(request.getGroup());
-        rabbitDocument.setSubKey(request.getKey());
-        rabbitDocument.setDatabase(request.getDatabase());
-        rabbitDocument.setHeaders(headers);
+        JsonRabbitDocument jsonRabbitDocument = new JsonRabbitDocument();
+        jsonRabbitDocument.setPrincipalId(principalId);
+        jsonRabbitDocument.setSubGroup(request.getGroup());
+        jsonRabbitDocument.setSubKey(request.getKey());
+        jsonRabbitDocument.setDatabase(request.getDatabase());
+        jsonRabbitDocument.setHeaders(headers);
 
-        rabbitDocument.setSubDocument(gson.fromJson(request.getInsertDocument(), JsonElement.class));
-        String insertDocument = gson.toJson(rabbitDocument);
+        jsonRabbitDocument.setSubDocument(gson.fromJson(request.getInsertDocument(), JsonElement.class));
+        String insertDocument = gson.toJson(jsonRabbitDocument);
 
-        rabbitDocument.setSubDocument(gson.fromJson(request.getUpdateDocument(), JsonElement.class));
-        String updateDocument = gson.toJson(rabbitDocument);
+        jsonRabbitDocument.setSubDocument(gson.fromJson(request.getUpdateDocument(), JsonElement.class));
+        String updateDocument = gson.toJson(jsonRabbitDocument);
 
         String strategy = request.getType() == RabbitDbRequest.SAVE_REPLACE ? "REPLACE" : "UPDATE";
         String query = "UPSERT " + buildQuery(principalId, request, true) + " INSERT " + insertDocument + " " + strategy + " " + updateDocument + " IN " + COLLECTION;
@@ -91,17 +90,17 @@ public class RabbitDbService {
         arangoOperations.query(query, null, null, null);
     }
 
-    public RabbitDocument loadByKey(String userId, RabbitDbRequest request) {
+    public JsonRabbitDocument loadByKey(String userId, RabbitDbRequest request) {
         String query = "FOR u IN " + COLLECTION + " FILTER u.principalId == @principalId && u.database == @database && u.subGroup == @subGroup && u.subKey == @subKey RETURN u";
         List<String> json = arangoOperations.query(query, buildQueryMap(userId, request, true), null, String.class).asListRemaining();
-        if (json.size() > 0) return gson.fromJson(json.get(0), RabbitDocument.class);
+        if (json.size() > 0) return gson.fromJson(json.get(0), JsonRabbitDocument.class);
         return null;
     }
 
-    public Set<RabbitDocument> loadByGroup(String userId, RabbitDbRequest request) {
+    public Set<JsonRabbitDocument> loadByGroup(String userId, RabbitDbRequest request) {
         String query = "FOR u IN " + COLLECTION + " FILTER u.principalId == @principalId && u.database == @database && u.subGroup == @subGroup RETURN u";
         List<String> json = arangoOperations.query(query, buildQueryMap(userId, request, false), null, String.class).asListRemaining();
-        return json.stream().map(s -> gson.fromJson(s, RabbitDocument.class)).collect(Collectors.toSet());
+        return json.stream().map(s -> gson.fromJson(s, JsonRabbitDocument.class)).collect(Collectors.toSet());
     }
 
     public void handle(MessageEvent messageEvent, RabbitDbRequest request, String userId) {
@@ -118,9 +117,9 @@ public class RabbitDbService {
         try {
             if (isReadAccessible(userId, request.getDatabase())) {
                 if (request.getType() == RabbitDbRequest.FIND_BY_KEY) {
-                    RabbitDocument rabbitDocument = loadByKey(userId, request);
+                    JsonRabbitDocument jsonRabbitDocument = loadByKey(userId, request);
                     try {
-                        messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), rabbitDocument == null ? "" : gson.toJson(rabbitDocument));
+                        messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), jsonRabbitDocument == null ? "" : gson.toJson(jsonRabbitDocument));
                     } catch (MessagingException e) {
                         e.printStackTrace();
                     }
@@ -131,6 +130,5 @@ public class RabbitDbService {
         } catch (MessagingException e) {
             log.error("Error during response", e);
         }
-
     }
 }

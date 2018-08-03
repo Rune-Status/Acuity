@@ -40,8 +40,6 @@ public class BotControlRabbitService implements CommandLineRunner {
     @Value("${rabbit.password}")
     private String password;
 
-    private RabbitChannel rabbitChannel;
-
     @Autowired
     public BotControlRabbitService(ApplicationEventPublisher publisher, RabbitDbService dbService, PrincipalLinkService linkService) {
         this.publisher = publisher;
@@ -61,10 +59,6 @@ public class BotControlRabbitService implements CommandLineRunner {
                     .withListener(publisher::publishEvent)
                     .open(false);
 
-/*            channel.createQueue("acuitybotting.work.acuity-db.request", false)
-                    .withListener(publisher::publishEvent)
-                    .open();*/
-
             channel.createQueue("acuitybotting.work.bot-control", false)
                     .withListener(publisher::publishEvent)
                     .open(false);
@@ -76,7 +70,7 @@ public class BotControlRabbitService implements CommandLineRunner {
 
     @EventListener
     public void handleRequest(MessageEvent messageEvent) {
-        if (messageEvent.getRouting().contains(".services.acuity-db.request")) {
+        if (messageEvent.getRouting().contains(".services.rabbit-db.handleRequest")) {
             String userId = RoutingUtil.routeToUserId(messageEvent.getRouting());
             dbService.handle(messageEvent, new Gson().fromJson(messageEvent.getMessage().getBody(), RabbitDbRequest.class), userId);
             try {

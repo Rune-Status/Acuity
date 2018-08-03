@@ -69,8 +69,7 @@ public class RabbitChannel implements MessagingChannel {
 
     @Override
     public MessagingQueue createQueue(String queue, boolean create) {
-        RabbitQueue rabbitQueue = new RabbitQueue(this, queue).setCreateQueue(create);
-        return rabbitQueue;
+        return new RabbitQueue(this, queue).setCreateQueue(create);
     }
 
     @Override
