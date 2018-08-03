@@ -36,6 +36,8 @@ public class RabbitChannel implements MessagingChannel {
 
     public void confirmState() {
         synchronized (rabbitClient.CONFIRM_STATE_LOCK){
+            if (!rabbitClient.getChannels().contains(this)) return;
+
             if (rabbitChannel == null || !rabbitChannel.isOpen()) {
                 try {
                     Connection connection = rabbitClient.getConnection();
@@ -51,7 +53,6 @@ public class RabbitChannel implements MessagingChannel {
                     rabbitClient.getExceptionHandler().accept(e);
                 }
             }
-
 
             if (rabbitChannel != null && rabbitChannel.isOpen()) {
                 for (RabbitQueue queue : queues) {
