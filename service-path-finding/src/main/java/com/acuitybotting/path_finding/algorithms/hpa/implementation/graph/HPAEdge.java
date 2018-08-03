@@ -42,8 +42,7 @@ public class HPAEdge implements Edge {
     public boolean evaluate(GraphState state, Map<String, Object> args) {
         if (customEdgeData == null) return true;
         Player player = (Player) args.get("player");
-        if (player == null) return true;
-        return customEdgeData.getPlayerPredicates().stream().allMatch(playerPredicate -> playerPredicate.test(player));
+        return customEdgeData.getPlayerPredicates().stream().allMatch(playerPredicate -> player != null && playerPredicate.test(player));
     }
 
     @Override

@@ -8,6 +8,4 @@ import java.util.function.Predicate;
  * Created by Zachary Herridge on 6/21/2018.
  */
 public interface PlayerPredicate extends Predicate<Player> {
-
-
 }

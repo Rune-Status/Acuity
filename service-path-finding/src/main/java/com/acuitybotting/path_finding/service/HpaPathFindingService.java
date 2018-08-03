@@ -110,14 +110,12 @@ public class HpaPathFindingService {
 
             RabbitClient rabbitClient = new RabbitClient();
             rabbitClient.auth(host, username, password);
+            rabbitClient.connect("APW_002_" + UUID.randomUUID().toString());
 
             MessagingChannel channel = rabbitClient.openChannel();
-
-            channel.createQueue("acuitybotting.work.find-path-dev", false)
+            channel.createQueue("acuitybotting.work.find-path-1", false)
                     .withListener(this::handleRequest)
                     .open(false);
-
-            rabbitClient.connect("APW_001_" + UUID.randomUUID().toString());
         } catch (Throwable e) {
             e.printStackTrace();
         }
