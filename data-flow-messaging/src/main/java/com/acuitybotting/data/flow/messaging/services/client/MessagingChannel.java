@@ -2,11 +2,9 @@ package com.acuitybotting.data.flow.messaging.services.client;
 
 import com.acuitybotting.data.flow.messaging.services.Message;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
-import com.acuitybotting.data.flow.messaging.services.client.listeners.MessagingChannelListener;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.data.flow.messaging.services.futures.MessageFuture;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Future;
 
@@ -18,7 +16,7 @@ import static com.acuitybotting.data.flow.messaging.services.client.MessagingCli
  */
 public interface MessagingChannel {
 
-    MessagingQueue getQueue(String queue);
+    MessagingQueue createQueue(String queue, boolean create);
 
     MessagingChannel close() throws MessagingException;
 
@@ -59,8 +57,4 @@ public interface MessagingChannel {
     Future<MessageEvent> send(String targetExchange, String targetRouting, String localQueue, String futureId, String body) throws MessagingException;
 
     MessageFuture getMessageFuture(String id);
-
-    List<MessagingChannelListener> getListeners();
-
-    void connect();
 }

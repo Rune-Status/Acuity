@@ -1,6 +1,5 @@
 package com.acuitybotting.db.arango.acuity.script.repository.domain;
 
-import com.acuitybotting.db.arango.acuity.identities.domain.AcuityIdentity;
 import com.arangodb.springframework.annotation.Document;
 import com.arangodb.springframework.annotation.Ref;
 import lombok.Data;
@@ -22,9 +21,6 @@ public class ScriptAuth {
 
     @Ref
     private Script script;
-
-    @Ref
-    private AcuityIdentity principal;
 
     public boolean isActive(){
         return expirationTime == 0 || System.currentTimeMillis() < expirationTime;

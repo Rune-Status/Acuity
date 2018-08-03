@@ -2,22 +2,24 @@ package com.acuitybotting.path_finding.rs.custom_edges.edges;
 
 import com.acuitybotting.path_finding.rs.custom_edges.CustomEdgeData;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
+import lombok.Getter;
 
 import java.util.Collection;
 import java.util.HashSet;
 
+@Getter
 public class AgilityObstacleEdgeData extends ObstacleEdgeData {
 
     private static Collection<CustomEdgeData> connections = new HashSet<>();
 
     static {
-/*        add(new AgilityObstacleEdgeData()
+        add(new AgilityObstacleEdgeData()
                 .withLevel(21)
                 .withName("Underwall tunnel")
                 .withAction("Climb-into")
                 .withSelection(SelectionMode.NEAREST_TO_START)
                 .setStart(new Location(3142, 3513, 0))
-                .setEnd(new Location(3137, 3516, 0)));*/
+                .setEnd(new Location(3137, 3516, 0)));
     }
 
     public static void add(CustomEdgeData data) {
@@ -29,6 +31,8 @@ public class AgilityObstacleEdgeData extends ObstacleEdgeData {
         connections.add(new AgilityObstacleEdgeData()
                 .withLevel(agil.getLevel())
                 .withSelection(SelectionMode.NEAREST_TO_START)
+                .withName(agil.getName())
+                .withAction(agil.getAction())
                 .build()
                 .withCost(agil.getCost())
                 .withRequirement(e -> e.getLevels().hasLevel("AGILITY", agil.getLevel()))

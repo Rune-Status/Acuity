@@ -8,5 +8,4 @@ import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 public interface MessagingQueueListener {
 
     void onMessage(MessageEvent messageEvent);
-
 }

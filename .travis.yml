@@ -7,21 +7,16 @@ language: java
 
 script:
   - mvn package
-  - if [[ "$TRAVIS_BRANCH" == "master" ]]; then
-      docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" ;
+  - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" ;
+  - if [[ "$TRAVIS_TAG" = *"pathing-"* ]]; then
       docker build service-bot-control/ -t acuitybotting/service-bot-control ;
       docker push acuitybotting/service-bot-control ;
+    fi
+  - if [[ "$TRAVIS_TAG" = *"bot-control-"* ]]; then
       docker build service-path-finding/ -t acuitybotting/service-path-finding ;
       docker push acuitybotting/service-path-finding ;
+    fi
+  - if [[ "$TRAVIS_TAG" = *"dashboard-"* ]]; then
       docker build website-acuity-dashboard/ -t acuitybotting/website-acuity-dashboard ;
       docker push acuitybotting/website-acuity-dashboard ;
-    fi
-  - if [[ "$TRAVIS_BRANCH" == "development" ]]; then
-      docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" ;
-      docker build service-bot-control/ -t acuitybotting/dev-service-bot-control ;
-      docker push acuitybotting/dev-service-bot-control ;
-      docker build service-path-finding/ -t acuitybotting/dev-service-path-finding ;
-      docker push acuitybotting/dev-service-path-finding ;
-      docker build website-acuity-dashboard/ -t acuitybotting/dev-website-acuity-dashboard ;
-      docker push acuitybotting/dev-website-acuity-dashboard ;
     fi

@@ -1,13 +1,12 @@
 package com.acuitybotting.bot_control.services.managment;
 
 import com.acuitybotting.bot_control.services.user.db.RabbitDbService;
-import com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit.management.RabbitManagement;
-import com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit.management.domain.RabbitConnection;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.management.RabbitManagement;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.management.domain.RabbitConnection;
 import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;

@@ -1,8 +1,5 @@
 package com.acuitybotting.data.flow.messaging.services.client;
 
-import com.acuitybotting.data.flow.messaging.services.client.listeners.MessagingClientListener;
-
-import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -18,11 +15,9 @@ public interface MessagingClient {
 
     void connect(String connectionId);
 
-    List<MessagingClientListener> getListeners();
-
     Consumer<Throwable> getExceptionHandler();
 
     boolean isConnected();
 
-    MessagingChannel createChannel();
+    MessagingChannel openChannel();
 }

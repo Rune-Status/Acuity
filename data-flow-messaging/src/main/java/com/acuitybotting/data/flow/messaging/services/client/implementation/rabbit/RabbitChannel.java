@@ -1,21 +1,20 @@
-package com.acuitybotting.data.flow.messaging.services.client.implmentation.rabbit;
+package com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit;
 
 import com.acuitybotting.data.flow.messaging.services.Message;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
-import com.acuitybotting.data.flow.messaging.services.client.MessagingClient;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingQueue;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
-import com.acuitybotting.data.flow.messaging.services.client.listeners.MessagingChannelListener;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.data.flow.messaging.services.futures.MessageFuture;
-import com.rabbitmq.client.*;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
 
-import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Future;
 
 import static com.acuitybotting.data.flow.messaging.services.client.MessagingClient.*;
 
@@ -23,82 +22,73 @@ import static com.acuitybotting.data.flow.messaging.services.client.MessagingCli
 /**
  * Created by Zachary Herridge on 7/10/2018.
  */
-public class RabbitChannel implements MessagingChannel, ShutdownListener {
-
-    private final Object connectLock = new Object();
+public class RabbitChannel implements MessagingChannel {
 
     private RabbitClient rabbitClient;
-    private List<MessagingChannelListener> listeners = new CopyOnWriteArrayList<>();
 
     private Channel rabbitChannel;
-    private long lastConnectionAttempt = 0;
 
-    private ScheduledFuture<?> scheduledFuture;
+    private Collection<RabbitQueue> queues = new CopyOnWriteArrayList<>();
 
     public RabbitChannel(RabbitClient rabbitClient) {
         this.rabbitClient = rabbitClient;
     }
 
-    @Override
-    public void connect() {
-        if (scheduledFuture != null) throw new IllegalStateException("Client already connected.");
-        scheduledFuture = rabbitClient.getScheduledExecutorService().scheduleAtFixedRate(this::checkConnection, 0, 20, TimeUnit.SECONDS);
-    }
+    public void confirmState() {
+        synchronized (rabbitClient.CONFIRM_STATE_LOCK){
+            if (!rabbitClient.getChannels().contains(this)) return;
 
-    private void checkConnection(){
-        if (rabbitChannel != null && rabbitChannel.isOpen()) return;
-
-        synchronized (connectLock){
-            long now = System.currentTimeMillis();
-            if ((now - lastConnectionAttempt) > TimeUnit.SECONDS.toMillis(9)){
-                lastConnectionAttempt = now;
-
-                if (rabbitChannel != null && rabbitChannel.isOpen()) return;
-
+            if (rabbitChannel == null || !rabbitChannel.isOpen()) {
                 try {
-                    rabbitChannel = rabbitClient.getConnection().createChannel();
-                    rabbitClient.getLog().accept("Channel opened.");
-                    rabbitChannel.addShutdownListener(this);
-                    rabbitChannel.basicQos(6);
-
-                    for (MessagingChannelListener listener : listeners) {
-                        try {
-                            listener.onConnect(this);
-                        }
-                        catch (Throwable e){
-                            rabbitClient.getExceptionHandler().accept(e);
-                        }
+                    Connection connection = rabbitClient.getConnection();
+                    if (connection == null) return;
+                    rabbitChannel = connection.createChannel();
+                    if (rabbitChannel.isOpen()) {
+                        rabbitClient.getLog().accept("Channel opened.");
+                        rabbitChannel.basicQos(6);
+                    } else {
+                        rabbitClient.getLog().accept("Failed to open channel connection, waiting 10 seconds and trying again.");
                     }
-
-                    return;
                 } catch (Throwable e) {
                     rabbitClient.getExceptionHandler().accept(e);
                 }
             }
-        }
 
-        rabbitClient.getLog().accept("Failed to open channel connection, waiting 20 seconds and trying again.");
+            if (rabbitChannel != null && rabbitChannel.isOpen()) {
+                for (RabbitQueue queue : queues) {
+                    try {
+                        queue.confirmState();
+                    }
+                    catch (Throwable e){
+                        rabbitClient.getExceptionHandler().accept(e);
+                    }
+                }
+            }
+        }
     }
 
     @Override
-    public MessagingQueue getQueue(String queue) {
-        return new RabbitQueue(this, queue);
+    public MessagingQueue createQueue(String queue, boolean create) {
+        RabbitQueue rabbitQueue = new RabbitQueue(this, queue).setCreateQueue(create);
+        return rabbitQueue;
     }
 
     @Override
     public MessagingChannel close() throws MessagingException {
-        try {
-            scheduledFuture.cancel(false);
-            scheduledFuture = null;
-            getChannel().close();
-        } catch (IOException | TimeoutException e) {
-            throw new MessagingException("Failed to close channel", e);
+        synchronized (rabbitClient.CONFIRM_STATE_LOCK){
+            rabbitClient.getChannels().remove(this);
+            try {
+                rabbitChannel.close();
+            }
+            catch (Throwable e) {
+                rabbitClient.getExceptionHandler().accept(e);
+            }
         }
         return this;
     }
 
     @Override
-    public MessagingClient getClient() {
+    public RabbitClient getClient() {
         return rabbitClient;
     }
 
@@ -139,14 +129,6 @@ public class RabbitChannel implements MessagingChannel, ShutdownListener {
         message.setAttributes(messageAttributes);
         message.setBody(body);
 
-        for (MessagingChannelListener listener : listeners) {
-            try {
-                listener.beforeMessageSend(this, message);
-            } catch (Throwable e) {
-                rabbitClient.getExceptionHandler().accept(e);
-            }
-        }
-
         try {
             channel.basicPublish(targetExchange, targetRouting, null, rabbitClient.getGson().toJson(message).getBytes());
             return future;
@@ -160,30 +142,16 @@ public class RabbitChannel implements MessagingChannel, ShutdownListener {
         return UUID.randomUUID().toString();
     }
 
+    public Collection<RabbitQueue> getQueues() {
+        return queues;
+    }
+
     @Override
     public MessageFuture getMessageFuture(String id) {
         return rabbitClient.getMessageFutures().get(id);
     }
 
-    @Override
-    public List<MessagingChannelListener> getListeners() {
-        return listeners;
-    }
-
     public Channel getChannel() {
         return rabbitChannel;
-    }
-
-    @Override
-    public void shutdownCompleted(ShutdownSignalException shutdownEvent) {
-        rabbitClient.getLog().accept("Channel shutdown complete. " + shutdownEvent);
-        rabbitChannel = null;
-        for (MessagingChannelListener listener : listeners) {
-            try {
-                listener.onShutdown(this, shutdownEvent.getCause());
-            } catch (Throwable e) {
-                rabbitClient.getExceptionHandler().accept(e);
-            }
-        }
     }
 }
