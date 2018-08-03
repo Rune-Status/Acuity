@@ -66,16 +66,20 @@ public class RabbitClient implements MessagingClient {
     }
 
     private boolean close() {
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (Throwable e) {
-                getExceptionHandler().accept(e);
-            }
-        }
+        synchronized (CONFIRM_STATE_LOCK){
+            if (scheduledFuture != null) scheduledFuture.cancel(false);
 
-        if (connection != null && !connection.isOpen()) connection = null;
-        return connection == null;
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (Throwable e) {
+                    getExceptionHandler().accept(e);
+                }
+            }
+
+            if (connection != null && !connection.isOpen()) connection = null;
+            return connection == null;
+        }
     }
 
     private void confirmState() {
