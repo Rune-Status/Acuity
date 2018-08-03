@@ -7,6 +7,7 @@ import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -47,13 +48,14 @@ public class BotControlManagementService {
                 Map<String, Object> headers = new HashMap<>();
                 headers.put("connectionTime", rabbitConnection.getConnected_at());
                 headers.put("connectionConfirmationTime", System.currentTimeMillis());
+                headers.put("peerHost", rabbitConnection.getPeer_host());
                 rabbitRabbitDbRequest.setKey(rabbitConnection.getUser_provided_name());
                 rabbitDbService.save(entry.getKey(), rabbitRabbitDbRequest, headers);
             }
         }
     }
 
-    //@Scheduled(fixedDelay = 20000)
+    @Scheduled(fixedDelay = 20000)
     public void updateConnections(){
         try {
             RabbitManagement.loadAll("http://" + host + ":" + "15672", username, password);
