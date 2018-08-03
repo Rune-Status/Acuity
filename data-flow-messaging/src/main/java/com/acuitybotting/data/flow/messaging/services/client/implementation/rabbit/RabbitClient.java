@@ -108,6 +108,10 @@ public class RabbitClient implements MessagingClient {
         return this;
     }
 
+    public Collection<RabbitChannel> getChannels() {
+        return channels;
+    }
+
     public String getRabbitId() {
         return rabbitId;
     }

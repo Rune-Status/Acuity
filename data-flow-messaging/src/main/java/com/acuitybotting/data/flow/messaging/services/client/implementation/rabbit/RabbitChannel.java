@@ -25,15 +25,10 @@ import static com.acuitybotting.data.flow.messaging.services.client.MessagingCli
  */
 public class RabbitChannel implements MessagingChannel {
 
-    private final Object connectLock = new Object();
-
     private RabbitClient rabbitClient;
     private List<MessagingChannelListener> listeners = new CopyOnWriteArrayList<>();
 
     private Channel rabbitChannel;
-    private long lastConnectionAttempt = 0;
-
-    private ScheduledFuture<?> scheduledFuture;
 
     private Collection<RabbitQueue> queues = new CopyOnWriteArrayList<>();
 
@@ -81,12 +76,14 @@ public class RabbitChannel implements MessagingChannel {
 
     @Override
     public MessagingChannel close() throws MessagingException {
-        try {
-            scheduledFuture.cancel(false);
-            scheduledFuture = null;
-            getChannel().close();
-        } catch (IOException | TimeoutException e) {
-            throw new MessagingException("Failed to close channel", e);
+        synchronized (rabbitClient.CONFIRM_STATE_LOCK){
+            rabbitClient.getChannels().remove(this);
+            try {
+                rabbitChannel.close();
+            }
+            catch (Throwable e) {
+                rabbitClient.getExceptionHandler().accept(e);
+            }
         }
         return this;
     }
