@@ -58,8 +58,8 @@ public class RootLayout extends VerticalLayout implements RouterLayout {
     public void showRouterLayoutContent(HasElement content) {
         content.getElement().getComponent().ifPresent(component -> {
             rootContent.removeAll();
+            component.getElement().getStyle().set("overflow", "auto");
             rootContent.add(component);
-            rootContent.expand(component);
         });
     }
 

@@ -46,6 +46,16 @@
             <version>RELEASE</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+            <version>RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>com.acuitybotting</groupId>
+            <artifactId>security-acuity</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <build>
