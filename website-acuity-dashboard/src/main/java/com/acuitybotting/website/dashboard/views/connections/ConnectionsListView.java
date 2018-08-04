@@ -9,11 +9,13 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.SpringComponent;
+import com.vaadin.flow.spring.annotation.UIScope;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Set;
 
 @SpringComponent
+@UIScope
 @Route(value = "connections", layout = RootLayout.class)
 public class ConnectionsListView extends VerticalLayout implements UsersOnly {
 
