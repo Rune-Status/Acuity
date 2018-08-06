@@ -12,6 +12,7 @@ import com.acuitybotting.path_finding.debugging.interactive_map.plugin.Plugin;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
 import com.acuitybotting.path_finding.rs.domain.location.LocationPair;
 import com.acuitybotting.path_finding.rs.utils.EdgeType;
+import com.acuitybotting.path_finding.rs.utils.NodeType;
 import com.acuitybotting.path_finding.service.HpaPathFindingService;
 import com.acuitybotting.path_finding.service.domain.PathResult;
 
@@ -38,8 +39,6 @@ public class HpaPlugin extends Plugin {
 
     private HpaPathFindingService pathFindingService;
 
-    private Color[] nodeColorings = new Color[]{Color.BLUE, Color.RED, Color.CYAN};
-
     public HpaPlugin(HPAGraph hpaGraph) {
         this.graph = hpaGraph;
     }
@@ -64,7 +63,7 @@ public class HpaPlugin extends Plugin {
 
         for (HPARegion HPARegion : graph.getRegions().values()) {
             for (HPANode hpaNode : HPARegion.getNodes().values()) {
-                getPaintUtil().markLocation(graphics, hpaNode.getLocation(), nodeColorings[hpaNode.getType()]);
+                getPaintUtil().markLocation(graphics, hpaNode.getLocation(), NodeType.DEBUG_COLORS[hpaNode.getType()]);
             }
 
             for (HPANode hpaNode : HPARegion.getNodes().values()) {
