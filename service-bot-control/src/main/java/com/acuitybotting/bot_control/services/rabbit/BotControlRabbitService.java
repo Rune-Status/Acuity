@@ -1,6 +1,7 @@
 package com.acuitybotting.bot_control.services.rabbit;
 
 import com.acuitybotting.bot_control.services.user.db.RabbitDbService;
+import com.acuitybotting.common.utils.ExecutorUtil;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitChannel;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
 import java.util.UUID;
+import java.util.concurrent.Executor;
 
 /**
  * Created by Zachary Herridge on 7/19/2018.
@@ -39,6 +41,8 @@ public class BotControlRabbitService implements CommandLineRunner {
     private String username;
     @Value("${rabbit.password}")
     private String password;
+
+    private Executor executor = ExecutorUtil.newExecutorPool(6);
 
     @Autowired
     public BotControlRabbitService(ApplicationEventPublisher publisher, RabbitDbService dbService, PrincipalLinkService linkService) {
@@ -70,29 +74,31 @@ public class BotControlRabbitService implements CommandLineRunner {
 
     @EventListener
     public void handleRequest(MessageEvent messageEvent) {
-        if (messageEvent.getRouting().contains(".services.rabbit-db.handleRequest")) {
-            String userId = RoutingUtil.routeToUserId(messageEvent.getRouting());
-            dbService.handle(messageEvent, new Gson().fromJson(messageEvent.getMessage().getBody(), RabbitDbRequest.class), userId);
-            try {
-                messageEvent.getQueue().getChannel().acknowledge(messageEvent.getMessage());
-            } catch (MessagingException e) {
-                e.printStackTrace();
+        executor.execute(() -> {
+            if (messageEvent.getRouting().contains(".services.rabbit-db.handleRequest")) {
+                String userId = RoutingUtil.routeToUserId(messageEvent.getRouting());
+                dbService.handle(messageEvent, new Gson().fromJson(messageEvent.getMessage().getBody(), RabbitDbRequest.class), userId);
+                try {
+                    messageEvent.getQueue().getChannel().acknowledge(messageEvent.getMessage());
+                } catch (MessagingException e) {
+                    e.printStackTrace();
+                }
             }
-        }
 
-        if (messageEvent.getRouting().contains(".services.bot-control.getLinkJwt")) {
-            String userId = RoutingUtil.routeToUserId(messageEvent.getRouting());
-            try {
-                messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), linkService.createLinkJwt("rspeer", userId));
-            } catch (UnsupportedEncodingException | MessagingException e) {
-                log.error("Error in services.bot-control.getLinkJwt", e);
+            if (messageEvent.getRouting().contains(".services.bot-control.getLinkJwt")) {
+                String userId = RoutingUtil.routeToUserId(messageEvent.getRouting());
+                try {
+                    messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), linkService.createLinkJwt("rspeer", userId));
+                } catch (UnsupportedEncodingException | MessagingException e) {
+                    log.error("Error in services.bot-control.getLinkJwt", e);
+                }
+                try {
+                    messageEvent.getQueue().getChannel().acknowledge(messageEvent.getMessage());
+                } catch (MessagingException e) {
+                    log.error("Error in services.bot-control.getLinkJwt", e);
+                }
             }
-            try {
-                messageEvent.getQueue().getChannel().acknowledge(messageEvent.getMessage());
-            } catch (MessagingException e) {
-                log.error("Error in services.bot-control.getLinkJwt", e);
-            }
-        }
+        });
     }
 
     @Override

@@ -45,7 +45,7 @@ public class RabbitChannel implements MessagingChannel {
                     rabbitChannel = connection.createChannel();
                     if (rabbitChannel.isOpen()) {
                         rabbitClient.getLog().accept("Channel opened.");
-                        rabbitChannel.basicQos(6);
+                        rabbitChannel.basicQos(10);
                     } else {
                         rabbitClient.getLog().accept("Failed to open channel connection, waiting 10 seconds and trying again.");
                     }
