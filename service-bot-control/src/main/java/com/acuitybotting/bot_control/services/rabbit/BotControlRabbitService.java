@@ -59,9 +59,9 @@ public class BotControlRabbitService implements CommandLineRunner {
                     .withListener(publisher::publishEvent)
                     .open(true);
 
-       /*     channel.createQueue("acuitybotting.work.bot-control", false)
+            channel.createQueue("acuitybotting.work.bot-control", false)
                     .withListener(publisher::publishEvent)
-                    .open(false);*/
+                    .open(false);
 
         } catch (Throwable e) {
             log.error("Error during dashboard RabbitMQ setup.", e);
