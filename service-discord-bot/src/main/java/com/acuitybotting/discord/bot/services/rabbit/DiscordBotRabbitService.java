@@ -29,16 +29,15 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DiscordBotRabbitService implements CommandLineRunner {
 
+    private final PrincipalLinkService linkService;
+    private final DiscordBotService discordBotService;
+    private final ApplicationEventPublisher publisher;
     @Value("${rabbit.host}")
     private String host;
     @Value("${rabbit.username}")
     private String username;
     @Value("${rabbit.password}")
     private String password;
-
-    private final PrincipalLinkService linkService;
-    private final DiscordBotService discordBotService;
-    private final ApplicationEventPublisher publisher;
 
     @Autowired
     public DiscordBotRabbitService(PrincipalLinkService linkService, DiscordBotService discordBotService, ApplicationEventPublisher publisher) {
@@ -56,8 +55,8 @@ public class DiscordBotRabbitService implements CommandLineRunner {
     }
 
     @EventListener
-    public void onRabbitMessage(MessageEvent messageEvent){
-        if (messageEvent.getRouting().endsWith("services.discord-bot.sendPm")){
+    public void onRabbitMessage(MessageEvent messageEvent) {
+        if (messageEvent.getRouting().endsWith("services.discord-bot.sendPm")) {
             String uid = RoutingUtil.routeToUserId(messageEvent.getRouting());
             for (Principal principal : getDiscordPrincipals(uid)) {
                 discordBotService.getJda().getUserById(principal.getUid()).openPrivateChannel().queue(privateChannel -> privateChannel.sendMessage(messageEvent.getMessage().getBody()).queue());

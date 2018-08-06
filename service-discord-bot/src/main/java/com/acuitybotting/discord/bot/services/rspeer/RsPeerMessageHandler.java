@@ -5,6 +5,7 @@ import com.acuitybotting.db.arango.acuity.identities.domain.Principal;
 import com.acuitybotting.db.arango.acuity.identities.service.PrincipalLinkService;
 import com.acuitybotting.discord.bot.services.rabbit.DiscordBotRabbitService;
 import lombok.extern.slf4j.Slf4j;
+import net.dv8tion.jda.core.entities.ChannelType;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -41,6 +42,9 @@ public class RsPeerMessageHandler {
 
         if (event.getMessage().getContentRaw().startsWith("!register ")) {
             String jwt = event.getMessage().getContentRaw().replace("!register", "").trim();
+
+            if (!event.isFromType(ChannelType.PRIVATE)) event.getMessage().delete().reason("Exposing their jwt.").queue();
+
             try {
                 linkService.saveLinkJwt(jwt, "discord", event.getAuthor().getId());
                 event.getMessage().getChannel().sendMessageFormat("Successfully linked the given account to your discord.").queue();
@@ -52,7 +56,7 @@ public class RsPeerMessageHandler {
         }
 
         Set<Principal> rsPeerPrincipals = getRsPeerPrincipals(event.getMessage().getAuthor().getId());
-        if (rsPeerPrincipals.size() == 0){
+        if (rsPeerPrincipals.size() == 0) {
             event.getMessage().getChannel().sendMessageFormat("You must link your discord to your RsPeer account to use commands.").queue();
             return;
         }
@@ -61,7 +65,7 @@ public class RsPeerMessageHandler {
             rabbitService.loadAll();
             for (Principal principal : rsPeerPrincipals) {
                 int size = RabbitManagement.getConnections().getOrDefault(principal.getUid(), Collections.emptyList()).size();
-                event.getChannel().sendMessage("You have ").append(String.valueOf(size)).append(" clients connected to Acuity.").queue();
+                event.getChannel().sendMessage("You have ").append(String.valueOf(size)).append(" client(s) connected to Acuity.").queue();
             }
         }
     }
