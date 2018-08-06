@@ -1,6 +1,7 @@
 package com.acuitybotting.path_finding.enviroment;
 
 import com.acuitybotting.common.utils.ExecutorUtil;
+import com.acuitybotting.common.utils.HttpUtil;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.Xtea;
 import com.acuitybotting.db.dropbox.DropboxService;
 import com.google.gson.Gson;
@@ -64,6 +65,13 @@ public class PathingEnviroment {
     }
 
     public static void downloadFromDropbox(DropboxService dropboxService, int version){
+        try {
+            String s = HttpUtil.get(null, "http://checkip.amazonaws.com/", null);
+            log.info("Http: {}.", s);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         log.info("Starting Dropbox download.");
         dropboxService.download("/pathing/json/hpa/regions/regions_" + version + ".json", new File(REGIONS, "regions_" + version + ".json"));
         dropboxService.download("/pathing/json/hpa/paths/paths" + version + ".json", new File(PATHS, "paths_" + version + ".json"));
