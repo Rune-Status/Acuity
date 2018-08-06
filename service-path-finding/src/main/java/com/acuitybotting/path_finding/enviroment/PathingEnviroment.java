@@ -54,19 +54,23 @@ public class PathingEnviroment {
     }
 
     public static void uploadToDropbox(DropboxService dropboxService, int version){
+        log.info("Starting Dropbox upload.");
         dropboxService.upload("/pathing/json/hpa/regions/regions_" + version + ".json", new File(REGIONS, "regions_" + version + ".json"));
         dropboxService.upload("/pathing/json/hpa/paths/paths" + version + ".json", new File(PATHS, "paths_" + version + ".json"));
         dropboxService.upload("/pathing/json/hpa/nodes/nodes_" + version + ".json", new File(NODES, "nodes_" + version + ".json"));
         dropboxService.upload("/pathing/json/hpa/edges/edges_" + version + ".json", new File(EDGES, "edges_" + version + ".json"));
         dropboxService.upload("/pathing/json/hpa/flags/flags.json", new File(REGION_FLAGS, "flags.json"));
+        log.info("Finished Dropbox upload.");
     }
 
     public static void downloadFromDropbox(DropboxService dropboxService, int version){
+        log.info("Starting Dropbox download.");
         dropboxService.download("/pathing/json/hpa/regions/regions_" + version + ".json", new File(REGIONS, "regions_" + version + ".json"));
         dropboxService.download("/pathing/json/hpa/paths/paths" + version + ".json", new File(PATHS, "paths_" + version + ".json"));
         dropboxService.download("/pathing/json/hpa/nodes/nodes_" + version + ".json", new File(NODES, "nodes_" + version + ".json"));
         dropboxService.download("/pathing/json/hpa/edges/edges_" + version + ".json", new File(EDGES, "edges_" + version + ".json"));
         dropboxService.download("/pathing/json/hpa/flags/flags.json", new File(REGION_FLAGS, "flags.json"));
+        log.info("Finished Dropbox download.");
     }
 
     public static Set<Xtea> loadXteas() throws FileNotFoundException {
