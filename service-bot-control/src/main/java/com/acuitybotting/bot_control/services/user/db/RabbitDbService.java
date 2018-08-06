@@ -110,7 +110,7 @@ public class RabbitDbService {
 
         if (isWriteAccessible(userId, request.getDatabase())) {
             if (request.getType() == RabbitDbRequest.SAVE_REPLACE || request.getType() == RabbitDbRequest.SAVE_UPDATE) {
-                if (isWriteAccessible(userId, request.getDatabase())) save(userId, request, null);
+                if (isWriteAccessible(userId, request.getDatabase())) save(userId, request, new HashMap<>());
             } else if (request.getType() == RabbitDbRequest.DELETE_BY_KEY && isDeleteAccessible(userId, request.getDatabase())) {
                 delete(userId, request);
             }
