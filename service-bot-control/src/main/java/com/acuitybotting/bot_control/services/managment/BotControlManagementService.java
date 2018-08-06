@@ -89,7 +89,6 @@ public class BotControlManagementService {
                     "FILTER r.subKey == @userDefinedName\n" +
                     "UPDATE { _key: r._key, headers: { connected : false}} IN RabbitDocument";
             rabbitDbService.getArangoOperations().query(singleUpdate, Collections.singletonMap("userDefinedName", userProvidedName), null, null);
-
         }
     }
 }
