@@ -43,7 +43,7 @@ public class BotControlManagementService {
         for (Map.Entry<String, List<RabbitConnection>> entry : RabbitManagement.getConnections().entrySet()) {
             RabbitDbRequest rabbitRabbitDbRequest = new RabbitDbRequest();
             rabbitRabbitDbRequest.setType(RabbitDbRequest.SAVE_UPDATE);
-            rabbitRabbitDbRequest.setDatabase("registered-connections");
+            rabbitRabbitDbRequest.setDatabase("services.registered-connections");
             rabbitRabbitDbRequest.setGroup("connections");
 
             for (RabbitConnection rabbitConnection : entry.getValue()) {
@@ -88,7 +88,7 @@ public class BotControlManagementService {
 
             String singleUpdate =
                     "FOR r IN RabbitDocument\n" +
-                    "FILTER r.database == 'registered-connections'\n" +
+                    "FILTER r.database == 'services.registered-connections'\n" +
                     "FILTER r.subGroup == 'connections'\n" +
                     "FILTER r.subKey == @userDefinedName\n" +
                     "UPDATE { _key: r._key, headers: { connected : false}} IN RabbitDocument";

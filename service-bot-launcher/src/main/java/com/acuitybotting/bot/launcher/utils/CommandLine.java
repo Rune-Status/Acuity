@@ -35,7 +35,7 @@ public class CommandLine {
     }
 
     public static Process runCommand(String command) throws CommandLineException, IOException {
-        return system.contains("Windows") ? Runtime.getRuntime().exec(command) : Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", command});
+        return system.contains("Windows") ? Runtime.getRuntime().exec("cmd.exe /c start " + command) : Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", command});
     }
 
     public static class CommandLineException extends Exception {

@@ -55,7 +55,7 @@ public class RabbitDb implements MessagingDb {
     }
 
     public void update(String documentGroup, String key, String document) throws MessagingException {
-        save(documentGroup, key, null, document);
+        update(documentGroup, key, null, document);
     }
 
     public void update(String documentGroup, String key, String rev, String document) throws MessagingException {

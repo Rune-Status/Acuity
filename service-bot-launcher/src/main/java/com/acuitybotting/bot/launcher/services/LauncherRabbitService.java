@@ -5,6 +5,7 @@ import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitClient;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitQueue;
+import com.acuitybotting.data.flow.messaging.services.db.domain.Document;
 import com.acuitybotting.data.flow.messaging.services.db.implementations.rabbit.RabbitDb;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.google.gson.Gson;
@@ -54,7 +55,7 @@ public class LauncherRabbitService implements CommandLineRunner {
                     .withListener(this::handleMessage)
                     .open(true);
 
-            connectionsDb = new RabbitDb("registered-connections", "acuitybotting.general", allowedPrefix + "services.rabbit-db.handleRequest.", () -> localQueue);
+            connectionsDb = new RabbitDb("services.registered-connections", "acuitybotting.general", allowedPrefix + "services.rabbit-db.handleRequest.", () -> localQueue);
         } catch (Throwable e) {
             log.error("Error during dashboard RabbitMQ setup.", e);
         }
@@ -67,6 +68,8 @@ public class LauncherRabbitService implements CommandLineRunner {
             if (messageEvent.getMessage().getBody() != null){
                 try {
                     connectionsDb.update("connections", "RPC_" + connectionId, messageEvent.getMessage().getBody());
+                    Document connections = connectionsDb.findByGroupAndKey("connections", "RPC_" + connectionId);
+                    System.out.println();
                 } catch (MessagingException e) {
                     log.error("Error saving client configuration.", e);
                     return;
