@@ -54,10 +54,10 @@ public class BotControlRabbitService implements CommandLineRunner {
             rabbitClient.connect("ABW_002_" + UUID.randomUUID().toString());
             MessagingChannel channel = rabbitClient.openChannel();
 
-        /*    channel.createQueue("bot-control-worker-" + UUID.randomUUID().toString(), true)
-                    .bind("amq.rabbitmq.event", "queue.#")
+            channel.createQueue("bot-control-worker-" + UUID.randomUUID().toString(), true)
+                    .bind("amq.rabbitmq.event", "connection.#")
                     .withListener(publisher::publishEvent)
-                    .open(true);*/
+                    .open(true);
 
             channel.createQueue("acuitybotting.work.bot-control", false)
                     .withListener(publisher::publishEvent)

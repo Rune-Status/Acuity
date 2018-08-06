@@ -111,7 +111,7 @@ public class RabbitDb implements MessagingDb {
 
     public void send(RabbitDbRequest request) throws MessagingException {
         MessagingChannel channel = Optional.ofNullable(queueSupplier.get()).map(MessagingQueue::getChannel).orElse(null);
-        if (channel == null) throw new RuntimeException("Not connected to RabbitMQ.");
+        if (channel == null) throw new MessagingException("Not connected to RabbitMQ.");
         request.setDatabase(database);
         channel.send(
                 exchange,
@@ -122,7 +122,7 @@ public class RabbitDb implements MessagingDb {
     public String sendWithResponse(RabbitDbRequest request) throws MessagingException {
         String queue = Optional.ofNullable(queueSupplier.get()).map(MessagingQueue::getName).orElse(null);
         MessagingChannel channel = Optional.ofNullable(queueSupplier.get()).map(MessagingQueue::getChannel).orElse(null);
-        if (channel == null || queue == null) throw new RuntimeException("Not connected to RabbitMQ.");
+        if (channel == null || queue == null) throw new MessagingException("Not connected to RabbitMQ.");
         request.setDatabase(database);
         try {
             Message message = channel.send(
@@ -133,7 +133,7 @@ public class RabbitDb implements MessagingDb {
                     .get(10, TimeUnit.SECONDS).getMessage();
             return message.getBody();
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            throw new RuntimeException("Failed to findByGroupAndKey document", e);
+            throw new MessagingException("Failed to findByGroupAndKey document", e);
         }
     }
 }

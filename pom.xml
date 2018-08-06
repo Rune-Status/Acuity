@@ -24,5 +24,6 @@
         <module>security-rabbit-mq</module>
         <module>db-dropbox</module>
         <module>service-discord-bot</module>
+        <module>service-bot-launcher</module>
     </modules>
 </project>
