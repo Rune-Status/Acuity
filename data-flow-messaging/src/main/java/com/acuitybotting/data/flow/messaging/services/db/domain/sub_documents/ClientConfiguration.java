@@ -15,6 +15,4 @@ import java.util.Map;
 public class ClientConfiguration {
 
     private Map<String, Object> settings;
-
-
 }
