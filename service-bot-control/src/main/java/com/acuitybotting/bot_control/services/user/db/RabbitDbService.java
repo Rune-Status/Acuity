@@ -58,12 +58,14 @@ public class RabbitDbService {
         jsonRabbitDocument.setSubKey(request.getKey());
         jsonRabbitDocument.setDatabase(request.getDatabase());
         jsonRabbitDocument.setHeaders(headers);
-
-        jsonRabbitDocument.setSubDocument(gson.fromJson(request.getInsertDocument(), JsonElement.class));
-        String insertDocument = gson.toJson(jsonRabbitDocument);
+        headers.put("_lastUpdateTime", System.currentTimeMillis());
 
         jsonRabbitDocument.setSubDocument(gson.fromJson(request.getUpdateDocument(), JsonElement.class));
         String updateDocument = gson.toJson(jsonRabbitDocument);
+
+        headers.put("_insertTime", System.currentTimeMillis());
+        jsonRabbitDocument.setSubDocument(gson.fromJson(request.getInsertDocument(), JsonElement.class));
+        String insertDocument = gson.toJson(jsonRabbitDocument);
 
         String strategy = request.getType() == RabbitDbRequest.SAVE_REPLACE ? "REPLACE" : "UPDATE";
         String query = "UPSERT " + buildQuery(principalId, request, true) + " INSERT " + insertDocument + " " + strategy + " " + updateDocument + " IN " + COLLECTION;

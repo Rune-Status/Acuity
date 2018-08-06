@@ -1,10 +1,9 @@
 package com.acuitybotting.data.flow.messaging.services.db.domain.sub_documents;
 
+import com.google.gson.JsonObject;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.util.Map;
 
 /**
  * Created by Zachary Herridge on 8/6/2018.
@@ -14,5 +13,5 @@ import java.util.Map;
 @ToString
 public class ClientConfiguration {
 
-    private Map<String, Object> settings;
+    private JsonObject settings;
 }

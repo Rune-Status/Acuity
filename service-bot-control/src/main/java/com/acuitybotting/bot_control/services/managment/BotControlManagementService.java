@@ -10,9 +10,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Zachary Herridge on 6/1/2018.
@@ -46,6 +48,7 @@ public class BotControlManagementService {
                 if (rabbitConnection.getUser_provided_name() == null) continue;
 
                 Map<String, Object> headers = new HashMap<>();
+                headers.put("connected", true);
                 headers.put("connectionTime", rabbitConnection.getConnected_at());
                 headers.put("connectionConfirmationTime", System.currentTimeMillis());
                 headers.put("peerHost", rabbitConnection.getPeer_host());
@@ -53,6 +56,12 @@ public class BotControlManagementService {
                 rabbitDbService.save(entry.getKey(), rabbitRabbitDbRequest, headers);
             }
         }
+
+        String updateTimeout = "FOR r IN RabbitDocument\n" +
+                "FILTER r.headers.connectionConfirmationTime != NULL\n" +
+                "FILTER r.headers.connectionConfirmationTime < @timeout\n" +
+                "UPDATE { _key: r._key, headers: { connected : false}} IN RabbitDocument";
+        rabbitDbService.getArangoOperations().query(updateTimeout, Collections.singletonMap("timeout", System.currentTimeMillis() - TimeUnit.SECONDS.toMillis(20)), null, null);
     }
 
     @Scheduled(fixedDelay = 20000)
