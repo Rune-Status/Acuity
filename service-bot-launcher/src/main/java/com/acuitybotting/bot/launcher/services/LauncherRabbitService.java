@@ -3,6 +3,7 @@ package com.acuitybotting.bot.launcher.services;
 import com.acuitybotting.common.utils.JwtUtil;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitClient;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitQueue;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -24,6 +25,7 @@ public class LauncherRabbitService implements CommandLineRunner {
 
     private String sub;
     private String allowedPrefix;
+    private RabbitQueue localQueue;
 
     @Autowired
     public LauncherRabbitService(RSPeerService rsPeerService) {
@@ -41,6 +43,7 @@ public class LauncherRabbitService implements CommandLineRunner {
             rabbitClient.auth("195.201.248.164", sub, jwt);
             rabbitClient.connect("ABL_001_" + UUID.randomUUID().toString());
             channel = rabbitClient.openChannel();
+            localQueue = channel.createQueue(allowedPrefix + "queue." + rabbitClient.getRabbitId(), true).open(true);
         } catch (Throwable e) {
             log.error("Error during dashboard RabbitMQ setup.", e);
         }
