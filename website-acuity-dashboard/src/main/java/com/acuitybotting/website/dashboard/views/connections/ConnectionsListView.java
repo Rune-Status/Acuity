@@ -30,7 +30,9 @@ public class ConnectionsListView extends VerticalLayout implements UsersOnly {
     protected void onAttach(AttachEvent attachEvent) {
         Set<StringRabbitDocument> connections = documentRepository.findAllByPrincipalIdAndDatabaseAndSubGroup(getPrincipalUid(), "registered-connections", "connections");
         for (StringRabbitDocument connection : connections) {
-            add(new Span(connection.getSubKey()));
+            if ((boolean) connection.getHeaders().getOrDefault("connected", false)){
+                add(new Span(connection.getSubKey()));
+            }
         }
     }
 }

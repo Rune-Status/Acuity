@@ -78,6 +78,10 @@ public class BotControlManagementService {
 
     @EventListener
     public void handleRequest(MessageEvent messageEvent) {
+        if (messageEvent.getRouting().equals("connection.created")){
+            updateConnections();
+        }
+
         if (messageEvent.getRouting().equals("connection.closed")){
             String userProvidedName = messageEvent.getMessage().getAttributes().get("header.user_provided_name");
             if (userProvidedName == null) return;
