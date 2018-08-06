@@ -233,7 +233,7 @@ public class HPAGraph {
                     if (MapFlags.check(flag, MapFlags.PLANE_CHANGE_UP)) {
                         if (plane + 1 >= RsRegion.Z) continue;
 
-                        HPANode start = region.getOrCreateNode(location, NodeType.BASIC);
+                        HPANode start = region.getOrCreateNode(location, NodeType.STAIR);
                         HPANode end = region.getOrCreateNode(location.clone(0, 0, 1), NodeType.BASIC);
                         start.addHpaEdge(end, EdgeType.PLANE_CHANGE);
                         stairNodeConnectionsAddedCount++;
@@ -241,7 +241,7 @@ public class HPAGraph {
 
                     if (MapFlags.check(flag, MapFlags.PLANE_CHANGE_DOWN)) {
                         if (plane - 1 < 0) continue;
-                        HPANode start = region.getOrCreateNode(location, NodeType.BASIC);
+                        HPANode start = region.getOrCreateNode(location, NodeType.STAIR);
                         HPANode end = region.getOrCreateNode(location.clone(0, 0, -1), NodeType.BASIC);
                         start.addHpaEdge(end, EdgeType.PLANE_CHANGE);
                         stairNodeConnectionsAddedCount++;
