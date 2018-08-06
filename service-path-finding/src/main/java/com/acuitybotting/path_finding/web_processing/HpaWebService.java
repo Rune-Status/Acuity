@@ -100,7 +100,7 @@ public class HpaWebService {
             savedRegions.add(savedRegion);
 
             for (HPANode hpaNode : hpaRegion.getNodes().values()) {
-                if (hpaNode.getType() != NodeType.BASIC) continue;
+                if (!NodeType.isSaveable(hpaNode.getType())) continue;
 
                 SavedNode savedNode = createSavedNode(keySupplier.get(), savedRegion, hpaNode);
                 savedNode.setWebVersion(version);
@@ -113,7 +113,7 @@ public class HpaWebService {
         for (Map.Entry<HPANode, SavedNode> entry : nodeMap.entrySet()) {
             for (Edge edge : entry.getKey().getOutgoingEdges()) {
                 HPAEdge hpaEdge = (HPAEdge) edge;
-                if (hpaEdge.getEnd().getType() != NodeType.BASIC) continue;
+                if (!NodeType.isSaveable(hpaEdge.getEnd().getType())) continue;
 
                 SavedNode startNode = nodeMap.get(hpaEdge.getStart());
                 SavedNode endNode = nodeMap.get(hpaEdge.getEnd());
