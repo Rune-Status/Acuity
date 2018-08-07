@@ -15,6 +15,8 @@ public interface RabbitDocumentRepository extends ArangoRepository<StringRabbitD
 
     Set<StringRabbitDocument> findAllByPrincipalIdAndDatabaseAndSubGroup(String principalId, String database, String subGroup);
 
+    Set<StringRabbitDocument> findAllByDatabaseAndSubGroup(String database, String subGroup);
+
     Set<StringRabbitDocument> findAllByPrincipalIdAndDatabaseAndSubGroupAndSubDocumentMatchesRegex(String principalId, String database, String subGroup, String regex);
 
     void deleteAllByPrincipalIdAndDatabaseAndSubGroupAndSubKey(String principalId, String database, String subGroup, String subKey);

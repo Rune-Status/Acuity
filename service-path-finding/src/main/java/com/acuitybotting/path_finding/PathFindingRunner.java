@@ -1,9 +1,11 @@
 package com.acuitybotting.path_finding;
 
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.StringRabbitDocument;
+import com.acuitybotting.db.arango.acuity.rabbit_db.repository.RabbitDocumentRepository;
+import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.Xtea;
 import com.acuitybotting.db.dropbox.DropboxService;
 import com.acuitybotting.path_finding.algorithms.astar.implmentation.AStarImplementation;
-import com.acuitybotting.path_finding.debugging.interactive_map.plugin.impl.HpaPlugin;
 import com.acuitybotting.path_finding.debugging.interactive_map.plugin.impl.PositionPlugin;
 import com.acuitybotting.path_finding.debugging.interactive_map.ui.MapFrame;
 import com.acuitybotting.path_finding.enviroment.PathingEnviroment;
@@ -11,18 +13,15 @@ import com.acuitybotting.path_finding.rs.utils.RsEnvironment;
 import com.acuitybotting.path_finding.service.HpaPathFindingService;
 import com.acuitybotting.path_finding.web_processing.WebImageProcessingService;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -56,23 +55,6 @@ public class PathFindingRunner implements CommandLineRunner {
         mapFrame.getMapPanel().addPlugin(new PositionPlugin());
         mapFrame.show();
         return mapFrame;
-    }
-
-    private void loadXteasIn() throws IOException {
-        Gson gson = new Gson();
-        JsonObject jsonObject = gson.fromJson(
-                Files.readAllLines(new File(PathingEnviroment.BASE, "xteas.json").toPath()).stream().collect(Collectors.joining("")),
-                JsonObject.class
-        );
-
-        for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
-            JsonArray xteas = entry.getValue().getAsJsonArray();
-            for (JsonElement xteaJson : xteas) {
-                Xtea xtea = gson.fromJson(xteaJson, Xtea.class);
-                xtea.setId(null);
-
-            }
-        }
     }
 
     @Override

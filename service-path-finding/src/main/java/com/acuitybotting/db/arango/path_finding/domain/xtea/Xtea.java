@@ -1,55 +1,40 @@
 package com.acuitybotting.db.arango.path_finding.domain.xtea;
 
-import com.arangodb.springframework.annotation.Document;
-import com.arangodb.springframework.annotation.Key;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.annotation.Id;
+import lombok.ToString;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 
 /**
  * Created by Zachary Herridge on 6/22/2018.
  */
 @Getter
 @Setter
-@Document("RegionXtea")
+@ToString
 public class Xtea {
 
-    @Id
-    private String id;
-
-    private int revision;
-    private int region;
-    private int[] keys;
+    private long revision;
+    private long region;
+    private ArrayList<Long> keys;
 
     @Override
-    public String toString() {
-        return "Xtea{" +
-                "id='" + id + '\'' +
-                ", revision=" + revision +
-                ", region=" + region +
-                ", keys=" + Arrays.toString(keys) +
-                '}';
-    }
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Xtea)) return false;
 
-    @Override
-    public boolean equals(Object object) {
-        if (this == object) return true;
-        if (!(object instanceof Xtea)) return false;
-
-        Xtea xtea = (Xtea) object;
+        Xtea xtea = (Xtea) o;
 
         if (getRevision() != xtea.getRevision()) return false;
         if (getRegion() != xtea.getRegion()) return false;
-        return Arrays.equals(getKeys(), xtea.getKeys());
+        return getKeys() != null ? getKeys().equals(xtea.getKeys()) : xtea.getKeys() == null;
     }
 
     @Override
     public int hashCode() {
-        int result = getRevision();
-        result = 31 * result + getRegion();
-        result = 31 * result + Arrays.hashCode(getKeys());
+        int result = (int) (getRevision() ^ (getRevision() >>> 32));
+        result = 31 * result + (int) (getRegion() ^ (getRegion() >>> 32));
+        result = 31 * result + (getKeys() != null ? getKeys().hashCode() : 0);
         return result;
     }
 }

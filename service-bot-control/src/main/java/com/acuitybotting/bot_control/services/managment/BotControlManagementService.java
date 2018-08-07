@@ -1,10 +1,10 @@
 package com.acuitybotting.bot_control.services.managment;
 
-import com.acuitybotting.bot_control.services.user.db.RabbitDbService;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.management.RabbitManagement;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.management.domain.RabbitConnection;
 import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
+import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,13 +39,8 @@ public class BotControlManagementService {
         this.rabbitDbService = rabbitDbService;
     }
 
-    private void updateRegisteredConnections(){
+    private void updateRegisteredConnections() {
         for (Map.Entry<String, List<RabbitConnection>> entry : RabbitManagement.getConnections().entrySet()) {
-            RabbitDbRequest rabbitRabbitDbRequest = new RabbitDbRequest();
-            rabbitRabbitDbRequest.setType(RabbitDbRequest.SAVE_UPDATE);
-            rabbitRabbitDbRequest.setDatabase("services.registered-connections");
-            rabbitRabbitDbRequest.setGroup("connections");
-
             for (RabbitConnection rabbitConnection : entry.getValue()) {
                 if (rabbitConnection.getUser_provided_name() == null) continue;
 
@@ -54,8 +49,14 @@ public class BotControlManagementService {
                 headers.put("connectionTime", rabbitConnection.getConnected_at());
                 headers.put("connectionConfirmationTime", System.currentTimeMillis());
                 headers.put("peerHost", rabbitConnection.getPeer_host());
-                rabbitRabbitDbRequest.setKey(rabbitConnection.getUser_provided_name());
-                rabbitDbService.save(entry.getKey(), rabbitRabbitDbRequest, headers);
+                Map<String, Object> map = RabbitDbService.buildQueryMap(entry.getKey(), "services.registered-connections", "connections", rabbitConnection.getUser_provided_name(), null);
+                rabbitDbService.save(
+                        RabbitDbRequest.SAVE_UPDATE,
+                        map,
+                        headers,
+                        null,
+                        null
+                );
             }
         }
 
@@ -67,7 +68,7 @@ public class BotControlManagementService {
     }
 
     @Scheduled(fixedDelay = 10000)
-    public void updateConnections(){
+    public void updateConnections() {
         try {
             RabbitManagement.loadAll("http://" + host + ":" + "15672", username, password);
             updateRegisteredConnections();
@@ -78,20 +79,20 @@ public class BotControlManagementService {
 
     @EventListener
     public void handleRequest(MessageEvent messageEvent) {
-        if (messageEvent.getRouting().equals("connection.created")){
+        if (messageEvent.getRouting().equals("connection.created")) {
             updateConnections();
         }
 
-        if (messageEvent.getRouting().equals("connection.closed")){
+        if (messageEvent.getRouting().equals("connection.closed")) {
             String userProvidedName = messageEvent.getMessage().getAttributes().get("header.user_provided_name");
             if (userProvidedName == null) return;
 
             String singleUpdate =
                     "FOR r IN RabbitDocument\n" +
-                    "FILTER r.database == 'services.registered-connections'\n" +
-                    "FILTER r.subGroup == 'connections'\n" +
-                    "FILTER r.subKey == @userDefinedName\n" +
-                    "UPDATE { _key: r._key, headers: { connected : false}} IN RabbitDocument";
+                            "FILTER r.database == 'services.registered-connections'\n" +
+                            "FILTER r.subGroup == 'connections'\n" +
+                            "FILTER r.subKey == @userDefinedName\n" +
+                            "UPDATE { _key: r._key, headers: { connected : false}} IN RabbitDocument";
             rabbitDbService.getArangoOperations().query(singleUpdate, Collections.singletonMap("userDefinedName", userProvidedName), null, null);
         }
     }

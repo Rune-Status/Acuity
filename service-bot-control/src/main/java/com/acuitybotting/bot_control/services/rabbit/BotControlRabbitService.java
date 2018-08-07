@@ -1,10 +1,9 @@
 package com.acuitybotting.bot_control.services.rabbit;
 
-import com.acuitybotting.bot_control.services.user.db.RabbitDbService;
-import com.acuitybotting.common.utils.ExecutorUtil;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.JsonRabbitDocument;
+import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
-import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitChannel;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitClient;
 import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
@@ -16,12 +15,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.Executor;
 
 /**
  * Created by Zachary Herridge on 7/19/2018.
@@ -74,12 +72,45 @@ public class BotControlRabbitService implements CommandLineRunner {
         }
     }
 
+    public void handle(MessageEvent messageEvent, RabbitDbRequest request, String userId) {
+        //log.info("Handling db request {} for user {}.", request, userId);
+
+        Map<String, Object> queryMap = RabbitDbService.buildQueryMap(userId, request.getDatabase(), request.getGroup(), request.getKey(), request.getRev());
+
+        Gson gson = new Gson();
+
+        if (dbService.isWriteAccessible(userId, request.getDatabase())) {
+            if (request.getType() == RabbitDbRequest.SAVE_REPLACE || request.getType() == RabbitDbRequest.SAVE_UPDATE) {
+                dbService.save(request.getType(), queryMap, null, request.getUpdateDocument(), request.getInsertDocument());
+            } else if (request.getType() == RabbitDbRequest.DELETE_BY_KEY && dbService.isDeleteAccessible(userId, request.getDatabase())) {
+                dbService.delete(queryMap);
+            }
+        }
+
+        try {
+            if (dbService.isReadAccessible(userId, request.getDatabase())) {
+                if (request.getType() == RabbitDbRequest.FIND_BY_KEY) {
+                    JsonRabbitDocument jsonRabbitDocument = dbService.loadByKey(queryMap);
+                    try {
+                        messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), jsonRabbitDocument == null ? "" : gson.toJson(jsonRabbitDocument));
+                    } catch (MessagingException e) {
+                        e.printStackTrace();
+                    }
+                } else if (request.getType() == RabbitDbRequest.FIND_BY_GROUP) {
+                    messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), gson.toJson(dbService.loadByGroup(queryMap)));
+                }
+            }
+        } catch (MessagingException e) {
+            log.error("Error during response", e);
+        }
+    }
+
     public void handleRequest(MessageEvent messageEvent) {
         try {
             if (messageEvent.getRouting().contains("rabbit-db.handleRequest")) {
                 String userId = RoutingUtil.routeToUserId(messageEvent.getRouting());
                 try {
-                    dbService.handle(messageEvent, new Gson().fromJson(messageEvent.getMessage().getBody(), RabbitDbRequest.class), userId);
+                    handle(messageEvent, new Gson().fromJson(messageEvent.getMessage().getBody(), RabbitDbRequest.class), userId);
                     messageEvent.getQueue().getChannel().acknowledge(messageEvent.getMessage());
                 }
                 catch (Throwable e ){

@@ -1,9 +1,12 @@
 package com.acuitybotting.db.arango.acuity.rabbit_db.domain;
 
+import com.arangodb.entity.BaseDocument;
 import com.arangodb.springframework.annotation.Document;
+import com.arangodb.springframework.annotation.Rev;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.data.annotation.Id;
 
 import java.util.Map;
 
@@ -16,8 +19,10 @@ import java.util.Map;
 @Document("RabbitDocument")
 public class StringRabbitDocument {
 
+    @Id
     private String _key;
 
+    @Rev
     private String _rev;
 
     private String database;
@@ -26,7 +31,7 @@ public class StringRabbitDocument {
     private String subGroup;
     private String subKey;
 
-    private String subDocument;
+    private Map<String, Object> subDocument;
 
     private Map<String, Object> headers;
 

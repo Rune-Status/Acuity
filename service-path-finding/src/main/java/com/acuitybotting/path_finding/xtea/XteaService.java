@@ -2,23 +2,26 @@ package com.acuitybotting.path_finding.xtea;
 
 
 import com.acuitybotting.common.utils.ExecutorUtil;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.StringRabbitDocument;
+import com.acuitybotting.db.arango.acuity.rabbit_db.repository.RabbitDocumentRepository;
+import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.RegionMap;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.SceneEntityDefinition;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.Xtea;
-import com.acuitybotting.db.arango.path_finding.repositories.xtea.XteaRepository;
 import com.acuitybotting.path_finding.enviroment.PathingEnviroment;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
-import com.acuitybotting.path_finding.rs.utils.MapFlags;
 import com.acuitybotting.path_finding.rs.utils.HpaGenerationData;
+import com.acuitybotting.path_finding.rs.utils.MapFlags;
 import com.acuitybotting.path_finding.rs.utils.RsEnvironment;
+import com.acuitybotting.path_finding.xtea.domain.rs.cache.RsLocation;
 import com.acuitybotting.path_finding.xtea.domain.rs.cache.RsLocationPosition;
 import com.acuitybotting.path_finding.xtea.domain.rs.cache.RsRegion;
-import com.acuitybotting.path_finding.xtea.domain.rs.cache.RsLocation;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -36,7 +39,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class XteaService {
 
-    private final XteaRepository xteaRepository;
+    private final RabbitDocumentRepository rabbitDocumentRepository;
+    private final RabbitDbService rabbitDbService;
 
     private Map<Integer, SceneEntityDefinition> sceneEntityCache = new HashMap<>();
     private Map<String, RsRegion> regionCache = new HashMap<>();
@@ -45,8 +49,9 @@ public class XteaService {
     private Gson gson = new Gson();
 
     @Autowired
-    public XteaService(XteaRepository xteaRepository) {
-        this.xteaRepository = xteaRepository;
+    public XteaService(RabbitDocumentRepository rabbitDocumentRepository, RabbitDbService rabbitDbService) {
+        this.rabbitDocumentRepository = rabbitDocumentRepository;
+        this.rabbitDbService = rabbitDbService;
     }
 
     public void saveRegionMapsFromAfter(int revision){
@@ -88,7 +93,7 @@ public class XteaService {
         for (Map.Entry<String, Set<Xtea>> keySetEntry : keySets) {
             StringBuilder result = new StringBuilder(keySetEntry.getKey());
             for (Xtea xtea : keySetEntry.getValue()) {
-                result.append(" ").append(Arrays.stream(xtea.getKeys()).mapToObj(String::valueOf).collect(Collectors.joining(",")));
+               //todo result.append(" ").append(Arrays.stream(xtea.getKeys()).mapToObj(String::valueOf).collect(Collectors.joining(",")));
             }
             stringJoiner.add(result.toString());
         }
@@ -100,6 +105,48 @@ public class XteaService {
         } catch (IOException e) {
             log.error("Error during exporting xteas.", e);
         }
+    }
+
+    @Scheduled(fixedDelay = 60000, initialDelay = 60000)
+    private void crushXteas() {
+        log.info("Starting xtea crush.");
+
+        Set<StringRabbitDocument> all = rabbitDocumentRepository.findAllByDatabaseAndSubGroup("services.xteas", "region-xteas");
+        Map<Long, Set<Xtea>> collect = all
+                .stream()
+                .map(document -> {
+
+                    Xtea xtea = new Xtea();
+                    Object revision = document.getSubDocument().get("revision");
+                    Object region = document.getSubDocument().get("region");
+                    Object keys = document.getSubDocument().get("keys");
+
+                    if (revision == null || region == null || keys == null) return null;
+
+                    xtea.setRevision((Long) revision);
+                    xtea.setRegion((Long) region);
+                    xtea.setKeys((ArrayList<Long>) keys);
+
+                    return xtea;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.groupingBy(Xtea::getRegion, Collectors.toSet()));
+
+        log.info("Found {} xteas covering {} regions. Starting save.", all.size(), collect.size());
+
+        Gson gson = new Gson();
+
+        collect.entrySet().parallelStream().forEach(longSetEntry -> {
+            Map<String, Object> map = RabbitDbService.buildQueryMap("server", "services.xteas", "server-xteas", String.valueOf(longSetEntry.getKey()), null);
+            String doc = gson.toJson(longSetEntry.getValue());
+            rabbitDbService.save(4, map, null, doc, doc);
+        });
+
+        log.info("Finished saving xteas. Starting delete.");
+
+        rabbitDocumentRepository.deleteAll(all);
+
+        log.info("Finished xtea crush.");
     }
 
     public Optional<SceneEntityDefinition> getSceneEntityDefinition(int id) {
