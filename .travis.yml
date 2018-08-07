@@ -21,6 +21,6 @@ script:
       docker push acuitybotting/website-acuity-dashboard ;
     fi
   - if [[ "$TRAVIS_TAG" = *"discord-bot-"* ]]; then
-      docker build service-discord-bot/ -t acuitybotting/discord-bot ;
-      docker push acuitybotting/discord-bot ;
+      docker build service-discord-bot/ -t acuitybotting/service-discord-bot ;
+      docker push acuitybotting/service-discord-bot ;
     fi
