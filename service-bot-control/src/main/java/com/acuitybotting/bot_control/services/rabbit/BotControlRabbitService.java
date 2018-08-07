@@ -58,7 +58,7 @@ public class BotControlRabbitService implements CommandLineRunner {
             rabbitClient.openChannel().createQueue("bot-control-worker-" + UUID.randomUUID().toString(), true)
                     .bind("amq.rabbitmq.event", "connection.#")
                     .withListener(this::handleRequest)
-                    .open(false);
+                    .open(true);
 
             for (int i = 0; i < 10; i++) {
                 MessagingChannel channel = rabbitClient.openChannel();
