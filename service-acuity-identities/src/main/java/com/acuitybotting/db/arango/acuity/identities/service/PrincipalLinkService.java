@@ -18,6 +18,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -51,8 +52,7 @@ public class PrincipalLinkService {
 
     public void saveLinkJwt(String jwt, String linkType, String linkUid) throws UnsupportedEncodingException {
         JWTVerifier verifier = JWT.require(Algorithm.HMAC256(jwtSecret))
-                .acceptLeeway(1)
-                .acceptExpiresAt(5)
+                .acceptLeeway(TimeUnit.HOURS.toMillis(36))
                 .build();
 
         DecodedJWT verify = verifier.verify(jwt);
