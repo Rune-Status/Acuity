@@ -49,9 +49,7 @@ public class RsPeerMessageHandler {
     public void onDiscordMessage(MessageReceivedEvent event) {
         if (!event.getMessage().getContentRaw().startsWith("!")) return;
 
-        if (event.getChannel().getId().equals("382526096656302081") || event.getAuthor().getId().equals("161503770503544832")){
-
-        }
+        if (!event.getAuthor().getId().equals("161503770503544832") && event.getChannel().getType().isGuild() && !event.getChannel().getId().equals("476472510247075850")) return;
 
         if (event.getMessage().getContentRaw().startsWith("!setup")){
             discordBotService.sendMessage(event.getChannel(), "Go to rspeer client open the menu press \"copy jwt\" and private message me !register YOUR_JWT_HERE").queue();
