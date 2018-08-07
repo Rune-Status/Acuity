@@ -47,7 +47,7 @@ public class RsPeerReportService {
         String reportQuery =
                 "LET subs = (\n" +
                         "    FOR d in RabbitDocument\n" +
-                        "        FILTER d.database == {DATABASE}\n" +
+                        "        FILTER d.database == '{DATABASE}'\n" +
                         "        FILTER d.{QUERY} != NULL\n" +
                         "        LET sub = {'match' : d.{QUERY}, 'principalId': d.principalId}\n" +
                         "        RETURN DISTINCT sub\n" +
