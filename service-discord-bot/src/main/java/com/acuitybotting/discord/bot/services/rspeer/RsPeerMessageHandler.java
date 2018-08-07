@@ -3,7 +3,9 @@ package com.acuitybotting.discord.bot.services.rspeer;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.management.RabbitManagement;
 import com.acuitybotting.db.arango.acuity.identities.domain.Principal;
 import com.acuitybotting.db.arango.acuity.identities.service.PrincipalLinkService;
+import com.acuitybotting.discord.bot.DiscordBotService;
 import com.acuitybotting.discord.bot.services.rabbit.DiscordBotRabbitService;
+import com.arangodb.springframework.core.ArangoOperations;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.core.entities.ChannelType;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
@@ -23,13 +25,17 @@ import java.util.stream.Collectors;
 @Slf4j
 public class RsPeerMessageHandler {
 
+    private final ArangoOperations arangoOperations;
     private final PrincipalLinkService linkService;
     private final DiscordBotRabbitService rabbitService;
+    private final DiscordBotService discordBotService;
 
     @Autowired
-    public RsPeerMessageHandler(PrincipalLinkService linkService, DiscordBotRabbitService rabbitService) {
+    public RsPeerMessageHandler(ArangoOperations arangoOperations, PrincipalLinkService linkService, DiscordBotRabbitService rabbitService, DiscordBotService discordBotService) {
+        this.arangoOperations = arangoOperations;
         this.linkService = linkService;
         this.rabbitService = rabbitService;
+        this.discordBotService = discordBotService;
     }
 
     private Set<Principal> getRsPeerPrincipals(String uid) {
@@ -40,6 +46,17 @@ public class RsPeerMessageHandler {
     public void onDiscordMessage(MessageReceivedEvent event) {
         if (!event.getMessage().getContentRaw().startsWith("!")) return;
 
+        if (event.getChannel().getId().equals("382526096656302081") || event.getAuthor().getId().equals("161503770503544832")){
+            if (event.getMessage().getContentRaw().startsWith("!report")){
+                String report = RsPeerUserReportGenerator.mapToString(RsPeerUserReportGenerator.generateAll(arangoOperations));
+                System.out.println(report);
+            }
+        }
+
+        if (event.getMessage().getContentRaw().startsWith("!setup")){
+            discordBotService.sendMessage(event.getChannel(), "Go to rspeer client open the menu press \"copy jwt\" and private message me !register YOUR_JWT_HERE").queue();
+        }
+
         if (event.getMessage().getContentRaw().startsWith("!register ")) {
             String jwt = event.getMessage().getContentRaw().replace("!register", "").trim();
 
@@ -47,7 +64,7 @@ public class RsPeerMessageHandler {
 
             try {
                 linkService.saveLinkJwt(jwt, "discord", event.getAuthor().getId());
-                event.getMessage().getChannel().sendMessageFormat("Successfully linked the given account to your discord.").queue();
+                discordBotService.sendMessage(event.getMessage().getChannel(), "Successfully linked the given account to your discord.").queue();
             } catch (UnsupportedEncodingException e) {
                 log.error("Failed to link accounts.", e);
             }
@@ -57,7 +74,7 @@ public class RsPeerMessageHandler {
 
         Set<Principal> rsPeerPrincipals = getRsPeerPrincipals(event.getMessage().getAuthor().getId());
         if (rsPeerPrincipals.size() == 0) {
-            event.getMessage().getChannel().sendMessageFormat("You must link your discord to your RsPeer account to use commands.").queue();
+            discordBotService.sendMessage(event.getMessage().getChannel(), "You must link your discord to your RsPeer account to use commands. Run !setup for more information.").queue();
             return;
         }
 
@@ -65,7 +82,7 @@ public class RsPeerMessageHandler {
             rabbitService.loadAll();
             for (Principal principal : rsPeerPrincipals) {
                 int size = RabbitManagement.getConnections().getOrDefault(principal.getUid(), Collections.emptyList()).size();
-                event.getChannel().sendMessage("You have ").append(String.valueOf(size)).append(" client(s) connected to Acuity.").queue();
+                discordBotService.sendMessage(event.getMessage().getChannel(), "You have {} client(s) connected to Acuity.", size).queue();
             }
         }
     }

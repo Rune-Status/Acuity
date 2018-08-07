@@ -1,12 +1,13 @@
 package com.acuitybotting.discord.bot;
 
-import com.acuitybotting.db.arango.acuity.identities.service.PrincipalLinkService;
 import lombok.Getter;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDABuilder;
+import net.dv8tion.jda.core.entities.MessageChannel;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
+import net.dv8tion.jda.core.requests.restaction.MessageAction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -26,6 +27,16 @@ public class DiscordBotService implements CommandLineRunner {
     @Autowired
     public DiscordBotService(ApplicationEventPublisher publisher) {
         this.publisher = publisher;
+    }
+
+    public MessageAction sendMessage(MessageChannel channel, String message, Object... objects){
+        if (objects != null){
+            for (Object object : objects) {
+                message = message.replaceFirst("\\{}", String.valueOf(object));
+            }
+        }
+
+        return channel.sendMessage(message);
     }
 
     @Override

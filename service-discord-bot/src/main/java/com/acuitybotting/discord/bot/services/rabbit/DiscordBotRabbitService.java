@@ -32,6 +32,7 @@ public class DiscordBotRabbitService implements CommandLineRunner {
     private final PrincipalLinkService linkService;
     private final DiscordBotService discordBotService;
     private final ApplicationEventPublisher publisher;
+
     @Value("${rabbit.host}")
     private String host;
     @Value("${rabbit.username}")
@@ -59,7 +60,7 @@ public class DiscordBotRabbitService implements CommandLineRunner {
         if (messageEvent.getRouting().endsWith("services.discord-bot.sendPm")) {
             String uid = RoutingUtil.routeToUserId(messageEvent.getRouting());
             for (Principal principal : getDiscordPrincipals(uid)) {
-                discordBotService.getJda().getUserById(principal.getUid()).openPrivateChannel().queue(privateChannel -> privateChannel.sendMessage(messageEvent.getMessage().getBody()).queue());
+                discordBotService.getJda().getUserById(principal.getUid()).openPrivateChannel().queue(privateChannel -> discordBotService.sendMessage(privateChannel, messageEvent.getMessage().getBody()).queue());
             }
         }
     }

@@ -19,6 +19,5 @@ public class RabbitConnection {
     private String state;
     private String name;
     private String user_provided_name;
-
 }
 
