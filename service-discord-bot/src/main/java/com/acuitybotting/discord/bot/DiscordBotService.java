@@ -44,7 +44,7 @@ public class DiscordBotService implements CommandLineRunner {
         jda = new JDABuilder(AccountType.BOT).setToken(discordToken).addEventListener(new ListenerAdapter() {
             @Override
             public void onMessageReceived(MessageReceivedEvent event) {
-                if (event.getAuthor().getId().equals("387430433266335757")) return;
+                if (event.getAuthor().isBot()) return;
                 publisher.publishEvent(event);
             }
         }).build();
