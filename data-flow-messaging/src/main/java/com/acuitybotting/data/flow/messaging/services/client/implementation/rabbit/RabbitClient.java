@@ -67,7 +67,7 @@ public class RabbitClient implements MessagingClient {
 
     private boolean close() {
         synchronized (CONFIRM_STATE_LOCK){
-            if (connection != null) {
+            if (connection != null && connection.isOpen()) {
                 try {
                     connection.close();
                 } catch (Throwable e) {

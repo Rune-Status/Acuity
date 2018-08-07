@@ -5,6 +5,7 @@ import com.acuitybotting.data.flow.messaging.services.client.exceptions.Messagin
 import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 
+import com.arangodb.model.AqlQueryOptions;
 import com.arangodb.springframework.core.ArangoOperations;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -106,7 +107,14 @@ public class RabbitDbService {
     }
 
     public void handle(MessageEvent messageEvent, RabbitDbRequest request, String userId) {
-        log.info("Handling db request {} for user {}.", request, userId);
+        //log.info("Handling db request {} for user {}.", request, userId);
+
+        if (request.getDatabase().contains("registered-connections")){
+            System.out.println("asdsad");
+        }
+        else {
+            return;
+        }
 
         if (isWriteAccessible(userId, request.getDatabase())) {
             if (request.getType() == RabbitDbRequest.SAVE_REPLACE || request.getType() == RabbitDbRequest.SAVE_UPDATE) {

@@ -97,6 +97,7 @@ public class RabbitChannel implements MessagingChannel {
             Channel channel = getChannel();
             if (channel == null || !channel.isOpen()) throw new MessagingException("Not connected to RabbitMQ.");
             channel.basicAck(message.getRabbitTag(), false);
+            rabbitClient.getLog().accept("Awk: " + message.getRabbitTag());
         } catch (Throwable e) {
             throw new MessagingException("Error during acknowledging message: " + message + ".", e);
         }

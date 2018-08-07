@@ -42,8 +42,6 @@ public class BotControlRabbitService implements CommandLineRunner {
     @Value("${rabbit.password}")
     private String password;
 
-    private Executor executor = ExecutorUtil.newExecutorPool(6);
-
     @Autowired
     public BotControlRabbitService(ApplicationEventPublisher publisher, RabbitDbService dbService, PrincipalLinkService linkService) {
         this.publisher = publisher;
@@ -56,31 +54,35 @@ public class BotControlRabbitService implements CommandLineRunner {
             RabbitClient rabbitClient = new RabbitClient();
             rabbitClient.auth(host, username, password);
             rabbitClient.connect("ABW_" + UUID.randomUUID().toString());
-            MessagingChannel channel = rabbitClient.openChannel();
 
-            channel.createQueue("bot-control-worker-" + UUID.randomUUID().toString(), true)
+            rabbitClient.openChannel().createQueue("bot-control-worker-" + UUID.randomUUID().toString(), true)
                     .bind("amq.rabbitmq.event", "connection.#")
-                    .withListener(publisher::publishEvent)
-                    .open(true);
-
-            channel.createQueue("acuitybotting.work.bot-control", false)
-                    .withListener(publisher::publishEvent)
+                    .withListener(this::handleRequest)
                     .open(false);
+
+            for (int i = 0; i < 10; i++) {
+                MessagingChannel channel = rabbitClient.openChannel();
+                channel.createQueue("acuitybotting.work.bot-control", false)
+                        .withListener(this::handleRequest)
+                        .open(false);
+            }
+
+
 
         } catch (Throwable e) {
             log.error("Error during dashboard RabbitMQ setup.", e);
         }
     }
 
-    @EventListener
     public void handleRequest(MessageEvent messageEvent) {
-        executor.execute(() -> {
-            if (messageEvent.getRouting().contains(".services.rabbit-db.handleRequest")) {
+        try {
+            if (messageEvent.getRouting().contains("rabbit-db.handleRequest")) {
                 String userId = RoutingUtil.routeToUserId(messageEvent.getRouting());
-                dbService.handle(messageEvent, new Gson().fromJson(messageEvent.getMessage().getBody(), RabbitDbRequest.class), userId);
                 try {
+                    dbService.handle(messageEvent, new Gson().fromJson(messageEvent.getMessage().getBody(), RabbitDbRequest.class), userId);
                     messageEvent.getQueue().getChannel().acknowledge(messageEvent.getMessage());
-                } catch (MessagingException e) {
+                }
+                catch (Throwable e ){
                     e.printStackTrace();
                 }
             }
@@ -92,13 +94,11 @@ public class BotControlRabbitService implements CommandLineRunner {
                 } catch (UnsupportedEncodingException | MessagingException e) {
                     log.error("Error in services.bot-control.getLinkJwt", e);
                 }
-                try {
-                    messageEvent.getQueue().getChannel().acknowledge(messageEvent.getMessage());
-                } catch (MessagingException e) {
-                    log.error("Error in services.bot-control.getLinkJwt", e);
-                }
             }
-        });
+        }
+        catch (Throwable e){
+            e.printStackTrace();
+        }
     }
 
     @Override
