@@ -3,6 +3,7 @@ package com.acuitybotting.discord.bot.services.rspeer;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.management.RabbitManagement;
 import com.acuitybotting.db.arango.acuity.identities.domain.Principal;
 import com.acuitybotting.db.arango.acuity.identities.service.PrincipalLinkService;
+import com.acuitybotting.db.arango.acuity.rspeer.RsPeerReportService;
 import com.acuitybotting.discord.bot.DiscordBotService;
 import com.acuitybotting.discord.bot.services.rabbit.DiscordBotRabbitService;
 import com.arangodb.springframework.core.ArangoOperations;
@@ -29,13 +30,15 @@ public class RsPeerMessageHandler {
     private final PrincipalLinkService linkService;
     private final DiscordBotRabbitService rabbitService;
     private final DiscordBotService discordBotService;
+    private final RsPeerReportService rsPeerReportService;
 
     @Autowired
-    public RsPeerMessageHandler(ArangoOperations arangoOperations, PrincipalLinkService linkService, DiscordBotRabbitService rabbitService, DiscordBotService discordBotService) {
+    public RsPeerMessageHandler(ArangoOperations arangoOperations, PrincipalLinkService linkService, DiscordBotRabbitService rabbitService, DiscordBotService discordBotService, RsPeerReportService rsPeerReportService) {
         this.arangoOperations = arangoOperations;
         this.linkService = linkService;
         this.rabbitService = rabbitService;
         this.discordBotService = discordBotService;
+        this.rsPeerReportService = rsPeerReportService;
     }
 
     private Set<Principal> getRsPeerPrincipals(String uid) {
@@ -48,13 +51,14 @@ public class RsPeerMessageHandler {
 
         if (event.getChannel().getId().equals("382526096656302081") || event.getAuthor().getId().equals("161503770503544832")){
             if (event.getMessage().getContentRaw().startsWith("!report")){
-                String report = RsPeerUserReportGenerator.mapToString(RsPeerUserReportGenerator.generateAll(arangoOperations));
+                String report = rsPeerReportService.mapReportToString(rsPeerReportService.generateAll(arangoOperations));
                 System.out.println(report);
             }
         }
 
         if (event.getMessage().getContentRaw().startsWith("!setup")){
             discordBotService.sendMessage(event.getChannel(), "Go to rspeer client open the menu press \"copy jwt\" and private message me !register YOUR_JWT_HERE").queue();
+            return;
         }
 
         if (event.getMessage().getContentRaw().startsWith("!register ")) {

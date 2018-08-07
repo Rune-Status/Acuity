@@ -1,8 +1,9 @@
-package com.acuitybotting.discord.bot.services.rspeer;
+package com.acuitybotting.db.arango.acuity.rspeer;
 
 import com.arangodb.springframework.core.ArangoOperations;
 import lombok.Getter;
 import lombok.ToString;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -10,9 +11,10 @@ import java.util.stream.Collectors;
 /**
  * Created by Zachary Herridge on 8/7/2018.
  */
-public class RsPeerUserReportGenerator {
+@Service
+public class RsPeerReportService {
 
-    public static String mapToString(Map<String, Set<String>> report) {
+    public String mapReportToString(Map<String, Set<String>> report) {
         StringJoiner builder = new StringJoiner("\n");
         report.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getKey))
                 .forEach(entry -> {
@@ -24,15 +26,15 @@ public class RsPeerUserReportGenerator {
         return builder.toString();
     }
 
-    public static Map<String, Set<String>> generateAll(ArangoOperations arangoOperations) {
+    public Map<String, Set<String>> generateAll(ArangoOperations arangoOperations) {
         Map<String, Set<String>> entries = new HashMap<>();
-        buildReport(entries, generate(arangoOperations, "subDocument.email"));
-        buildReport(entries, generate(arangoOperations, "subDocument.ign"));
-        buildReport(entries, generate(arangoOperations, "headers.peerHost"));
+        buildReport(entries, generate(arangoOperations, "services.player-cache", "subDocument.email"));
+        buildReport(entries, generate(arangoOperations, "services.player-cache", "subDocument.ign"));
+        buildReport(entries, generate(arangoOperations, "services.registered-connections", "headers.peerHost"));
         return entries;
     }
 
-    private static void buildReport(Map<String, Set<String>> report, List<UserMatch> matches) {
+    private void buildReport(Map<String, Set<String>> report, List<UserMatch> matches) {
         for (UserMatch match : matches) {
             for (String principalId : match.getPrincipals()) {
                 Set<String> entries = report.computeIfAbsent(principalId, s -> new HashSet<>());
@@ -41,10 +43,11 @@ public class RsPeerUserReportGenerator {
         }
     }
 
-    private static List<UserMatch> generate(ArangoOperations arangoOperations, String query) {
+    private List<UserMatch> generate(ArangoOperations arangoOperations, String database, String query) {
         String reportQuery =
                 "LET subs = (\n" +
                         "    FOR d in RabbitDocument\n" +
+                        "        FILTER d.database == {DATABASE}\n" +
                         "        FILTER d.{QUERY} != NULL\n" +
                         "        LET sub = {'match' : d.{QUERY}, 'principalId': d.principalId}\n" +
                         "        RETURN DISTINCT sub\n" +
@@ -63,7 +66,7 @@ public class RsPeerUserReportGenerator {
                         "    FILTER LENGTH(result.principals) > 1\n" +
                         "    RETURN result";
 
-        String injectedQuery = reportQuery.replaceAll("\\{QUERY}", query);
+        String injectedQuery = reportQuery.replaceAll("\\{QUERY}", query).replaceAll("\\{DATABASE}", database);
         return arangoOperations.query(injectedQuery, null, null, UserMatch.class).asListRemaining();
     }
 
