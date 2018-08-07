@@ -1,6 +1,7 @@
 package com.acuitybotting.bot.launcher.services;
 
 import com.acuitybotting.common.utils.JwtUtil;
+import com.acuitybotting.data.flow.messaging.services.Message;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitClient;
@@ -31,7 +32,6 @@ public class LauncherRabbitService implements CommandLineRunner {
     private String sub;
     private String allowedPrefix;
     private RabbitQueue localQueue;
-    private RabbitDb connectionsDb;
 
     private Gson gson = new Gson();
 
@@ -54,28 +54,34 @@ public class LauncherRabbitService implements CommandLineRunner {
             localQueue = channel.createQueue(allowedPrefix + "queue." + rabbitClient.getRabbitId(), true)
                     .withListener(this::handleMessage)
                     .open(true);
-
-            connectionsDb = new RabbitDb("services.registered-connections", "acuitybotting.general", allowedPrefix + "services.rabbit-db.handleRequest.", () -> localQueue);
         } catch (Throwable e) {
             log.error("Error during dashboard RabbitMQ setup.", e);
         }
+    }
+
+    private RabbitDb getConnectionsDb() {
+        return new RabbitDb(
+                "services.registered-connections",
+                "acuitybotting.general",
+                allowedPrefix + "services.rabbit-db.handleRequest.",
+                () -> localQueue
+        );
     }
 
     private void handleMessage(MessageEvent messageEvent) {
         if ("launchClient".equals(messageEvent.getMessage().getAttributes().get("header.acuity-type"))) {
             String connectionId = UUID.randomUUID().toString();
 
-            if (messageEvent.getMessage().getBody() != null){
+            if (messageEvent.getMessage().getBody() != null) {
                 try {
-                    connectionsDb.update("connections", "RPC_" + connectionId, messageEvent.getMessage().getBody());
-                    Document connections = connectionsDb.findByGroupAndKey("connections", "RPC_" + connectionId);
-                    System.out.println();
+                    getConnectionsDb().update("connections", "RPC_" + connectionId, messageEvent.getMessage().getBody());
                 } catch (MessagingException e) {
                     log.error("Error saving client configuration.", e);
                     return;
                 }
             }
 
+            log.info("Launching client with connectionId '{}'.", connectionId);
             rsPeerService.launch(connectionId);
         }
     }
