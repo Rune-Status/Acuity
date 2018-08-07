@@ -74,6 +74,7 @@ public class LauncherRabbitService implements CommandLineRunner {
 
             if (messageEvent.getMessage().getBody() != null) {
                 try {
+                    log.info("Setting client config to {}.", messageEvent.getMessage().getBody());
                     getConnectionsDb().update("connections", "RPC_" + connectionId, messageEvent.getMessage().getBody());
                 } catch (MessagingException e) {
                     log.error("Error saving client configuration.", e);
