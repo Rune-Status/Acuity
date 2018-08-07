@@ -50,10 +50,7 @@ public class RsPeerMessageHandler {
         if (!event.getMessage().getContentRaw().startsWith("!")) return;
 
         if (event.getChannel().getId().equals("382526096656302081") || event.getAuthor().getId().equals("161503770503544832")){
-            if (event.getMessage().getContentRaw().startsWith("!report")){
-                String report = rsPeerReportService.mapReportToString(rsPeerReportService.generateAll(arangoOperations));
-                System.out.println(report);
-            }
+
         }
 
         if (event.getMessage().getContentRaw().startsWith("!setup")){
