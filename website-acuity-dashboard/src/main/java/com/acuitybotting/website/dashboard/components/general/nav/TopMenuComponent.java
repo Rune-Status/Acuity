@@ -1,6 +1,5 @@
-package com.acuitybotting.website.dashboard.views.navigation;
+package com.acuitybotting.website.dashboard.components.general.nav;
 
-import com.acuitybotting.website.dashboard.components.general.nav.NavigationButton;
 import com.acuitybotting.website.dashboard.views.connections.clients.ClientsListView;
 import com.acuitybotting.website.dashboard.views.resources.accounts.AccountsListView;
 import com.acuitybotting.website.dashboard.views.user.Profile;
@@ -10,9 +9,9 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 /**
  * Created by Zachary Herridge on 7/18/2018.
  */
-public class TopMenu extends HorizontalLayout {
+public class TopMenuComponent extends HorizontalLayout {
 
-    public TopMenu() {
+    public TopMenuComponent() {
         getClassNames().add("acuity-top-menu");
         setWidth("100%");
         setHeight("50px");

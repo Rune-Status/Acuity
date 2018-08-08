@@ -1,6 +1,6 @@
 package com.acuitybotting.website.dashboard.views;
 
-import com.acuitybotting.website.dashboard.views.navigation.TopMenu;
+import com.acuitybotting.website.dashboard.components.general.nav.TopMenuComponent;
 import com.google.common.eventbus.EventBus;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
@@ -24,7 +24,7 @@ public class RootLayout extends VerticalLayout implements RouterLayout {
 
     private static EventBus globalEventBus = new EventBus();
 
-    private TopMenu topMenu = new TopMenu();
+    private TopMenuComponent topMenuComponent = new TopMenuComponent();
     private HorizontalLayout content = new HorizontalLayout();
     private VerticalLayout rootContent = new VerticalLayout();
 
@@ -46,7 +46,7 @@ public class RootLayout extends VerticalLayout implements RouterLayout {
         content.expand(rootContent);
 
         content.setSizeFull();
-        add(topMenu, content);
+        add(topMenuComponent, content);
     }
 
     @Override

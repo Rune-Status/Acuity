@@ -1,4 +1,4 @@
-package com.acuitybotting.website.dashboard.components.general.nav;
+package com.acuitybotting.website.dashboard.components.general.nav.tabs;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.tabs.Tab;
@@ -13,6 +13,7 @@ public class NavigationTab extends Tab {
     public NavigationTab(String label, Class<? extends Component> view) {
         super(label);
         this.view = view;
+        getElement().addEventListener("click", domEvent -> navigateTo());
     }
 
     public void navigateTo(){
