@@ -19,15 +19,11 @@ public class ResourcesTabsComponent extends Tabs {
         setWidth("100%");
 
         NavigationTab accounts = new NavigationTab("Accounts", AccountsListView.class);
-        addNav(accounts);
+        add(accounts);
 
         NavigationTab proxies = new NavigationTab("Proxies", ProxiesListView.class);
-        addNav(proxies);
+        add(proxies);
 
         addSelectedChangeListener(selectedChangeEvent -> ((NavigationTab) getSelectedTab()).navigateTo());
-    }
-
-    private void addNav(NavigationTab navigationTab){
-        add(navigationTab);
     }
 }

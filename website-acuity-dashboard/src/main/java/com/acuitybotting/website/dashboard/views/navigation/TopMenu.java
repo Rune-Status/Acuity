@@ -1,7 +1,7 @@
 package com.acuitybotting.website.dashboard.views.navigation;
 
 import com.acuitybotting.website.dashboard.components.general.nav.NavigationButton;
-import com.acuitybotting.website.dashboard.views.connections.ConnectionsListView;
+import com.acuitybotting.website.dashboard.views.connections.clients.ClientsListView;
 import com.acuitybotting.website.dashboard.views.resources.accounts.AccountsListView;
 import com.acuitybotting.website.dashboard.views.user.Profile;
 import com.vaadin.flow.component.html.Image;
@@ -30,7 +30,7 @@ public class TopMenu extends HorizontalLayout {
 
         HorizontalLayout barLeft = new HorizontalLayout();
         barLeft.setSizeFull();
-        barLeft.add(new NavigationButton("Connections", null, ConnectionsListView.class));
+        barLeft.add(new NavigationButton("Connections", null, ClientsListView.class));
         barLeft.add(new NavigationButton("Resources", null, AccountsListView.class));
         bar.add(barLeft);
 

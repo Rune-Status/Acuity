@@ -26,7 +26,7 @@ public class LoginView extends VerticalLayout {
         Button login = new Button("Login");
         login.addClickListener(buttonClickEvent -> {
             getUI().ifPresent(ui -> {
-                ui.getSession().setAttribute("principalUid", "c247fa6b-5676-4012-9473-a7b2f60c8115");
+                ui.getSession().setAttribute("principalUid", "2cc515bb-059a-4eb9-afa8-94d3be6a2e3e");
                 ui.navigate(Profile.class);
             });
         });
