@@ -1,6 +1,5 @@
 package com.acuitybotting.website.dashboard.components.general.nav;
 
-import com.acuitybotting.website.dashboard.views.resources.accounts.AccountsListView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.tabs.Tab;
 
@@ -18,5 +17,9 @@ public class NavigationTab extends Tab {
 
     public void navigateTo(){
         getUI().ifPresent(ui -> ui.navigate(view));
+    }
+
+    public Class<? extends Component> getView() {
+        return view;
     }
 }

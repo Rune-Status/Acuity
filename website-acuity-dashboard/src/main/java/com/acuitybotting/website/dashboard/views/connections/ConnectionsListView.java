@@ -14,14 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Set;
 
-@SpringComponent
-@UIScope
 @Route(value = "connections", layout = RootLayout.class)
 public class ConnectionsListView extends VerticalLayout implements UsersOnly {
 
     private final RabbitDocumentRepository documentRepository;
 
-    @Autowired
     public ConnectionsListView(RabbitDocumentRepository documentRepository) {
         this.documentRepository = documentRepository;
     }
