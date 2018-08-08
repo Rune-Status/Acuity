@@ -55,7 +55,7 @@ public class BotControlRabbitService implements CommandLineRunner {
 
             rabbitClient.openChannel().createQueue("bot-control-worker-" + UUID.randomUUID().toString(), true)
                     .bind("amq.rabbitmq.event", "connection.#")
-                    .withListener(this::handleRequest)
+                    .withListener(publisher::publishEvent)
                     .open(true);
 
             for (int i = 0; i < 10; i++) {
@@ -107,7 +107,7 @@ public class BotControlRabbitService implements CommandLineRunner {
 
     public void handleRequest(MessageEvent messageEvent) {
         try {
-            if (messageEvent.getRouting().contains("rabbit-db.handleRequest")) {
+            if (messageEvent.getRouting().contains("db.handleRequest")) {
                 String userId = RoutingUtil.routeToUserId(messageEvent.getRouting());
                 try {
                     handle(messageEvent, new Gson().fromJson(messageEvent.getMessage().getBody(), RabbitDbRequest.class), userId);
