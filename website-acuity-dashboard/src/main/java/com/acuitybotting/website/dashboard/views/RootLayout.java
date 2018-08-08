@@ -6,14 +6,11 @@ import com.google.common.eventbus.EventBus;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.HasElement;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.page.BodySize;
-import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.router.RouterLayout;
-import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.theme.Theme;
 import com.vaadin.flow.theme.lumo.Lumo;
 
@@ -47,7 +44,7 @@ public class RootLayout extends VerticalLayout implements RouterLayout {
         rootContent.setPadding(false);
         rootContent.setSpacing(false);
 
-        content.add(leftMenu, rootContent);
+        content.add(rootContent);
         content.expand(rootContent);
 
         content.setSizeFull();

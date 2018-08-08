@@ -1,6 +1,11 @@
 package com.acuitybotting.website.dashboard.views.navigation;
 
+import com.acuitybotting.website.dashboard.components.general.nav.NavigationButton;
+import com.acuitybotting.website.dashboard.views.connections.ConnectionsListView;
+import com.acuitybotting.website.dashboard.views.user.Profile;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 
 /**
@@ -14,6 +19,25 @@ public class TopMenu extends HorizontalLayout {
         setHeight("50px");
         setMargin(false);
         setSpacing(false);
-        add(new Span("Acuity Botting"));
+
+        Image image = new Image("/imgs/acuity-logo-128.png", "");
+        image.setHeight("50px");
+        image.setWidth("50px");
+        image.getStyle().set("margin-right", "10px");
+        add(image);
+
+        HorizontalLayout bar = new HorizontalLayout();
+        bar.getClassNames().add("acuity-top-menu-nav");
+
+        HorizontalLayout barLeft = new HorizontalLayout();
+        barLeft.setSizeFull();
+        barLeft.add(new NavigationButton("Connections", null, ConnectionsListView.class));
+        bar.add(barLeft);
+
+        HorizontalLayout barRight = new HorizontalLayout();
+        barRight.add(new NavigationButton("Profile", null, Profile.class));
+        bar.add(barRight);
+
+        add(bar);
     }
 }

@@ -11,9 +11,8 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 public class NavigationButton extends HorizontalLayout {
 
     public NavigationButton(String profile, Icon icon, Class<? extends Component> view) {
-        add(icon);
+        if (icon != null) add(icon);
         add(new Span(profile));
-        setWidth("100%");
         getClassNames().add("acuity-nav-button");
         getElement().addEventListener("click", domEvent -> getUI().ifPresent(ui -> ui.navigate(view)));
     }
