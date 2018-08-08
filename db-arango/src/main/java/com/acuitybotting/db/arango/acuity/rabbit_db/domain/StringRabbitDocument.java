@@ -20,7 +20,7 @@ import java.util.Map;
 public class StringRabbitDocument {
 
     @Id
-    private String _key;
+    private String _id;
 
     @Rev
     private String _rev;

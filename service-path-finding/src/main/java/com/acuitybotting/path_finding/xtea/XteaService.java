@@ -48,6 +48,8 @@ public class XteaService {
 
     private Gson gson = new Gson();
 
+    private final Object crushLock = new Object();
+
     @Autowired
     public XteaService(RabbitDocumentRepository rabbitDocumentRepository, RabbitDbService rabbitDbService) {
         this.rabbitDocumentRepository = rabbitDocumentRepository;
@@ -107,46 +109,58 @@ public class XteaService {
         }
     }
 
-    @Scheduled(fixedDelay = 60000, initialDelay = 60000)
-    private void crushXteas() {
-        log.info("Starting xtea crush.");
+    @Scheduled(fixedDelay = 60000  * 5, initialDelay = 60000 * 5)
+    public void crushXteas() {
+        synchronized (crushLock){
+            log.info("Starting xtea crush.");
 
-        Set<StringRabbitDocument> all = rabbitDocumentRepository.findAllByDatabaseAndSubGroup("services.xteas", "region-xteas");
-        Map<Long, Set<Xtea>> collect = all
-                .stream()
-                .map(document -> {
+            Set<StringRabbitDocument> all = rabbitDocumentRepository.findAllByDatabaseAndSubGroup("services.xteas", "region-xteas");
+            Map<Long, Set<Xtea>> collect = all
+                    .stream()
+                    .map(document -> {
+                        Xtea xtea = new Xtea();
+                        Object revision = document.getSubDocument().get("revision");
+                        Object region = document.getSubDocument().get("region");
+                        Object keys = document.getSubDocument().get("keys");
 
-                    Xtea xtea = new Xtea();
-                    Object revision = document.getSubDocument().get("revision");
-                    Object region = document.getSubDocument().get("region");
-                    Object keys = document.getSubDocument().get("keys");
+                        if (revision == null || region == null || keys == null) return null;
 
-                    if (revision == null || region == null || keys == null) return null;
+                        xtea.setRevision((Long) revision);
+                        xtea.setRegion((Long) region);
+                        xtea.setKeys((ArrayList<Long>) keys);
 
-                    xtea.setRevision((Long) revision);
-                    xtea.setRegion((Long) region);
-                    xtea.setKeys((ArrayList<Long>) keys);
+                        return xtea;
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.groupingBy(Xtea::getRegion, Collectors.toSet()));
 
-                    return xtea;
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.groupingBy(Xtea::getRegion, Collectors.toSet()));
+            log.info("Found {} xteas covering {} regions. Starting save.", all.size(), collect.size());
 
-        log.info("Found {} xteas covering {} regions. Starting save.", all.size(), collect.size());
+            Gson gson = new Gson();
 
-        Gson gson = new Gson();
+            collect.entrySet().parallelStream().forEach(longSetEntry -> {
+                Map<String, Object> map = RabbitDbService.buildQueryMap("server", "services.xteas", "server-xteas", String.valueOf(longSetEntry.getKey()), null);
+                String doc = gson.toJson(longSetEntry.getValue());
+                rabbitDbService.save(4, map, null, doc, doc);
+            });
 
-        collect.entrySet().parallelStream().forEach(longSetEntry -> {
-            Map<String, Object> map = RabbitDbService.buildQueryMap("server", "services.xteas", "server-xteas", String.valueOf(longSetEntry.getKey()), null);
-            String doc = gson.toJson(longSetEntry.getValue());
-            rabbitDbService.save(4, map, null, doc, doc);
-        });
+            log.info("Finished saving xteas. Starting delete.");
 
-        log.info("Finished saving xteas. Starting delete.");
+            ExecutorUtil.run(15, executorService -> {
+                for (StringRabbitDocument stringRabbitDocument : all) {
+                    executorService.submit(() -> {
+                        try {
+                            rabbitDocumentRepository.delete(stringRabbitDocument);
+                        }
+                        catch (Throwable e){
+                            log.warn("Exception during xtea delete.");
+                        }
+                    });
+                }
+            });
 
-        rabbitDocumentRepository.deleteAll(all);
-
-        log.info("Finished xtea crush.");
+            log.info("Finished xtea crush.");
+        }
     }
 
     public Optional<SceneEntityDefinition> getSceneEntityDefinition(int id) {
