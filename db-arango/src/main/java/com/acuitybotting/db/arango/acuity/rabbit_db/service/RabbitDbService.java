@@ -1,6 +1,6 @@
 package com.acuitybotting.db.arango.acuity.rabbit_db.service;
 
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.JsonRabbitDocument;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.GsonRabbitDocument;
 import com.arangodb.springframework.core.ArangoOperations;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -60,20 +60,20 @@ public class RabbitDbService {
     public void save(int strategyType, Map<String, Object> queryMap, Map<String, Object> headers, String updateDocumentJson, String insertDocumentJson) {
         if (headers == null) headers = new HashMap<>();
 
-        JsonRabbitDocument jsonRabbitDocument = new JsonRabbitDocument();
-        jsonRabbitDocument.setPrincipalId((String) queryMap.get("principalId"));
-        jsonRabbitDocument.setDatabase((String) queryMap.get("database"));
-        jsonRabbitDocument.setSubGroup((String) queryMap.get("subGroup"));
-        jsonRabbitDocument.setSubKey((String) queryMap.get("subKey"));
-        jsonRabbitDocument.setHeaders(headers);
+        GsonRabbitDocument gsonRabbitDocument = new GsonRabbitDocument();
+        gsonRabbitDocument.setPrincipalId((String) queryMap.get("principalId"));
+        gsonRabbitDocument.setDatabase((String) queryMap.get("database"));
+        gsonRabbitDocument.setSubGroup((String) queryMap.get("subGroup"));
+        gsonRabbitDocument.setSubKey((String) queryMap.get("subKey"));
+        gsonRabbitDocument.setHeaders(headers);
         headers.put("_lastUpdateTime", System.currentTimeMillis());
 
-        jsonRabbitDocument.setSubDocument(gson.fromJson(updateDocumentJson, JsonElement.class));
-        String updateDocument = gson.toJson(jsonRabbitDocument);
+        gsonRabbitDocument.setSubDocument(gson.fromJson(updateDocumentJson, JsonElement.class));
+        String updateDocument = gson.toJson(gsonRabbitDocument);
 
         headers.put("_insertTime", System.currentTimeMillis());
-        jsonRabbitDocument.setSubDocument(gson.fromJson(insertDocumentJson, JsonElement.class));
-        String insertDocument = gson.toJson(jsonRabbitDocument);
+        gsonRabbitDocument.setSubDocument(gson.fromJson(insertDocumentJson, JsonElement.class));
+        String insertDocument = gson.toJson(gsonRabbitDocument);
 
         String strategy = strategyType == 0 ? "REPLACE" : "UPDATE";
         String query = "UPSERT " + gson.toJson(queryMap) + " INSERT " + insertDocument + " " + strategy + " " + updateDocument + " IN " + COLLECTION;
@@ -86,16 +86,16 @@ public class RabbitDbService {
         arangoOperations.query(query, null, null, null);
     }
 
-    public JsonRabbitDocument loadByKey(Map<String, Object> queryMap) {
+    public GsonRabbitDocument loadByKey(Map<String, Object> queryMap) {
         String query = "FOR u IN " + COLLECTION + " FILTER u.principalId == @principalId && u.database == @database && u.subGroup == @subGroup && u.subKey == @subKey RETURN u";
         List<String> json = arangoOperations.query(query, queryMap, null, String.class).asListRemaining();
-        if (json.size() > 0) return gson.fromJson(json.get(0), JsonRabbitDocument.class);
+        if (json.size() > 0) return gson.fromJson(json.get(0), GsonRabbitDocument.class);
         return null;
     }
 
-    public Set<JsonRabbitDocument> loadByGroup(Map<String, Object> queryMap) {
+    public Set<GsonRabbitDocument> loadByGroup(Map<String, Object> queryMap) {
         String query = "FOR u IN " + COLLECTION + " FILTER u.principalId == @principalId && u.database == @database && u.subGroup == @subGroup RETURN u";
         List<String> json = arangoOperations.query(query, queryMap, null, String.class).asListRemaining();
-        return json.stream().map(s -> gson.fromJson(s, JsonRabbitDocument.class)).collect(Collectors.toSet());
+        return json.stream().map(s -> gson.fromJson(s, GsonRabbitDocument.class)).collect(Collectors.toSet());
     }
 }

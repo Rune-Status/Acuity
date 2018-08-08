@@ -2,7 +2,7 @@ package com.acuitybotting.path_finding.xtea;
 
 
 import com.acuitybotting.common.utils.ExecutorUtil;
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.StringRabbitDocument;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.MapRabbitDocument;
 import com.acuitybotting.db.arango.acuity.rabbit_db.repository.RabbitDocumentRepository;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.RegionMap;
@@ -114,7 +114,7 @@ public class XteaService {
         synchronized (crushLock){
             log.info("Starting xtea crush.");
 
-            Set<StringRabbitDocument> all = rabbitDocumentRepository.findAllByDatabaseAndSubGroup("services.xteas", "region-xteas");
+            Set<MapRabbitDocument> all = rabbitDocumentRepository.findAllByDatabaseAndSubGroup("services.xteas", "region-xteas");
             Map<Long, Set<Xtea>> collect = all
                     .stream()
                     .map(document -> {
@@ -147,10 +147,10 @@ public class XteaService {
             log.info("Finished saving xteas. Starting delete.");
 
             ExecutorUtil.run(15, executorService -> {
-                for (StringRabbitDocument stringRabbitDocument : all) {
+                for (MapRabbitDocument mapRabbitDocument : all) {
                     executorService.submit(() -> {
                         try {
-                            rabbitDocumentRepository.delete(stringRabbitDocument);
+                            rabbitDocumentRepository.delete(mapRabbitDocument);
                         }
                         catch (Throwable e){
                             log.warn("Exception during xtea delete.");

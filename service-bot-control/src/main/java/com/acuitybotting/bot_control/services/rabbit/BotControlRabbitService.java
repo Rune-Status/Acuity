@@ -1,6 +1,6 @@
 package com.acuitybotting.bot_control.services.rabbit;
 
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.JsonRabbitDocument;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.GsonRabbitDocument;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
@@ -90,9 +90,9 @@ public class BotControlRabbitService implements CommandLineRunner {
         try {
             if (dbService.isReadAccessible(userId, request.getDatabase())) {
                 if (request.getType() == RabbitDbRequest.FIND_BY_KEY) {
-                    JsonRabbitDocument jsonRabbitDocument = dbService.loadByKey(queryMap);
+                    GsonRabbitDocument gsonRabbitDocument = dbService.loadByKey(queryMap);
                     try {
-                        messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), jsonRabbitDocument == null ? "" : gson.toJson(jsonRabbitDocument));
+                        messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), gsonRabbitDocument == null ? "" : gson.toJson(gsonRabbitDocument));
                     } catch (MessagingException e) {
                         e.printStackTrace();
                     }
