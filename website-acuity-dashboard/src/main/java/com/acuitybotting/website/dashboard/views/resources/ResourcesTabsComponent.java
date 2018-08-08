@@ -2,6 +2,7 @@ package com.acuitybotting.website.dashboard.views.resources;
 
 import com.acuitybotting.website.dashboard.components.general.nav.NavigationTab;
 import com.acuitybotting.website.dashboard.views.resources.accounts.AccountsListView;
+import com.acuitybotting.website.dashboard.views.resources.proxies.ProxiesListView;
 import com.vaadin.flow.component.tabs.Tabs;
 
 /**
@@ -16,7 +17,7 @@ public class ResourcesTabsComponent extends Tabs {
         NavigationTab accounts = new NavigationTab("Accounts", AccountsListView.class);
         add(accounts);
 
-        NavigationTab proxies = new NavigationTab("Proxies", AccountsListView.class);
+        NavigationTab proxies = new NavigationTab("Proxies", ProxiesListView.class);
         add(proxies);
 
         addSelectedChangeListener(selectedChangeEvent -> ((NavigationTab) getSelectedTab()).navigateTo());
