@@ -2,8 +2,7 @@ package com.acuitybotting.path_finding.xtea;
 
 
 import com.acuitybotting.common.utils.ExecutorUtil;
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.MapRabbitDocument;
-import com.acuitybotting.db.arango.acuity.rabbit_db.repository.RabbitDocumentRepository;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.GsonRabbitDocument;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.RegionMap;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.SceneEntityDefinition;
@@ -39,7 +38,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class XteaService {
 
-    private final RabbitDocumentRepository rabbitDocumentRepository;
     private final RabbitDbService rabbitDbService;
 
     private Map<Integer, SceneEntityDefinition> sceneEntityCache = new HashMap<>();
@@ -51,8 +49,7 @@ public class XteaService {
     private final Object crushLock = new Object();
 
     @Autowired
-    public XteaService(RabbitDocumentRepository rabbitDocumentRepository, RabbitDbService rabbitDbService) {
-        this.rabbitDocumentRepository = rabbitDocumentRepository;
+    public XteaService(RabbitDbService rabbitDbService) {
         this.rabbitDbService = rabbitDbService;
     }
 
@@ -114,14 +111,15 @@ public class XteaService {
         synchronized (crushLock){
             log.info("Starting xtea crush.");
 
-            Set<MapRabbitDocument> all = rabbitDocumentRepository.findAllByDatabaseAndSubGroup("services.xteas", "region-xteas");
-            Map<Long, Set<Xtea>> collect = all
+            Set<GsonRabbitDocument> result = rabbitDbService.loadByGroup(RabbitDbService.buildQueryMapNoPrincipal("services.xteas", "region-xteas"), GsonRabbitDocument.class);
+
+            Map<Long, Set<Xtea>> collect = result
                     .stream()
                     .map(document -> {
                         Xtea xtea = new Xtea();
-                        Object revision = document.getSubDocument().get("revision");
-                        Object region = document.getSubDocument().get("region");
-                        Object keys = document.getSubDocument().get("keys");
+                        Object revision = document.getSubDocument().getAsJsonObject().get("revision");
+                        Object region = document.getSubDocument().getAsJsonObject().get("region");
+                        Object keys = document.getSubDocument().getAsJsonObject().get("keys");
 
                         if (revision == null || region == null || keys == null) return null;
 
@@ -134,7 +132,7 @@ public class XteaService {
                     .filter(Objects::nonNull)
                     .collect(Collectors.groupingBy(Xtea::getRegion, Collectors.toSet()));
 
-            log.info("Found {} xteas covering {} regions. Starting save.", all.size(), collect.size());
+            log.info("Found {} xteas covering {} regions. Starting save.", result.size(), collect.size());
 
             Gson gson = new Gson();
 
@@ -147,10 +145,10 @@ public class XteaService {
             log.info("Finished saving xteas. Starting delete.");
 
             ExecutorUtil.run(15, executorService -> {
-                for (MapRabbitDocument mapRabbitDocument : all) {
+                for (GsonRabbitDocument mapRabbitDocument : result) {
                     executorService.submit(() -> {
                         try {
-                            rabbitDocumentRepository.delete(mapRabbitDocument);
+                            rabbitDbService.delete(RabbitDbService.buildQueryMap(mapRabbitDocument));
                         }
                         catch (Throwable e){
                             log.warn("Exception during xtea delete.");

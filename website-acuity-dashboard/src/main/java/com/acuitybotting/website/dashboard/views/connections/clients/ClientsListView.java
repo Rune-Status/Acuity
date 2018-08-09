@@ -1,7 +1,7 @@
 package com.acuitybotting.website.dashboard.views.connections.clients;
 
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.MapRabbitDocument;
-import com.acuitybotting.db.arango.acuity.rabbit_db.repository.RabbitDocumentRepository;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.GsonRabbitDocument;
+import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.website.dashboard.DashboardRabbitService;
 import com.acuitybotting.website.dashboard.components.general.list_display.InteractiveList;
 import com.acuitybotting.website.dashboard.security.view.interfaces.UsersOnly;
@@ -14,6 +14,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
 
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -37,19 +38,27 @@ public class ClientsListView extends VerticalLayout implements UsersOnly {
 
     @SpringComponent
     @UIScope
-    private static class ClientListComponent extends InteractiveList<MapRabbitDocument> {
+    private static class ClientListComponent extends InteractiveList<GsonRabbitDocument> {
 
-        public ClientListComponent(RabbitDocumentRepository documentRepository, DashboardRabbitService rabbitService) {
+        private final RabbitDbService rabbitDbService;
+        private final DashboardRabbitService rabbitService;
+
+        public ClientListComponent(RabbitDbService rabbitDbService, DashboardRabbitService rabbitService) {
+            this.rabbitDbService = rabbitDbService;
+            this.rabbitService = rabbitService;
+
             withColumn("ID", "33%", document -> new Span(), (document, span) -> span.setText(document.getSubKey()));
             withColumn("Host", "33%", document -> new Span(), (document, span) -> span.setText(String.valueOf(document.getHeaders().getOrDefault("peerHost", ""))));
             withColumn("Last Update", "33%", document -> new Span(), (document, span) -> span.setText(String.valueOf(document.getHeaders().getOrDefault("connectionConfirmationTime", ""))));
-            withLoad(
-                    MapRabbitDocument::getSubKey,
-                    () -> documentRepository.findAllByPrincipalIdAndDatabaseAndSubGroup(UsersOnly.getCurrentPrincipalUid(), "services.registered-connections", "connections")
-                            .stream()
-                            .filter(connection -> connection.getSubKey().startsWith("RPC_") && (boolean) connection.getHeaders().getOrDefault("connected", false))
-                            .collect(Collectors.toSet())
-            );
+            withLoad(GsonRabbitDocument::getSubKey, this::loadClients);
+        }
+
+        private Set<GsonRabbitDocument> loadClients() {
+            return rabbitDbService
+                    .loadByGroup(RabbitDbService.buildQueryMap(UsersOnly.getCurrentPrincipalUid(), "services.registered-connections", "connections"), GsonRabbitDocument.class)
+                    .stream()
+                    .filter(connection -> connection.getSubKey().startsWith("RPC_") && (boolean) connection.getHeaders().getOrDefault("connected", false))
+                    .collect(Collectors.toSet());
         }
     }
 }

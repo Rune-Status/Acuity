@@ -1,6 +1,7 @@
 package com.acuitybotting.db.arango.acuity.rabbit_db.service;
 
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.GsonRabbitDocument;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.RabbitDocumentBase;
 import com.arangodb.springframework.core.ArangoOperations;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -31,6 +32,18 @@ public class RabbitDbService {
         this.arangoOperations = operations;
     }
 
+    public static <T extends RabbitDocumentBase> Map<String, Object> buildQueryMap(T document) {
+        return buildQueryMap(document.getPrincipalId(), document.getDatabase(), document.getSubGroup(), document.getSubKey(), document.get_rev());
+    }
+
+    public static Map<String, Object> buildQueryMap(String principalId, String database, String group, String key) {
+        return buildQueryMap(principalId, database, group, key, null);
+    }
+
+    public static Map<String, Object> buildQueryMap(String principalId, String database, String group) {
+        return buildQueryMap(principalId, database, group, null, null);
+    }
+
     public static Map<String, Object> buildQueryMap(String principalId, String database, String group, String key, String rev) {
         Map<String, Object> queryMap = new HashMap<>();
         queryMap.put("principalId", principalId);
@@ -38,6 +51,13 @@ public class RabbitDbService {
         queryMap.put("subGroup", group);
         if (key != null) queryMap.put("subKey", key);
         if (rev != null) queryMap.put("_rev", rev);
+        return queryMap;
+    }
+
+    public static Map<String, Object> buildQueryMapNoPrincipal(String database, String group) {
+        Map<String, Object> queryMap = new HashMap<>();
+        queryMap.put("database", database);
+        queryMap.put("subGroup", group);
         return queryMap;
     }
 
@@ -86,16 +106,16 @@ public class RabbitDbService {
         arangoOperations.query(query, null, null, null);
     }
 
-    public GsonRabbitDocument loadByKey(Map<String, Object> queryMap) {
+    public <T> T loadByKey(Map<String, Object> queryMap, Class<T> type) {
         String query = "FOR u IN " + COLLECTION + " FILTER u.principalId == @principalId && u.database == @database && u.subGroup == @subGroup && u.subKey == @subKey RETURN u";
         List<String> json = arangoOperations.query(query, queryMap, null, String.class).asListRemaining();
-        if (json.size() > 0) return gson.fromJson(json.get(0), GsonRabbitDocument.class);
+        if (json.size() > 0) return gson.fromJson(json.get(0), type);
         return null;
     }
 
-    public Set<GsonRabbitDocument> loadByGroup(Map<String, Object> queryMap) {
+    public <T> Set<T> loadByGroup(Map<String, Object> queryMap, Class<T> type) {
         String query = "FOR u IN " + COLLECTION + " FILTER u.principalId == @principalId && u.database == @database && u.subGroup == @subGroup RETURN u";
         List<String> json = arangoOperations.query(query, queryMap, null, String.class).asListRemaining();
-        return json.stream().map(s -> gson.fromJson(s, GsonRabbitDocument.class)).collect(Collectors.toSet());
+        return json.stream().map(s -> gson.fromJson(s, type)).collect(Collectors.toSet());
     }
 }

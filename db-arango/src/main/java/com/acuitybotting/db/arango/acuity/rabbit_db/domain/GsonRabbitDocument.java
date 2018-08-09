@@ -1,12 +1,9 @@
 package com.acuitybotting.db.arango.acuity.rabbit_db.domain;
 
-import com.arangodb.springframework.annotation.Document;
 import com.google.gson.JsonElement;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.util.Map;
 
 /**
  * Created by Zachary Herridge on 7/19/2018.
@@ -14,20 +11,7 @@ import java.util.Map;
 @Getter
 @Setter
 @ToString
-@Document("RabbitDocument")
-public class GsonRabbitDocument {
-
-    private String _key;
-
-    private String _rev;
-
-    private String database;
-    private String principalId;
-
-    private String subGroup;
-    private String subKey;
+public class GsonRabbitDocument extends RabbitDocumentBase {
 
     private JsonElement subDocument;
-
-    private Map<String, Object> headers;
 }

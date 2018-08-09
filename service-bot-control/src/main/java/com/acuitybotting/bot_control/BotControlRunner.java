@@ -1,6 +1,5 @@
 package com.acuitybotting.bot_control;
 
-import com.acuitybotting.db.arango.acuity.rabbit_db.repository.RabbitDocumentRepository;
 import com.acuitybotting.db.arango.acuity.identities.service.PrincipalLinkService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,12 +14,10 @@ import org.springframework.stereotype.Component;
 public class BotControlRunner implements CommandLineRunner {
 
     private final PrincipalLinkService service;
-    private final RabbitDocumentRepository rabbitDocumentRepository;
 
     @Autowired
-    public BotControlRunner(PrincipalLinkService service, RabbitDocumentRepository rabbitDocumentRepository) {
+    public BotControlRunner(PrincipalLinkService service) {
         this.service = service;
-        this.rabbitDocumentRepository = rabbitDocumentRepository;
     }
 
 

@@ -90,14 +90,14 @@ public class BotControlRabbitService implements CommandLineRunner {
         try {
             if (dbService.isReadAccessible(userId, request.getDatabase())) {
                 if (request.getType() == RabbitDbRequest.FIND_BY_KEY) {
-                    GsonRabbitDocument gsonRabbitDocument = dbService.loadByKey(queryMap);
+                    GsonRabbitDocument gsonRabbitDocument = dbService.loadByKey(queryMap, GsonRabbitDocument.class);
                     try {
                         messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), gsonRabbitDocument == null ? "" : gson.toJson(gsonRabbitDocument));
                     } catch (MessagingException e) {
                         e.printStackTrace();
                     }
                 } else if (request.getType() == RabbitDbRequest.FIND_BY_GROUP) {
-                    messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), gson.toJson(dbService.loadByGroup(queryMap)));
+                    messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), gson.toJson(dbService.loadByGroup(queryMap, GsonRabbitDocument.class)));
                 }
             }
         } catch (MessagingException e) {

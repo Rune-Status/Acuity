@@ -1,12 +1,12 @@
 package com.acuitybotting.website.dashboard.views.resources.accounts;
 
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.MapRabbitDocument;
-import com.acuitybotting.db.arango.acuity.rabbit_db.repository.RabbitDocumentRepository;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.GsonRabbitDocument;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.RabbitDocumentBase;
+import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.website.dashboard.DashboardRabbitService;
 import com.acuitybotting.website.dashboard.components.general.list_display.InteractiveList;
 import com.acuitybotting.website.dashboard.security.view.interfaces.UsersOnly;
 import com.acuitybotting.website.dashboard.views.RootLayout;
-import com.acuitybotting.website.dashboard.views.connections.ConnectionsTabNavComponent;
 import com.acuitybotting.website.dashboard.views.resources.ResourcesTabsComponent;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.html.Span;
@@ -14,6 +14,10 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
+import lombok.Getter;
+import lombok.ToString;
+
+import java.util.Set;
 
 /**
  * Created by Zachary Herridge on 8/8/2018.
@@ -36,14 +40,32 @@ public class AccountsListView extends VerticalLayout implements UsersOnly {
 
     @SpringComponent
     @UIScope
-    private static class AccountListComponent extends InteractiveList<MapRabbitDocument> {
+    private static class AccountListComponent extends InteractiveList<AccountListComponent.RsAccountDocument> {
 
-        public AccountListComponent(RabbitDocumentRepository documentRepository, DashboardRabbitService rabbitService) {
+        private final RabbitDbService rabbitDbService;
+
+        public AccountListComponent(RabbitDbService rabbitDbService, DashboardRabbitService rabbitService) {
+            this.rabbitDbService = rabbitDbService;
             withColumn("Email", "33%", document -> new Span(), (document, span) -> span.setText(document.getSubKey()));
-            withLoad(
-                    MapRabbitDocument::getSubKey,
-                    () -> documentRepository.findAllByPrincipalIdAndDatabaseAndSubGroup(UsersOnly.getCurrentPrincipalUid(), "services.player-cache", "players")
-            );
+            withColumn("Last World", "33%", document -> new Span(), (document, span) -> span.setText(String.valueOf(document.getSubDocument().getWorld())));
+            withLoad(RsAccountDocument::getSubKey, this::loadAccounts);
+        }
+
+        private Set<RsAccountDocument> loadAccounts() {
+            return rabbitDbService.loadByGroup(RabbitDbService.buildQueryMap(UsersOnly.getCurrentPrincipalUid(), "services.player-cache", "players"), RsAccountDocument.class);
+        }
+
+        @Getter
+        @ToString
+        public static class RsAccountDocument extends RabbitDocumentBase {
+
+            private RsAccountInfo subDocument;
+
+            @Getter
+            @ToString
+            public static class RsAccountInfo {
+                private int world;
+            }
         }
     }
 }
