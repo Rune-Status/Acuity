@@ -51,6 +51,7 @@ public class LauncherRabbitService implements CommandLineRunner {
             rabbitClient.auth("195.201.248.164", sub, jwt);
             rabbitClient.connect("ABL_" + UUID.randomUUID().toString());
             channel = rabbitClient.openChannel();
+
             localQueue = channel.createQueue(allowedPrefix + "queue." + rabbitClient.getRabbitId(), true)
                     .withListener(this::handleMessage)
                     .open(true);

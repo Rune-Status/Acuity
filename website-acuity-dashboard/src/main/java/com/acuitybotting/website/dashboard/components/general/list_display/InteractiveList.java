@@ -26,6 +26,7 @@ public class InteractiveList<T> extends VerticalLayout {
     private HorizontalLayout controls = new HorizontalLayout();
     private TextField searchField = new TextField();
     private Button refreshButton = new Button(VaadinIcon.REFRESH.create());
+    private Checkbox selectAll = new Checkbox();
 
     private HorizontalLayout headers = new HorizontalLayout();
 
@@ -38,9 +39,13 @@ public class InteractiveList<T> extends VerticalLayout {
         setMargin(false);
         setPadding(false);
 
-        refreshButton.addClickListener(buttonClickEvent -> load());
-
-        searchField.addValueChangeListener(textFieldStringComponentValueChangeEvent -> applySearch(searchField.getValue()));
+        refreshButton.addClickListener(event -> load());
+        searchField.addValueChangeListener(event -> applySearch(searchField.getValue()));
+        selectAll.addValueChangeListener(event -> {
+            for (InteractiveListRow<T> row : rows.values()) {
+                if (row.isVisible() && row.isEnabled()) row.getSelectionBox().setValue(event.getValue());
+            }
+        });
 
         controlBar.setWidth("100%");
         controlBar.setPadding(false);
@@ -59,7 +64,7 @@ public class InteractiveList<T> extends VerticalLayout {
         headers.setMargin(false);
         headers.getClassNames().add("acuity-interactive-list-headers");
 
-        headers.add(new Checkbox());
+        headers.add(selectAll);
 
         list.setPadding(false);
         list.setMargin(false);
