@@ -18,6 +18,8 @@ public class InteractiveListColumn<T, R extends Component> {
     private final String header;
     private final String maxWidth;
 
+    private boolean filterable = true;
+
     private final Function<T, R> constructMapping;
     private BiConsumer<T, R> updateMapping;
 

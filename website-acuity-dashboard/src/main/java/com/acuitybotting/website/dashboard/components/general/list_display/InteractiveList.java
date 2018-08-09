@@ -1,6 +1,7 @@
 package com.acuitybotting.website.dashboard.components.general.list_display;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.HasText;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -39,6 +40,8 @@ public class InteractiveList<T> extends VerticalLayout {
 
         refreshButton.addClickListener(buttonClickEvent -> load());
 
+        searchField.addValueChangeListener(textFieldStringComponentValueChangeEvent -> applySearch(searchField.getValue()));
+
         controlBar.setWidth("100%");
         controlBar.setPadding(false);
         controlBar.setMargin(false);
@@ -62,6 +65,25 @@ public class InteractiveList<T> extends VerticalLayout {
         list.setMargin(false);
 
         add(controlBar, headers, list);
+    }
+
+    public void applySearch(String searchTxt) {
+        if (searchTxt != null){
+            searchTxt = searchTxt.toLowerCase();
+            if (searchTxt.isEmpty()) searchTxt = null;
+        }
+
+        for (InteractiveListRow<T> row : rows.values()) {
+            String finalSearchTxt = searchTxt;
+            boolean visible = searchTxt == null || row.getChildren().anyMatch(component -> {
+                if (component instanceof HasText) {
+                    String text = ((HasText) component).getText();
+                    return text != null && text.toLowerCase().contains(finalSearchTxt);
+                }
+                return false;
+            });
+            row.setVisible(visible);
+        }
     }
 
     public InteractiveList<T> withRow(InteractiveListRow row) {
