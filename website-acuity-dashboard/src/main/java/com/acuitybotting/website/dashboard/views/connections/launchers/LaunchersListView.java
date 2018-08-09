@@ -12,6 +12,8 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.spring.annotation.SpringComponent;
+import com.vaadin.flow.spring.annotation.UIScope;
 
 import java.util.stream.Collectors;
 
@@ -21,33 +23,33 @@ import java.util.stream.Collectors;
 @Route(value = "connections/launchers", layout = RootLayout.class)
 public class LaunchersListView extends VerticalLayout implements UsersOnly {
 
-    private final RabbitDocumentRepository documentRepository;
-    private final DashboardRabbitService rabbitService;
+    private LauncherListComponent launcherListComponent;
 
-    private InteractiveList<MapRabbitDocument> interactiveList = new InteractiveList<>();
-
-    public LaunchersListView(RabbitDocumentRepository documentRepository, ConnectionsTabNavComponent connectionsTabNavComponent, DashboardRabbitService rabbitService) {
-        this.rabbitService = rabbitService;
-        this.documentRepository = documentRepository;
-
-        setPadding(false);
-
-        interactiveList.getControls().add(new Button("Launch Client"));
-        interactiveList.withColumn("Key", "35%", rabbitDocumentCache -> new Span(), (rabbitDocumentCache, span) -> span.setText(rabbitDocumentCache.getSubKey()));
-        interactiveList.withColumn("Value", "35%", rabbitDocumentCache -> new Span(), (rabbitDocumentCache, span) -> span.setText(rabbitDocumentCache.getDatabase()));
-        interactiveList.withLoad(
-                MapRabbitDocument::getSubKey,
-                () -> documentRepository.findAllByPrincipalIdAndDatabaseAndSubGroup(getPrincipalUid(), "services.registered-connections", "connections")
-                        .stream()
-                        .filter(connection -> connection.getSubKey().startsWith("ABL_") && (boolean) connection.getHeaders().getOrDefault("connected", false))
-                        .collect(Collectors.toSet())
-        );
-
-        add(connectionsTabNavComponent, interactiveList);
+    public LaunchersListView(LauncherListComponent launcherListComponent, ConnectionsTabNavComponent connectionsTabNavComponent) {
+        this.launcherListComponent = launcherListComponent;
+        add(connectionsTabNavComponent, launcherListComponent);
     }
 
     @Override
     protected void onAttach(AttachEvent attachEvent) {
-        interactiveList.load();
+        launcherListComponent.load();
+    }
+
+    @SpringComponent
+    @UIScope
+    private static class LauncherListComponent extends InteractiveList<MapRabbitDocument> {
+
+        public LauncherListComponent(RabbitDocumentRepository documentRepository, DashboardRabbitService rabbitService) {
+            getControls().add(new Button("Launch Client"));
+            withColumn("Key", "35%", rabbitDocumentCache -> new Span(), (rabbitDocumentCache, span) -> span.setText(rabbitDocumentCache.getSubKey()));
+            withColumn("Value", "35%", rabbitDocumentCache -> new Span(), (rabbitDocumentCache, span) -> span.setText(rabbitDocumentCache.getDatabase()));
+            withLoad(
+                    MapRabbitDocument::getSubKey,
+                    () -> documentRepository.findAllByPrincipalIdAndDatabaseAndSubGroup(UsersOnly.getCurrentPrincipalUid(), "services.registered-connections", "connections")
+                            .stream()
+                            .filter(connection -> connection.getSubKey().startsWith("ABL_") && (boolean) connection.getHeaders().getOrDefault("connected", false))
+                            .collect(Collectors.toSet())
+            );
+        }
     }
 }
