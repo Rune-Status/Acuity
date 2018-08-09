@@ -4,6 +4,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasText;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -27,10 +28,13 @@ public class InteractiveList<T> extends VerticalLayout {
     private TextField searchField = new TextField();
     private Button refreshButton = new Button(VaadinIcon.REFRESH.create());
     private Checkbox selectAll = new Checkbox();
+    private Span selectionCount = new Span();
 
     private HorizontalLayout headers = new HorizontalLayout();
 
     private VerticalLayout list = new VerticalLayout();
+
+    private HorizontalLayout footers = new HorizontalLayout();
 
     private List<InteractiveListColumn> columns = new ArrayList<>();
     private Map<String, InteractiveListRow<T>> rows = new HashMap<>();
@@ -45,6 +49,7 @@ public class InteractiveList<T> extends VerticalLayout {
             for (InteractiveListRow<T> row : rows.values()) {
                 if (row.isVisible() && row.isEnabled()) row.getSelectionBox().setValue(event.getValue());
             }
+            updateSelectionCount();
         });
 
         controlBar.setWidth("100%");
@@ -69,7 +74,22 @@ public class InteractiveList<T> extends VerticalLayout {
         list.setPadding(false);
         list.setMargin(false);
 
-        add(controlBar, headers, list);
+        footers.setWidth("100%");
+        footers.setPadding(false);
+        footers.setMargin(false);
+
+        footers.add(selectionCount);
+
+        add(controlBar, headers, list, footers);
+    }
+
+    public void updateSelectionCount(){
+        long count = rows.values().stream().filter(row -> row.getSelectionBox().getValue()).count();
+        if (count == 0) selectionCount.setVisible(false);
+        else {
+            selectionCount.setText("(" + String.valueOf(count) + ") selected");
+            if (!selectionCount.isVisible()) selectionCount.setVisible(true);
+        }
     }
 
     public void applySearch(String searchTxt) {

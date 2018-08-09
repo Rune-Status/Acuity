@@ -26,6 +26,7 @@ public class InteractiveListRow<T> extends HorizontalLayout {
         setMargin(false);
         setWidth("100%");
         getClassNames().add("acuity-interactive-list-row");
+        selectionBox.addValueChangeListener(event -> list.updateSelectionCount());
         add(selectionBox);
     }
 
