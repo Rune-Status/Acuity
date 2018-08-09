@@ -27,6 +27,7 @@ public class LaunchersListView extends VerticalLayout implements UsersOnly {
 
     public LaunchersListView(LauncherListComponent launcherListComponent, ConnectionsTabNavComponent connectionsTabNavComponent) {
         this.launcherListComponent = launcherListComponent;
+        setPadding(false);
         add(connectionsTabNavComponent, launcherListComponent);
     }
 
@@ -41,8 +42,9 @@ public class LaunchersListView extends VerticalLayout implements UsersOnly {
 
         public LauncherListComponent(RabbitDocumentRepository documentRepository, DashboardRabbitService rabbitService) {
             getControls().add(new Button("Launch Client"));
-            withColumn("ID", "35%", document -> new Span(), (document, span) -> span.setText(document.getSubKey()));
-            withColumn("Host", "35%", document -> new Span(), (document, span) -> span.setText(String.valueOf(document.getHeaders().getOrDefault("peerHost", ""))));
+            withColumn("ID", "33%", document -> new Span(), (document, span) -> span.setText(document.getSubKey()));
+            withColumn("Host", "33%", document -> new Span(), (document, span) -> span.setText(String.valueOf(document.getHeaders().getOrDefault("peerHost", ""))));
+            withColumn("Last Update", "33%", document -> new Span(), (document, span) -> span.setText(String.valueOf(document.getHeaders().getOrDefault("connectionConfirmationTime", ""))));
             withLoad(
                     MapRabbitDocument::getSubKey,
                     () -> documentRepository.findAllByPrincipalIdAndDatabaseAndSubGroup(UsersOnly.getCurrentPrincipalUid(), "services.registered-connections", "connections")

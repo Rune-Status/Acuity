@@ -62,6 +62,7 @@ public class InteractiveList<T> extends VerticalLayout {
         controls.setPadding(false);
         controls.setMargin(false);
 
+        refreshButton.setWidth("45px");
         controlBar.add(controls, refreshButton, searchField);
 
         headers.setWidth("100%");
@@ -87,7 +88,7 @@ public class InteractiveList<T> extends VerticalLayout {
         long count = rows.values().stream().filter(row -> row.getSelectionBox().getValue()).count();
         if (count == 0) selectionCount.setVisible(false);
         else {
-            selectionCount.setText("(" + String.valueOf(count) + ") selected");
+            selectionCount.setText("(" + String.valueOf(count) + "/" + rows.size() + ") selected");
             if (!selectionCount.isVisible()) selectionCount.setVisible(true);
         }
     }
@@ -109,11 +110,6 @@ public class InteractiveList<T> extends VerticalLayout {
             });
             row.setVisible(visible);
         }
-    }
-
-    public InteractiveList<T> withRow(InteractiveListRow row) {
-        list.add(row);
-        return this;
     }
 
     public InteractiveList<T> addOrUpdate(String id, T value) {
