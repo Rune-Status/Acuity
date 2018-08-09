@@ -1,5 +1,6 @@
 package com.acuitybotting.website.dashboard;
 
+import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,8 @@ public class DashboardRabbitService implements CommandLineRunner {
     private final ApplicationEventPublisher publisher;
     private final ConfigurableApplicationContext applicationContext;
 
+    private MessagingChannel messagingChannel;
+
     @Autowired
     public DashboardRabbitService(ApplicationEventPublisher publisher, ConfigurableApplicationContext applicationContext) {
         this.publisher = publisher;
@@ -41,10 +44,15 @@ public class DashboardRabbitService implements CommandLineRunner {
             RabbitClient rabbitClient = new RabbitClient();
             rabbitClient.auth(host, username, password);
             rabbitClient.connect("AWD_001_" + UUID.randomUUID().toString());
+            messagingChannel = rabbitClient.openChannel();
         }
         catch (Throwable e){
             log.error("Error during dashboard RabbitMQ setup.", e);
         }
+    }
+
+    public MessagingChannel getMessagingChannel() {
+        return messagingChannel;
     }
 
     @Override
