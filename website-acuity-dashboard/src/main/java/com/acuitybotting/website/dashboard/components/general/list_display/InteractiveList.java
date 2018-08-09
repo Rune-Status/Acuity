@@ -1,32 +1,30 @@
 package com.acuitybotting.website.dashboard.components.general.list_display;
 
-import com.acuitybotting.common.utils.ExecutorUtil;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
+import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @Getter
 public class InteractiveList<T> extends VerticalLayout {
 
-    private static final ExecutorService loadPool = ExecutorUtil.newExecutorPool(5);
-
-    private Consumer<InteractiveList> loadFunction;
+    private Function<T, String> idMapper;
+    private Supplier<Collection<T>> loadSupplier;
 
     private HorizontalLayout controlBar = new HorizontalLayout();
     private HorizontalLayout controls = new HorizontalLayout();
     private TextField searchField = new TextField();
+    private Button refreshButton = new Button(VaadinIcon.REFRESH.create());
 
     private HorizontalLayout headers = new HorizontalLayout();
 
@@ -39,6 +37,8 @@ public class InteractiveList<T> extends VerticalLayout {
         setMargin(false);
         setPadding(false);
 
+        refreshButton.addClickListener(buttonClickEvent -> load());
+
         controlBar.setWidth("100%");
         controlBar.setPadding(false);
         controlBar.setMargin(false);
@@ -49,7 +49,7 @@ public class InteractiveList<T> extends VerticalLayout {
         controls.setPadding(false);
         controls.setMargin(false);
 
-        controlBar.add(controls, searchField);
+        controlBar.add(controls, refreshButton, searchField);
 
         headers.setWidth("100%");
         headers.setPadding(false);
@@ -77,7 +77,7 @@ public class InteractiveList<T> extends VerticalLayout {
             return this;
         }
 
-        row = new InteractiveListRow<>(this);
+        row = new InteractiveListRow<>(this, id);
         rows.put(id, row);
         row.update(value);
         list.add(row);
@@ -85,19 +85,24 @@ public class InteractiveList<T> extends VerticalLayout {
         return this;
     }
 
-    public InteractiveList<T> withLoad(Consumer<InteractiveList> consumer) {
-        this.loadFunction = consumer;
+    public InteractiveList<T> withLoad(Function<T, String> idMapper, Supplier<Collection<T>> loadSupplier) {
+        this.idMapper = idMapper;
+        this.loadSupplier = loadSupplier;
         return this;
     }
 
     public InteractiveList<T> load() {
-        getUI().ifPresent(ui -> {
-            loadPool.submit(() -> {
-                ui.access(() -> {
-                    loadFunction.accept(this);
-                });
-            });
-        });
+        getUI().ifPresent(ui -> ui.access(() -> {
+            Map<String, Set<T>> load = loadSupplier.get().stream().collect(Collectors.groupingBy(idMapper, Collectors.toSet()));
+
+            for (Map.Entry<String, InteractiveListRow<T>> entry : rows.entrySet()) {
+                if (!load.containsKey(entry.getKey())) entry.getValue().removeFromList();
+            }
+
+            for (Map.Entry<String, Set<T>> entry : load.entrySet()) {
+                addOrUpdate(entry.getKey(), entry.getValue().stream().findAny().orElse(null));
+            }
+        }));
 
         return this;
     }
@@ -107,5 +112,10 @@ public class InteractiveList<T> extends VerticalLayout {
         columns.add(column);
         headers.add(column.getHeaderComponent());
         return column;
+    }
+
+    public void removeRow(String id, InteractiveListRow<T> row) {
+        rows.remove(id);
+        list.remove(row);
     }
 }

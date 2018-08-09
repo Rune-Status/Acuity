@@ -16,6 +16,8 @@ public interface UsersOnly extends BeforeEnterObserver {
     }
 
     default String getPrincipalUid(){
-        return (String) UI.getCurrent().getSession().getAttribute("principalUid");
+        UI current = UI.getCurrent();
+        if (current == null || current.getSession() == null) return null;
+        return (String) current.getSession().getAttribute("principalUid");
     }
 }
