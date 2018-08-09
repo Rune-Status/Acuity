@@ -13,6 +13,7 @@ import com.vaadin.flow.router.Route;
 public class ClientsListView extends VerticalLayout implements UsersOnly {
 
     public ClientsListView(ConnectionsTabNavComponent connectionsTabNavComponent) {
+        setPadding(false);
         add(connectionsTabNavComponent);
     }
 

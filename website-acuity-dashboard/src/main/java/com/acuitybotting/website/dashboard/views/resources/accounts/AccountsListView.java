@@ -14,6 +14,8 @@ import com.vaadin.flow.router.Route;
 public class AccountsListView extends VerticalLayout implements UsersOnly {
 
     public AccountsListView(ResourcesTabsComponent resourcesTabsComponent) {
+        setPadding(false);
+
         add(resourcesTabsComponent);
         add(new Span("Accounts"));
     }

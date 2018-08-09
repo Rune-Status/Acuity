@@ -14,6 +14,8 @@ import com.vaadin.flow.router.Route;
 public class ProxiesListView extends VerticalLayout implements UsersOnly {
 
     public ProxiesListView(ResourcesTabsComponent resourcesTabsComponent) {
+        setPadding(false);
+
         add(resourcesTabsComponent);
         add(new Span("Proxies"));
     }
