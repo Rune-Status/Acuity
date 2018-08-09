@@ -42,6 +42,10 @@ public class AcuityUsersService {
         return userRepository.findByEmail(email);
     }
 
+    public Optional<AcuityBottingUser> findUserByUid(String uid) {
+        return userRepository.findByPrincipalId(uid);
+    }
+
     public Optional<AcuityBottingUser> login(String email, String password) {
         return userRepository.findByEmail(email).filter(acuityBottingUser -> encryptionService.comparePassword(acuityBottingUser.getPasswordHash(), password));
     }

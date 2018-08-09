@@ -39,14 +39,7 @@ public class LoginView extends VerticalLayout {
             AcuityBottingUser user = acuityUserService.login(username.getValue(), password.getValue()).orElse(null);
 
             getUI().ifPresent(ui -> {
-                if (user != null){
-                    Principal acuityPrincipal = Principal.of(PrincipalLinkTypes.ACUITY, user.getPrincipalId());
-                    Set<Principal> principals = new HashSet<>(user.getLinkedPrincipals());
-                    principals.add(acuityPrincipal);
-
-                    ui.getSession().setAttribute(Authed.ACUITY_PRINCIPAL, acuityPrincipal);
-                    ui.getSession().setAttribute(Authed.ALL_PRINCIPALS, principals);
-
+                if (user != null && Authed.applyUser(user)){
                     ui.navigate(Profile.class);
                 }
                 else {
