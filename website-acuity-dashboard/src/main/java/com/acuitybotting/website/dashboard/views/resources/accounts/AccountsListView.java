@@ -44,7 +44,7 @@ public class AccountsListView extends VerticalLayout implements UsersOnly {
 
         private final RabbitDbService rabbitDbService;
 
-        public AccountListComponent(RabbitDbService rabbitDbService, DashboardRabbitService rabbitService) {
+        public AccountListComponent(RabbitDbService rabbitDbService) {
             this.rabbitDbService = rabbitDbService;
             withColumn("Email", "33%", document -> new Span(), (document, span) -> span.setText(document.getSubKey()));
             withColumn("Last World", "33%", document -> new Span(), (document, span) -> span.setText(String.valueOf(document.getSubDocument().getWorld())));

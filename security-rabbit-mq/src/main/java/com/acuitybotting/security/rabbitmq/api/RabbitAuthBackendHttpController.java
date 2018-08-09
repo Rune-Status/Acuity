@@ -1,7 +1,7 @@
 package com.acuitybotting.security.rabbitmq.api;
 
-import com.acuitybotting.security.acuity.jwt.AcuityJwtService;
-import com.acuitybotting.security.acuity.jwt.domain.AcuityPrincipal;
+import com.acuitybotting.security.jwt.JwtPrincipalService;
+import com.acuitybotting.security.jwt.domain.JwtPrincipal;
 import com.acuitybotting.security.rabbitmq.domain.Permission;
 import com.acuitybotting.security.rabbitmq.domain.ResourceType;
 import com.acuitybotting.security.rabbitmq.domain.api.ResourceCheck;
@@ -29,19 +29,19 @@ public class RabbitAuthBackendHttpController {
     private static final String REFUSED = "deny";
     private static final String ACCEPTED = "allow";
 
-    private final AcuityJwtService acuityJwtService;
+    private final JwtPrincipalService jwtPrincipalService;
 
     @Autowired
-    public RabbitAuthBackendHttpController(AcuityJwtService acuityJwtService) {
-        this.acuityJwtService = acuityJwtService;
+    public RabbitAuthBackendHttpController(JwtPrincipalService jwtPrincipalService) {
+        this.jwtPrincipalService = jwtPrincipalService;
     }
 
     @RequestMapping("user")
     public String user(@RequestParam("username") String username, @RequestParam("password") String password) {
         log.info("Trying to authenticate user {}", username);
-        AcuityPrincipal acuityPrincipal = acuityJwtService.getPrincipal(password).orElse(null);
-        if (acuityPrincipal == null) return REFUSED;
-        if (username.equals(acuityPrincipal.getKey())) return ACCEPTED + StringUtils.collectionToDelimitedString(Collections.emptyList(), " ", " ", "");
+        JwtPrincipal jwtPrincipal = jwtPrincipalService.getPrincipal(password).orElse(null);
+        if (jwtPrincipal == null) return REFUSED;
+        if (username.equals(jwtPrincipal.getPrincipalUid())) return ACCEPTED + StringUtils.collectionToDelimitedString(Collections.emptyList(), " ", " ", "");
         return REFUSED;
     }
 

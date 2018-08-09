@@ -1,4 +1,4 @@
-package com.acuitybotting.security.acuity.jwt.domain;
+package com.acuitybotting.security.jwt.domain;
 
 
 import lombok.Data;
@@ -9,7 +9,7 @@ import java.util.Objects;
  * Created by Zachary Herridge on 6/6/2018.
  */
 @Data
-public class AcuityPrincipal  {
+public class JwtPrincipal {
 
     private String username;
     private String email;
@@ -17,7 +17,7 @@ public class AcuityPrincipal  {
     private String realm;
     private String[] roles;
 
-    public String getKey(){
+    public String getPrincipalUid(){
         Objects.requireNonNull(sub);
         return sub;
     }
