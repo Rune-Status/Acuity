@@ -1,12 +1,22 @@
 package com.acuitybotting.website.dashboard.components.general.list_display;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import lombok.Getter;
 
+import javax.swing.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
+@Getter
 public class InteractiveList<T> extends VerticalLayout {
 
     private Consumer<InteractiveList> loadFunction;
@@ -18,6 +28,9 @@ public class InteractiveList<T> extends VerticalLayout {
     private HorizontalLayout headers = new HorizontalLayout();
 
     private VerticalLayout list = new VerticalLayout();
+
+    private List<InteractiveListColumn> columns = new ArrayList<>();
+    private Map<String, InteractiveListRow<T>> rows = new HashMap<>();
 
     public InteractiveList() {
         setMargin(false);
@@ -48,26 +61,41 @@ public class InteractiveList<T> extends VerticalLayout {
         add(controlBar, headers, list);
     }
 
-    public InteractiveList withRow(InteractiveListRow row){
+    public InteractiveList<T> withRow(InteractiveListRow row){
         list.add(row);
         return this;
     }
 
-    public InteractiveList withLoadFuncation(Consumer<InteractiveList> consumer){
+    public InteractiveList<T> addOrUpdate(String id, T value){
+        InteractiveListRow<T> row = rows.get(id);
+
+        if (row != null){
+            row.update(value);
+            return this;
+        }
+
+        row = new InteractiveListRow<>(this);
+        rows.put(id, row);
+        row.update(value);
+        list.add(row);
+
+        return this;
+    }
+
+    public InteractiveList<T> withLoadFuncation(Consumer<InteractiveList> consumer){
         this.loadFunction = consumer;
         return this;
     }
 
-    public InteractiveList load(){
+    public InteractiveList<T> load(){
         loadFunction.accept(this);
         return this;
     }
 
-    public HorizontalLayout getHeaders() {
-        return headers;
-    }
-
-    public HorizontalLayout getControls() {
-        return controls;
+    public <R extends Component> InteractiveListColumn<T, R> withColumn(String header, String maxWidth, Function<T, R> constructMapping, BiConsumer<T, R> updateMapping){
+        InteractiveListColumn<T, R> column = new InteractiveListColumn<>(header, maxWidth, constructMapping, updateMapping);
+        columns.add(column);
+        headers.add(column.getHeaderComponent());
+        return column;
     }
 }

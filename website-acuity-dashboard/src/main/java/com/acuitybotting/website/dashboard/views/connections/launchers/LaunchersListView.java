@@ -27,7 +27,7 @@ public class LaunchersListView extends VerticalLayout implements UsersOnly {
     private final RabbitDocumentRepository documentRepository;
     private final DashboardRabbitService rabbitService;
 
-    private InteractiveList interactiveList = new InteractiveList();
+    private InteractiveList<RabbitDocumentCache> interactiveList = new InteractiveList<>();
 
     public LaunchersListView(RabbitDocumentRepository documentRepository, ConnectionsTabNavComponent connectionsTabNavComponent, DashboardRabbitService rabbitService) {
         this.rabbitService = rabbitService;
@@ -37,11 +37,14 @@ public class LaunchersListView extends VerticalLayout implements UsersOnly {
 
         interactiveList.getControls().add(new Button("Launch Client"));
 
+        interactiveList.withColumn("Key", "25%", rabbitDocumentCache -> new Span(), (rabbitDocumentCache, span) -> span.setText(rabbitDocumentCache.getSubKey()));
+        interactiveList.withColumn("Value", "25%", rabbitDocumentCache -> new Span(), (rabbitDocumentCache, span) -> span.setText(rabbitDocumentCache.getDatabase()));
+
         interactiveList.withLoadFuncation(list -> {
             Set<MapRabbitDocument> connections = documentRepository.findAllByPrincipalIdAndDatabaseAndSubGroup(getPrincipalUid(), "services.registered-connections", "connections");
             for (MapRabbitDocument connection : connections) {
                 if (connection.getSubKey().startsWith("ABL_") && (boolean) connection.getHeaders().getOrDefault("connected", false)) {
-                    list.withRow(new LauncherRow(list, new RabbitDocumentCache(documentRepository, connection)));
+                    interactiveList.addOrUpdate(connection.getSubKey(), new RabbitDocumentCache(documentRepository, connection));
                 }
             }
         });
