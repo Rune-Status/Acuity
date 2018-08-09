@@ -37,10 +37,10 @@ public class LaunchersListView extends VerticalLayout implements UsersOnly {
 
         interactiveList.getControls().add(new Button("Launch Client"));
 
-        interactiveList.withColumn("Key", "25%", rabbitDocumentCache -> new Span(), (rabbitDocumentCache, span) -> span.setText(rabbitDocumentCache.getSubKey()));
-        interactiveList.withColumn("Value", "25%", rabbitDocumentCache -> new Span(), (rabbitDocumentCache, span) -> span.setText(rabbitDocumentCache.getDatabase()));
+        interactiveList.withColumn("Key", "35%", rabbitDocumentCache -> new Span(), (rabbitDocumentCache, span) -> span.setText(rabbitDocumentCache.getSubKey()));
+        interactiveList.withColumn("Value", "35%", rabbitDocumentCache -> new Span(), (rabbitDocumentCache, span) -> span.setText(rabbitDocumentCache.getDatabase()));
 
-        interactiveList.withLoadFuncation(list -> {
+        interactiveList.withLoad(list -> {
             Set<MapRabbitDocument> connections = documentRepository.findAllByPrincipalIdAndDatabaseAndSubGroup(getPrincipalUid(), "services.registered-connections", "connections");
             for (MapRabbitDocument connection : connections) {
                 if (connection.getSubKey().startsWith("ABL_") && (boolean) connection.getHeaders().getOrDefault("connected", false)) {
