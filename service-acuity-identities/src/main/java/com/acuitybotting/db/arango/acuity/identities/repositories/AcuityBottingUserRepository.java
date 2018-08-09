@@ -12,4 +12,6 @@ public interface AcuityBottingUserRepository extends ArangoRepository<AcuityBott
 
     Optional<AcuityBottingUser> findByEmail(String email);
 
+    Optional<AcuityBottingUser> findByPrincipalId(String uid);
+
 }

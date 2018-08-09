@@ -9,10 +9,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -51,6 +48,14 @@ public class RabbitDbService {
         queryMap.put("subGroup", group);
         if (key != null) queryMap.put("subKey", key);
         if (rev != null) queryMap.put("_rev", rev);
+        return queryMap;
+    }
+
+    public static Map<String, Object> buildQueryMapMultiPrincipal(Collection<String> principalIds, String database, String group) {
+        Map<String, Object> queryMap = new HashMap<>();
+        queryMap.put("principalIds", principalIds);
+        queryMap.put("database", database);
+        queryMap.put("subGroup", group);
         return queryMap;
     }
 
@@ -115,6 +120,9 @@ public class RabbitDbService {
 
     public <T> Set<T> loadByGroup(Map<String, Object> queryMap, Class<T> type) {
         String query = "FOR u IN " + COLLECTION + " FILTER u.principalId == @principalId && u.database == @database && u.subGroup == @subGroup RETURN u";
+        if (queryMap.containsKey("principalIds")){
+            query = "FOR u IN " + COLLECTION + " FILTER u.principalId IN @principalIds && u.database == @database && u.subGroup == @subGroup RETURN u";
+        }
         List<String> json = arangoOperations.query(query, queryMap, null, String.class).asListRemaining();
         return json.stream().map(s -> gson.fromJson(s, type)).collect(Collectors.toSet());
     }

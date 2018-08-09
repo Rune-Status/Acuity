@@ -1,8 +1,10 @@
+/*
 package com.acuitybotting.discord.bot.services.rspeer;
 
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.management.RabbitManagement;
 import com.acuitybotting.db.arango.acuity.identities.domain.Principal;
 import com.acuitybotting.db.arango.acuity.identities.service.PrincipalLinkService;
+import com.acuitybotting.db.arango.acuity.identities.service.PrincipalLinkTypes;
 import com.acuitybotting.db.arango.acuity.rspeer.RsPeerReportService;
 import com.acuitybotting.discord.bot.DiscordBotService;
 import com.acuitybotting.discord.bot.services.rabbit.DiscordBotRabbitService;
@@ -19,9 +21,11 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+*/
 /**
  * Created by Zachary Herridge on 8/6/2018.
- */
+ *//*
+
 @Service
 @Slf4j
 public class RsPeerMessageHandler {
@@ -42,7 +46,7 @@ public class RsPeerMessageHandler {
     }
 
     private Set<Principal> getRsPeerPrincipals(String uid) {
-        return linkService.findLinksContaining(uid).stream().filter(principal -> "rspeer".equals(principal.getType())).collect(Collectors.toSet());
+        return linkService.findLinksContaining(Principal.of(PrincipalLinkTypes.DISCORD, uid)).stream().filter(principal -> PrincipalLinkTypes.RSPEER.equals(principal.getType())).collect(Collectors.toSet());
     }
 
     @EventListener
@@ -86,3 +90,4 @@ public class RsPeerMessageHandler {
         }
     }
 }
+*/

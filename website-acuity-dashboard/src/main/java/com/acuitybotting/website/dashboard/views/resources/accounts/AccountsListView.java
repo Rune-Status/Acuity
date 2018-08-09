@@ -1,11 +1,9 @@
 package com.acuitybotting.website.dashboard.views.resources.accounts;
 
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.GsonRabbitDocument;
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.RabbitDocumentBase;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
-import com.acuitybotting.website.dashboard.DashboardRabbitService;
 import com.acuitybotting.website.dashboard.components.general.list_display.InteractiveList;
-import com.acuitybotting.website.dashboard.security.view.interfaces.UsersOnly;
+import com.acuitybotting.website.dashboard.security.view.interfaces.Authed;
 import com.acuitybotting.website.dashboard.views.RootLayout;
 import com.acuitybotting.website.dashboard.views.resources.ResourcesTabsComponent;
 import com.vaadin.flow.component.AttachEvent;
@@ -23,7 +21,7 @@ import java.util.Set;
  * Created by Zachary Herridge on 8/8/2018.
  */
 @Route(value = "resources/accounts", layout = RootLayout.class)
-public class AccountsListView extends VerticalLayout implements UsersOnly {
+public class AccountsListView extends VerticalLayout implements Authed {
 
     private AccountListComponent accountListComponent;
 
@@ -52,7 +50,7 @@ public class AccountsListView extends VerticalLayout implements UsersOnly {
         }
 
         private Set<RsAccountDocument> loadAccounts() {
-            return rabbitDbService.loadByGroup(RabbitDbService.buildQueryMap(UsersOnly.getCurrentPrincipalUid(), "services.player-cache", "players"), RsAccountDocument.class);
+            return rabbitDbService.loadByGroup(RabbitDbService.buildQueryMapMultiPrincipal(Authed.getAllPrincipalsIds(), "services.player-cache", "players"), RsAccountDocument.class);
         }
 
         @Getter

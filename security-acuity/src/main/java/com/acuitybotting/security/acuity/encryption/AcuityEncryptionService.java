@@ -14,7 +14,7 @@ public class AcuityEncryptionService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
     public String encodePassword(String password){
-        return bCryptPasswordEncoder.encode("myPassword");
+        return bCryptPasswordEncoder.encode(password);
     }
 
     public boolean comparePassword(String hash, String password){

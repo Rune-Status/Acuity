@@ -1,14 +1,16 @@
 package com.acuitybotting.bot_control.services.rabbit;
 
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.GsonRabbitDocument;
-import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitClient;
 import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.data.flow.messaging.services.identity.RoutingUtil;
-import com.acuitybotting.db.arango.acuity.identities.service.PrincipalLinkService;
+import com.acuitybotting.db.arango.acuity.identities.domain.Principal;
+import com.acuitybotting.db.arango.acuity.identities.service.AcuityUsersService;
+import com.acuitybotting.db.arango.acuity.identities.service.PrincipalLinkTypes;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.GsonRabbitDocument;
+import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +19,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.UUID;
 
@@ -28,10 +29,10 @@ import java.util.UUID;
 @Slf4j
 public class BotControlRabbitService implements CommandLineRunner {
 
+    private final AcuityUsersService acuityUsersService;
     private final ApplicationEventPublisher publisher;
 
     private final RabbitDbService dbService;
-    private final PrincipalLinkService linkService;
 
     @Value("${rabbit.host}")
     private String host;
@@ -41,10 +42,10 @@ public class BotControlRabbitService implements CommandLineRunner {
     private String password;
 
     @Autowired
-    public BotControlRabbitService(ApplicationEventPublisher publisher, RabbitDbService dbService, PrincipalLinkService linkService) {
+    public BotControlRabbitService(AcuityUsersService acuityUsersService, ApplicationEventPublisher publisher, RabbitDbService dbService) {
+        this.acuityUsersService = acuityUsersService;
         this.publisher = publisher;
         this.dbService = dbService;
-        this.linkService = linkService;
     }
 
     private void connect() {
@@ -121,8 +122,8 @@ public class BotControlRabbitService implements CommandLineRunner {
             if (messageEvent.getRouting().contains(".services.bot-control.getLinkJwt")) {
                 String userId = RoutingUtil.routeToUserId(messageEvent.getRouting());
                 try {
-                    messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), linkService.createLinkJwt("rspeer", userId));
-                } catch (UnsupportedEncodingException | MessagingException e) {
+                    messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), acuityUsersService.createLinkJwt(Principal.of(PrincipalLinkTypes.RSPEER, userId)));
+                } catch (MessagingException e) {
                     log.error("Error in services.bot-control.getLinkJwt", e);
                 }
             }

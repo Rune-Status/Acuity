@@ -1,3 +1,4 @@
+/*
 package com.acuitybotting.discord.bot.services.rabbit;
 
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
@@ -6,7 +7,7 @@ import com.acuitybotting.data.flow.messaging.services.client.implementation.rabb
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.data.flow.messaging.services.identity.RoutingUtil;
 import com.acuitybotting.db.arango.acuity.identities.domain.Principal;
-import com.acuitybotting.db.arango.acuity.identities.service.PrincipalLinkService;
+import com.acuitybotting.db.arango.acuity.identities.service.PrincipalLinkTypes;
 import com.acuitybotting.discord.bot.DiscordBotService;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -21,15 +22,17 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+*/
 /**
  * Created by Zachary Herridge on 8/6/2018.
- */
+ *//*
+
 @Service
 @Getter
 @Slf4j
 public class DiscordBotRabbitService implements CommandLineRunner {
 
-    private final PrincipalLinkService linkService;
+
     private final DiscordBotService discordBotService;
     private final ApplicationEventPublisher publisher;
 
@@ -66,7 +69,7 @@ public class DiscordBotRabbitService implements CommandLineRunner {
     }
 
     private Set<Principal> getDiscordPrincipals(String uid) {
-        return linkService.findLinksContaining(uid).stream().filter(principal -> "discord".equals(principal.getType())).collect(Collectors.toSet());
+        return linkService.findLinksContaining(Principal.of(PrincipalLinkTypes.RSPEER, uid)).stream().filter(principal -> PrincipalLinkTypes.DISCORD.equals(principal.getType())).collect(Collectors.toSet());
     }
 
     private void connect() {
@@ -89,3 +92,4 @@ public class DiscordBotRabbitService implements CommandLineRunner {
         connect();
     }
 }
+*/
