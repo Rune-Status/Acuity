@@ -93,12 +93,12 @@ public class BotControlRabbitService implements CommandLineRunner {
                 if (request.getType() == RabbitDbRequest.FIND_BY_KEY) {
                     GsonRabbitDocument gsonRabbitDocument = dbService.loadByKey(queryMap, GsonRabbitDocument.class);
                     try {
-                        messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), gsonRabbitDocument == null ? "" : gson.toJson(gsonRabbitDocument));
+                        messageEvent.getQueue().getChannel().buildResponse(messageEvent.getMessage(), gsonRabbitDocument == null ? "" : gson.toJson(gsonRabbitDocument)).send();
                     } catch (MessagingException e) {
                         e.printStackTrace();
                     }
                 } else if (request.getType() == RabbitDbRequest.FIND_BY_GROUP) {
-                    messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), gson.toJson(dbService.loadByGroup(queryMap, GsonRabbitDocument.class)));
+                    messageEvent.getQueue().getChannel().buildResponse(messageEvent.getMessage(), gson.toJson(dbService.loadByGroup(queryMap, GsonRabbitDocument.class))).send();
                 }
             }
         } catch (MessagingException e) {
@@ -122,7 +122,7 @@ public class BotControlRabbitService implements CommandLineRunner {
             if (messageEvent.getRouting().contains(".services.bot-control.getLinkJwt")) {
                 String userId = RoutingUtil.routeToUserId(messageEvent.getRouting());
                 try {
-                    messageEvent.getQueue().getChannel().respond(messageEvent.getMessage(), acuityUsersService.createLinkJwt(Principal.of(PrincipalLinkTypes.RSPEER, userId)));
+                    messageEvent.getQueue().getChannel().buildResponse(messageEvent.getMessage(), acuityUsersService.createLinkJwt(Principal.of(PrincipalLinkTypes.RSPEER, userId))).send();
                 } catch (MessagingException e) {
                     log.error("Error in services.bot-control.getLinkJwt", e);
                 }

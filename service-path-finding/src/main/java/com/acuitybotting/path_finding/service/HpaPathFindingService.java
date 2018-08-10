@@ -1,7 +1,6 @@
 package com.acuitybotting.path_finding.service;
 
 import com.acuitybotting.data.flow.messaging.services.Message;
-import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitClient;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
@@ -157,7 +156,7 @@ public class HpaPathFindingService {
         String json = outGson.toJson(pathResult);
         log.info("Responding. {} {}", message.getAttributes().get(RESPONSE_QUEUE), json);
         try {
-            messageEvent.getQueue().getChannel().respond(message, json);
+            messageEvent.getQueue().getChannel().buildResponse(message, json).send();
             messageEvent.getQueue().getChannel().acknowledge(message);
         } catch (MessagingException e) {
             e.printStackTrace();

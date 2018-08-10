@@ -1,5 +1,6 @@
 package com.acuitybotting.website.dashboard.views.connections.launchers;
 
+import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.db.arango.acuity.identities.domain.Principal;
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.GsonRabbitDocument;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
@@ -49,11 +50,28 @@ public class LaunchersListView extends VerticalLayout implements Authed {
         public LauncherListComponent(RabbitDbService rabbitDbService, DashboardRabbitService rabbitService) {
             this.rabbitDbService = rabbitDbService;
             this.rabbitService = rabbitService;
-            getControls().add(new Button("Launch Client"));
+            Button launchClient = new Button("Launch Client");
+            launchClient.addClickListener(buttonClickEvent -> launchClients());
+            getControls().add(launchClient);
             withColumn("ID", "33%", document -> new Span(), (document, span) -> span.setText(document.getSubKey()));
             withColumn("Host", "15%", document -> new Span(), (document, span) -> span.setText(String.valueOf(document.getHeaders().getOrDefault("peerHost", ""))));
             withColumn("Last Update", "33%", document -> new Span(), (document, span) -> span.setText(String.valueOf(document.getHeaders().getOrDefault("connectionConfirmationTime", ""))));
             withLoad(GsonRabbitDocument::getSubKey, this::loadLaunchers);
+        }
+
+        private void launchClients() {
+            getSelectedValues().forEach(document -> {
+                String queue = "user." + document.getPrincipalId() + ".queue." + document.getSubKey();
+                try {
+                    rabbitService.getMessagingChannel().buildMessage(
+                            "",
+                            queue,
+                            "{\"rabbitTag\":0,\"body\":\"{\\\"settings\\\":{\\\"rsaccount.email\\\":\\\"testemail.test.com\\\",\\\"rsaccount.password\\\":\\\"testpassword123\\\"}}\"}"
+                    ).setAttribute("type", "startClient").send();
+                } catch (MessagingException e) {
+                    e.printStackTrace();
+                }
+            });
         }
 
         private Set<GsonRabbitDocument> loadLaunchers() {

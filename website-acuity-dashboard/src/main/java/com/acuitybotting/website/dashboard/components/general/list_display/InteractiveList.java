@@ -16,6 +16,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Getter
 public class InteractiveList<T> extends VerticalLayout {
@@ -110,6 +111,14 @@ public class InteractiveList<T> extends VerticalLayout {
             });
             row.setVisible(visible);
         }
+    }
+
+    public Stream<InteractiveListRow<T>> getSelectedRows(){
+        return rows.values().stream().filter(row -> row.getSelectionBox().getValue());
+    }
+
+    public Stream<T> getSelectedValues(){
+        return getSelectedRows().map(InteractiveListRow::getValue);
     }
 
     public InteractiveList<T> addOrUpdate(String id, T value) {

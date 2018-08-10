@@ -70,7 +70,7 @@ public class LauncherRabbitService implements CommandLineRunner {
     }
 
     private void handleMessage(MessageEvent messageEvent) {
-        if ("launchClient".equals(messageEvent.getMessage().getAttributes().get("header.acuity-type"))) {
+        if ("startClient".equals(messageEvent.getMessage().getAttributes().get("type"))) {
             String connectionId = UUID.randomUUID().toString();
 
             if (messageEvent.getMessage().getBody() != null) {

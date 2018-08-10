@@ -1,6 +1,7 @@
 package com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit;
 
 import com.acuitybotting.data.flow.messaging.services.Message;
+import com.acuitybotting.data.flow.messaging.services.client.MessageBuilder;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingQueue;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
@@ -104,33 +105,37 @@ public class RabbitChannel implements MessagingChannel {
     }
 
     @Override
-    public Future<MessageEvent> send(String targetExchange, String targetRouting, String localQueue, String futureId, String body) throws MessagingException {
+    public Future<MessageEvent> send(MessageBuilder messageBuilder) throws MessagingException {
         Channel channel = getChannel();
         if (channel == null || !channel.isOpen()) throw new MessagingException("Not connected to RabbitMQ.");
 
-        rabbitClient.getLog().accept("Sending to exchange '" + targetExchange + "' with routing '" + targetRouting + "' body: " + body);
+        rabbitClient.getLog().accept("Sending to exchange '" + messageBuilder.getTargetExchange() + "' with routing '" + messageBuilder.getTargetRouting() + "' body: " + messageBuilder.getBody());
 
         Map<String, String> messageAttributes = new HashMap<>();
         String generatedId = null;
-        if (futureId != null) messageAttributes.put(FUTURE_ID, futureId);
+        if (messageBuilder.getFutureId() != null) messageAttributes.put(FUTURE_ID, messageBuilder.getFutureId());
 
         MessageFuture future = null;
-        if (localQueue != null) {
+        if (messageBuilder.getLocalQueue() != null) {
             generatedId = generateId();
             future = new MessageFuture();
-            future.whenComplete((message, throwable) -> rabbitClient.getMessageFutures().remove(futureId));
+            future.whenComplete((message, throwable) -> rabbitClient.getMessageFutures().remove(messageBuilder.getFutureId()));
             rabbitClient.getMessageFutures().put(generatedId, future);
             messageAttributes.put(RESPONSE_ID, generatedId);
-            messageAttributes.put(RESPONSE_QUEUE, localQueue);
+            messageAttributes.put(RESPONSE_QUEUE, messageBuilder.getLocalQueue());
+        }
+
+        for (Map.Entry<String, String> entry : messageBuilder.getMessageAttributes().entrySet()) {
+            messageAttributes.put(entry.getKey(), entry.getValue());
         }
 
         Message message = new Message();
         message.setId(generateId());
         message.setAttributes(messageAttributes);
-        message.setBody(body);
+        message.setBody(messageBuilder.getBody());
 
         try {
-            channel.basicPublish(targetExchange, targetRouting, null, rabbitClient.getGson().toJson(message).getBytes());
+            channel.basicPublish(messageBuilder.getTargetExchange(), messageBuilder.getTargetRouting(), null, rabbitClient.getGson().toJson(message).getBytes());
             return future;
         } catch (Throwable e) {
             if (generatedId != null) rabbitClient.getMessageFutures().remove(generatedId);

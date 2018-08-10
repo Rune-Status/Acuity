@@ -113,10 +113,10 @@ public class RabbitDb implements MessagingDb {
         MessagingChannel channel = Optional.ofNullable(queueSupplier.get()).map(MessagingQueue::getChannel).orElse(null);
         if (channel == null) throw new MessagingException("Not connected to RabbitMQ.");
         request.setDatabase(database);
-        channel.send(
+        channel.buildMessage(
                 exchange,
                 getRoute(request),
-                gson.toJson(request));
+                gson.toJson(request)).send();
     }
 
     public String sendWithResponse(RabbitDbRequest request) throws MessagingException {
@@ -125,11 +125,12 @@ public class RabbitDb implements MessagingDb {
         if (channel == null || queue == null) throw new MessagingException("Not connected to RabbitMQ.");
         request.setDatabase(database);
         try {
-            Message message = channel.send(
+            Message message = channel.buildMessage(
                     exchange,
                     getRoute(request),
                     queue,
                     gson.toJson(request))
+                    .send()
                     .get(10, TimeUnit.SECONDS).getMessage();
             return message.getBody();
         } catch (InterruptedException | ExecutionException | TimeoutException e) {

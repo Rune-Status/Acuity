@@ -24,37 +24,37 @@ public interface MessagingChannel {
 
     void acknowledge(Message message) throws MessagingException;
 
-    default void sendToQueue(String queue, String body) throws MessagingException {
-        send("", queue, body);
+    default MessageBuilder buildResponse(Message message, String body) {
+        return buildResponse(message, null, body);
     }
 
-    default Future<MessageEvent> sendToQueue(String queue, String localQueue, String body) throws MessagingException {
-        return send("", queue, localQueue, body);
-    }
-
-    default void send(String exchange, String routingKey, String body) throws MessagingException {
-        send(exchange, routingKey, null, null, body);
-    }
-
-    default Future<MessageEvent> send(String exchange, String routingKey, String localQueue, String body) throws MessagingException {
-        return send(exchange, routingKey, localQueue, null, body);
-    }
-
-    default void respond(Message message, String body) throws MessagingException {
-        respond(message, null, body);
-    }
-
-    default Future<MessageEvent> respond(Message message, String localQueue, String body) throws MessagingException {
+    default MessageBuilder buildResponse(Message message, String localQueue, String body) {
         String responseTopic = message.getAttributes().get(RESPONSE_QUEUE);
         String responseId = message.getAttributes().get(RESPONSE_ID);
 
         Objects.requireNonNull(responseTopic);
         Objects.requireNonNull(responseId);
 
-        return send("", responseTopic, localQueue, responseId, body);
+        return buildMessage("", responseTopic, localQueue, responseId, body);
     }
 
-    Future<MessageEvent> send(String targetExchange, String targetRouting, String localQueue, String futureId, String body) throws MessagingException;
+    default MessageBuilder buildMessage(String targetExchange, String targetRouting, String body) {
+        return buildMessage(targetExchange, targetRouting, null, body);
+    }
+
+    default MessageBuilder buildMessage(String targetExchange, String targetRouting, String localQueue, String body) {
+        return buildMessage(targetExchange, targetRouting, localQueue, null, body);
+    }
+
+    default MessageBuilder buildMessage(String targetExchange, String targetRouting, String localQueue, String futureId, String body) {
+        return createMessage().setTargetExchange(targetExchange).setTargetRouting(targetRouting).setLocalQueue(localQueue).setFutureId(futureId).setBody(body);
+    }
+
+    default MessageBuilder createMessage(){
+        return new MessageBuilder(this);
+    }
+
+    Future<MessageEvent> send(MessageBuilder messageBuilder) throws MessagingException;
 
     MessageFuture getMessageFuture(String id);
 }

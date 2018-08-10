@@ -7,10 +7,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import lombok.Getter;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 @Getter
 public class InteractiveListRow<T> extends HorizontalLayout {
@@ -19,6 +16,7 @@ public class InteractiveListRow<T> extends HorizontalLayout {
     private InteractiveList<T> list;
     private String rowId;
     private Map<String, Object> columnComponents = new HashMap<>();
+    private T value;
 
     public InteractiveListRow(InteractiveList parent, String id) {
         this.list = parent;
@@ -30,12 +28,9 @@ public class InteractiveListRow<T> extends HorizontalLayout {
         add(selectionBox);
     }
 
-    public InteractiveList getList() {
-        return list;
-    }
-
     @SuppressWarnings("unchecked")
     public void update(T value) {
+        this.value = value;
         for (InteractiveListColumn column : list.getColumns()) {
             Object component = columnComponents.computeIfAbsent(column.getUid(), s -> {
                 Component apply = (Component) column.getConstructMapping().apply(value);
