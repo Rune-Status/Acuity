@@ -21,4 +21,22 @@ public class Principal {
         principal.setUid(uid);
         return principal;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Principal)) return false;
+
+        Principal principal = (Principal) o;
+
+        if (getType() != null ? !getType().equals(principal.getType()) : principal.getType() != null) return false;
+        return getUid() != null ? getUid().equals(principal.getUid()) : principal.getUid() == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getType() != null ? getType().hashCode() : 0;
+        result = 31 * result + (getUid() != null ? getUid().hashCode() : 0);
+        return result;
+    }
 }

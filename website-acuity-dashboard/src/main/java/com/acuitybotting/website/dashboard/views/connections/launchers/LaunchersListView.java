@@ -9,6 +9,7 @@ import com.acuitybotting.website.dashboard.components.general.list_display.Inter
 import com.acuitybotting.website.dashboard.security.view.interfaces.Authed;
 import com.acuitybotting.website.dashboard.views.RootLayout;
 import com.acuitybotting.website.dashboard.views.connections.ConnectionsTabNavComponent;
+import com.google.gson.Gson;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Span;
@@ -17,8 +18,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
 
-import java.util.Collection;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -62,11 +62,13 @@ public class LaunchersListView extends VerticalLayout implements Authed {
         private void launchClients() {
             getSelectedValues().forEach(document -> {
                 String queue = "user." + document.getPrincipalId() + ".queue." + document.getSubKey();
+                String uid = UUID.randomUUID().toString();
+                String command = "{RSPEER_JAVA_PATH} -Djava.net.preferIPv4Stack=true -jar \"{RSPEER_SYSTEM_HOME}RSPeer/cache/rspeer.jar\" -acuityConnectionId " + uid;
                 try {
                     rabbitService.getMessagingChannel().buildMessage(
                             "",
                             queue,
-                            "{\"rabbitTag\":0,\"body\":\"{\\\"settings\\\":{\\\"rsaccount.email\\\":\\\"testemail.test.com\\\",\\\"rsaccount.password\\\":\\\"testpassword123\\\"}}\"}"
+                            new Gson().toJson(Collections.singletonMap("command", command))
                     ).setAttribute("type", "startClient").send();
                 } catch (MessagingException e) {
                     e.printStackTrace();
