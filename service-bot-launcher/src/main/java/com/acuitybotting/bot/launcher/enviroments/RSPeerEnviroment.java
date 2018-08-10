@@ -1,4 +1,4 @@
-package com.acuitybotting.bot.launcher.services;
+package com.acuitybotting.bot.launcher.enviroments;
 
 import com.acuitybotting.common.utils.OS;
 

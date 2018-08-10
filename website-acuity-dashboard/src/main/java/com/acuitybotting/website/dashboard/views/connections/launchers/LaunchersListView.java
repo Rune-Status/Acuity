@@ -69,7 +69,7 @@ public class LaunchersListView extends VerticalLayout implements Authed {
                             "",
                             queue,
                             new Gson().toJson(Collections.singletonMap("command", command))
-                    ).setAttribute("type", "startClient").send();
+                    ).setAttribute("type", "runCommand").send();
                 } catch (MessagingException e) {
                     e.printStackTrace();
                 }

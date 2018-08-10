@@ -1,6 +1,6 @@
 package com.acuitybotting.bot.launcher.utils;
 
-import com.acuitybotting.bot.launcher.services.RSPeerEnviroment;
+import com.acuitybotting.bot.launcher.enviroments.RSPeerEnviroment;
 
 import java.io.File;
 import java.io.IOException;
