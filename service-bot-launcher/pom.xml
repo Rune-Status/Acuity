@@ -16,6 +16,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.github.oshi</groupId>
+            <artifactId>oshi-json</artifactId>
+            <version>3.7.2</version>
+        </dependency>
+        <dependency>
             <groupId>com.acuitybotting</groupId>
             <artifactId>data-flow-messaging</artifactId>
             <version>1.0-SNAPSHOT</version>

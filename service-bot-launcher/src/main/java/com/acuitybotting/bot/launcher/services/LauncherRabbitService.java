@@ -1,5 +1,6 @@
 package com.acuitybotting.bot.launcher.services;
 
+
 import com.acuitybotting.bot.launcher.enviroments.RSPeerEnviroment;
 import com.acuitybotting.bot.launcher.utils.CommandLine;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
@@ -11,10 +12,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import oshi.json.SystemInfo;
+import oshi.json.hardware.HardwareAbstractionLayer;
+import oshi.json.json.AbstractOshiJsonObject;
+import oshi.json.software.os.OperatingSystem;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by Zachary Herridge on 8/6/2018.
@@ -39,9 +46,21 @@ public class LauncherRabbitService implements CommandLineRunner {
     @Scheduled(initialDelay = 5000, fixedDelay = 60000)
     private void updateState(){
         try {
+            SystemInfo si = new SystemInfo();
+            HardwareAbstractionLayer hal = si.getHardware();
+            OperatingSystem os = si.getOperatingSystem();
+
             Map<String, Object> state = new HashMap<>();
 
-            state.put("javaPath", System.getProperty("java.class.path"));
+            state.put("processes", Arrays.stream(os.getProcesses(5, oshi.software.os.OperatingSystem.ProcessSort.MEMORY)).map(AbstractOshiJsonObject::toJSON).collect(Collectors.toList()));
+
+            state.put("cpuLoad", hal.getProcessor().getSystemCpuLoad());
+            state.put("cpuUpTime", hal.getProcessor().getSystemUptime());
+            state.put("cpuTemp", hal.getSensors().getCpuTemperature());
+
+            state.put("halMemoryAvailable", hal.getMemory().getAvailable());
+            state.put("memoryTotal", hal.getMemory().getTotal());
+
             state.put("javaHome", System.getProperty("java.home"));
             state.put("javaVendor", System.getProperty("java.vendor"));
             state.put("javaVersionUrl", System.getProperty("java.vendor.url"));
