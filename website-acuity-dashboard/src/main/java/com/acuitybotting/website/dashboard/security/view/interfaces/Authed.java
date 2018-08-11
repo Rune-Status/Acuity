@@ -19,12 +19,13 @@ import java.util.stream.Collectors;
  */
 public interface Authed extends BeforeEnterObserver {
 
+    String ACUITY_USER = "acuityUser";
     String ACUITY_PRINCIPAL = "acuityPrincipal";
     String ALL_PRINCIPALS = "allPrincipals";
 
     @Override
     default void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
-        if (getAcuityPrincipal() == null) beforeEnterEvent.rerouteTo(LoginView.class);
+        if (getAcuityUser() == null) beforeEnterEvent.rerouteTo(LoginView.class);
     }
 
     @SuppressWarnings("unchecked")
@@ -47,9 +48,14 @@ public interface Authed extends BeforeEnterObserver {
 
         UI current = UI.getCurrent();
         if (current == null) return false;
+        current.getSession().setAttribute(Authed.ACUITY_USER, user);
         current.getSession().setAttribute(Authed.ACUITY_PRINCIPAL, acuityPrincipal);
         current.getSession().setAttribute(Authed.ALL_PRINCIPALS, principals);
         return true;
+    }
+
+    static AcuityBottingUser getAcuityUser(){
+        return (AcuityBottingUser) UI.getCurrent().getSession().getAttribute(ACUITY_USER);
     }
 
     static String getAcuityPrincipalId(){

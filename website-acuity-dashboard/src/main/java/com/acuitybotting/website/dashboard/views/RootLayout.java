@@ -6,7 +6,7 @@ import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.HasElement;
 import com.vaadin.flow.component.dependency.StyleSheet;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.page.BodySize;
 import com.vaadin.flow.router.RouterLayout;
@@ -20,41 +20,40 @@ import com.vaadin.flow.theme.lumo.Lumo;
 @BodySize(height = "100vh", width = "100vw")
 @Theme(value = Lumo.class, variant = Lumo.DARK)
 @StyleSheet("/acuity.css")
-public class RootLayout extends VerticalLayout implements RouterLayout {
+public class RootLayout extends Div implements RouterLayout {
 
     private static EventBus globalEventBus = new EventBus();
 
-    private TopMenuComponent topMenuComponent = new TopMenuComponent();
-    private HorizontalLayout content = new HorizontalLayout();
-    private VerticalLayout rootContent = new VerticalLayout();
+    private VerticalLayout content = new VerticalLayout();
 
     public RootLayout() {
         setSizeFull();
-        setSpacing(false);
-        setMargin(false);
-        setPadding(false);
-
         getClassNames().add("acuity-root");
+        getElement().getStyle().set("overflow", "auto");
 
-        rootContent.getClassNames().add("acuity-root-content");
-        rootContent.setSizeFull();
-        rootContent.setMargin(false);
-        rootContent.setPadding(false);
-        rootContent.setSpacing(false);
+        VerticalLayout root = new VerticalLayout();
+        root.setSpacing(false);
+        root.setMargin(false);
+        root.setPadding(false);
+        root.getClassNames().add("acuity-container");
 
-        content.add(rootContent);
-        content.expand(rootContent);
-
+        content.getClassNames().add("acuity-content");
         content.setSizeFull();
-        add(topMenuComponent, content);
+        content.setMargin(false);
+        content.setPadding(false);
+        content.setSpacing(false);
+
+        TopMenuComponent topMenuComponent = new TopMenuComponent();
+        root.add(topMenuComponent, content);
+
+        add(root);
     }
 
     @Override
     public void showRouterLayoutContent(HasElement content) {
         content.getElement().getComponent().ifPresent(component -> {
-            rootContent.removeAll();
-            component.getElement().getStyle().set("overflow", "auto");
-            rootContent.add(component);
+            this.content.removeAll();
+            this.content.add(component);
         });
     }
 

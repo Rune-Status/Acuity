@@ -28,7 +28,10 @@ public class AcuityBottingUser {
 
     private String email;
     private String displayName;
+
     private String passwordHash;
+    private String masterKey;
 
     private Set<Principal> linkedPrincipals;
+
 }

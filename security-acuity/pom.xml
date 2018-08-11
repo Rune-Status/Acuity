@@ -13,19 +13,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
-    <repositories>
-    <repository>
-        <id>jitpack.io</id>
-        <url>https://jitpack.io</url>
-    </repository>
-</repositories>
-
     <dependencies>
-        <dependency>
-            <groupId>com.github.rockaport</groupId>
-            <artifactId>alice</artifactId>
-            <version>0.8.0</version>
-        </dependency>
         <dependency>
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
@@ -56,6 +44,11 @@
             <artifactId>lombok</artifactId>
             <version>RELEASE</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okio</groupId>
+            <artifactId>okio</artifactId>
+            <version>1.11.0</version>
         </dependency>
     </dependencies>
 </project>

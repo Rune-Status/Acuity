@@ -51,7 +51,6 @@ public class LauncherRabbitService implements CommandLineRunner {
             OperatingSystem os = si.getOperatingSystem();
 
             Map<String, Object> state = new HashMap<>();
-
             state.put("processes", Arrays.stream(os.getProcesses(5, oshi.software.os.OperatingSystem.ProcessSort.MEMORY)).map(AbstractOshiJsonObject::toJSON).collect(Collectors.toList()));
 
             state.put("cpuLoad", hal.getProcessor().getSystemCpuLoad());

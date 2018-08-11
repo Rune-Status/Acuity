@@ -17,6 +17,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -115,5 +116,34 @@ public class AcuityUsersService {
         }
 
         return false;
+    }
+
+    public boolean createOrUpdateMasterKey(String acuityPrincipalId, String oldPassword, String updatedPassword) {
+        AcuityBottingUser acuityBottingUser = userRepository.findByPrincipalId(acuityPrincipalId).orElse(null);
+        if (acuityBottingUser == null) return false;
+
+        try {
+            String encrypted = acuityBottingUser.getMasterKey();
+            if (encrypted == null){
+                acuityBottingUser.setMasterKey(encryptionService.encrypt(updatedPassword, generateMasterKey()));
+            }
+            else {
+                acuityBottingUser.setMasterKey(encryptionService.encrypt(updatedPassword, encryptionService.decrypt(oldPassword, encrypted)));
+            }
+
+            userRepository.save(acuityBottingUser);
+            return true;
+        }
+        catch (Throwable e){
+            log.error("Error during encryption.");
+        }
+
+        return false;
+    }
+
+    private String generateMasterKey(){
+        byte[] bytes = new byte[256];
+        ThreadLocalRandom.current().nextBytes(bytes);
+        return Base64.getEncoder().encodeToString(bytes);
     }
 }

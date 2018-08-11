@@ -2,7 +2,7 @@ package com.acuitybotting.website.dashboard.components.general.nav;
 
 import com.acuitybotting.website.dashboard.views.connections.clients.ClientsListView;
 import com.acuitybotting.website.dashboard.views.resources.accounts.AccountsListView;
-import com.acuitybotting.website.dashboard.views.user.Profile;
+import com.acuitybotting.website.dashboard.views.user.ProfileView;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 
@@ -34,7 +34,7 @@ public class TopMenuComponent extends HorizontalLayout {
         bar.add(barLeft);
 
         HorizontalLayout barRight = new HorizontalLayout();
-        barRight.add(new NavigationButton("Profile", null, Profile.class));
+        barRight.add(new NavigationButton("Profile", null, ProfileView.class));
         bar.add(barRight);
 
         add(bar);
