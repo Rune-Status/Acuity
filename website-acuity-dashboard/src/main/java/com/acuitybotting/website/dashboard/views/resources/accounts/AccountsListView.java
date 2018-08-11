@@ -5,6 +5,7 @@ import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.RsAccou
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.website.dashboard.components.general.list_display.InteractiveList;
 import com.acuitybotting.website.dashboard.security.view.interfaces.Authed;
+import com.acuitybotting.website.dashboard.utils.Authentication;
 import com.acuitybotting.website.dashboard.views.RootLayout;
 import com.acuitybotting.website.dashboard.views.resources.ResourcesTabsComponent;
 import com.vaadin.flow.component.AttachEvent;
@@ -59,8 +60,8 @@ public class AccountsListView extends VerticalLayout implements Authed {
         private Set<RsAccountDocument> loadAccounts() {
             return rabbitDbService
                     .loadByGroup(
-                            RabbitDbService.buildQueryMapMultiPrincipal(
-                                    Authed.getAllPrincipalsIds(),
+                            RabbitDbService.buildQueryMap(
+                                    Authentication.getAcuityPrincipalId(),
                                     "services.player-cache",
                                     "players"
                             ),

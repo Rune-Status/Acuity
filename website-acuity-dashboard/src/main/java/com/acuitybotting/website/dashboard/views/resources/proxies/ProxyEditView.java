@@ -8,6 +8,7 @@ import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.website.dashboard.components.general.fields.UserMasterPasswordField;
 import com.acuitybotting.website.dashboard.components.general.separator.TitleSeparator;
 import com.acuitybotting.website.dashboard.security.view.interfaces.Authed;
+import com.acuitybotting.website.dashboard.utils.Authentication;
 import com.acuitybotting.website.dashboard.views.RootLayout;
 import com.google.gson.Gson;
 import com.vaadin.flow.component.AttachEvent;
@@ -85,7 +86,7 @@ public class ProxyEditView extends VerticalLayout implements HasUrlParameter<Str
 
     private Map<String, Object> getQueryMap(String proxyId){
         return RabbitDbService.buildQueryMap(
-                Authed.getAcuityPrincipalId(),
+                Authentication.getAcuityPrincipalId(),
                 "services.bot-control-data.proxies",
                 "proxy",
                 proxyId

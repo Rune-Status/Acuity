@@ -32,6 +32,8 @@ public class AcuityBottingUser {
     private String passwordHash;
     private String masterKey;
 
+    private String connectionKey;
+
     private Set<Principal> linkedPrincipals;
 
 }

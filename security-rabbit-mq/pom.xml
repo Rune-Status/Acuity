@@ -53,7 +53,7 @@
         </dependency>
         <dependency>
             <groupId>com.acuitybotting</groupId>
-            <artifactId>security-acuity</artifactId>
+            <artifactId>service-acuity-identities</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>

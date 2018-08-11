@@ -5,6 +5,7 @@ import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocume
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.website.dashboard.components.general.list_display.InteractiveList;
 import com.acuitybotting.website.dashboard.security.view.interfaces.Authed;
+import com.acuitybotting.website.dashboard.utils.Authentication;
 import com.acuitybotting.website.dashboard.utils.Layouts;
 import com.acuitybotting.website.dashboard.views.RootLayout;
 import com.acuitybotting.website.dashboard.views.resources.ResourcesTabsComponent;
@@ -66,8 +67,8 @@ public class ProxiesListView extends VerticalLayout implements Authed {
         private Set<Proxy> loadProxies() {
             return rabbitDbService
                     .loadByGroup(
-                            RabbitDbService.buildQueryMapMultiPrincipal(
-                                    Authed.getAllPrincipalsIds(),
+                            RabbitDbService.buildQueryMap(
+                                    Authentication.getAcuityPrincipalId(),
                                     "services.bot-control-data.proxies",
                                     "proxy"
                             ),

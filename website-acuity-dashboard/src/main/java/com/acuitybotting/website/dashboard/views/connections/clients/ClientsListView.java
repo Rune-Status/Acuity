@@ -5,6 +5,7 @@ import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.website.dashboard.DashboardRabbitService;
 import com.acuitybotting.website.dashboard.components.general.list_display.InteractiveList;
 import com.acuitybotting.website.dashboard.security.view.interfaces.Authed;
+import com.acuitybotting.website.dashboard.utils.Authentication;
 import com.acuitybotting.website.dashboard.views.RootLayout;
 import com.acuitybotting.website.dashboard.views.connections.ConnectionsTabNavComponent;
 import com.vaadin.flow.component.AttachEvent;
@@ -55,7 +56,7 @@ public class ClientsListView extends VerticalLayout implements Authed {
 
         private Set<GsonRabbitDocument> loadClients() {
             return rabbitDbService
-                    .loadByGroup(RabbitDbService.buildQueryMapMultiPrincipal(Authed.getAllPrincipalsIds(), "services.registered-connections", "connections"), GsonRabbitDocument.class)
+                    .loadByGroup(RabbitDbService.buildQueryMap(Authentication.getAcuityPrincipalId(), "services.registered-connections", "connections"), GsonRabbitDocument.class)
                     .stream()
                     .filter(connection -> connection.getSubKey().startsWith("RPC_") && (boolean) connection.getHeaders().getOrDefault("connected", false))
                     .collect(Collectors.toSet());

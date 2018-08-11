@@ -1,6 +1,6 @@
 package com.acuitybotting.security.rabbitmq.api;
 
-import com.acuitybotting.security.jwt.JwtPrincipalService;
+import com.acuitybotting.db.arango.acuity.identities.service.AcuityUsersService;
 import com.acuitybotting.security.jwt.domain.JwtPrincipal;
 import com.acuitybotting.security.rabbitmq.domain.Permission;
 import com.acuitybotting.security.rabbitmq.domain.ResourceType;
@@ -29,20 +29,17 @@ public class RabbitAuthBackendHttpController {
     private static final String REFUSED = "deny";
     private static final String ACCEPTED = "allow";
 
-    private final JwtPrincipalService jwtPrincipalService;
+    private final AcuityUsersService acuityUserService;
 
     @Autowired
-    public RabbitAuthBackendHttpController(JwtPrincipalService jwtPrincipalService) {
-        this.jwtPrincipalService = jwtPrincipalService;
+    public RabbitAuthBackendHttpController(AcuityUsersService acuityUserService) {
+        this.acuityUserService = acuityUserService;
     }
 
     @RequestMapping("user")
     public String user(@RequestParam("username") String username, @RequestParam("password") String password) {
         log.info("Trying to authenticate user {}", username);
-        JwtPrincipal jwtPrincipal = jwtPrincipalService.getPrincipal(password).orElse(null);
-        if (jwtPrincipal == null) return REFUSED;
-        if (username.equals(jwtPrincipal.getPrincipalUid())) return ACCEPTED + StringUtils.collectionToDelimitedString(Collections.emptyList(), " ", " ", "");
-        return REFUSED;
+        return acuityUserService.isValidConnectionKey(username, password) ? ACCEPTED + StringUtils.collectionToDelimitedString(Collections.emptyList(), " ", " ", "") : REFUSED;
     }
 
     @RequestMapping("vhost")
@@ -55,8 +52,10 @@ public class RabbitAuthBackendHttpController {
     public String resource(ResourceCheck check) {
         log.info("Checking resource access with {}", check);
 
-        if (ResourceType.QUEUE.equals(check.getResource()) && check.getName().startsWith("user." + check.getUsername() + ".queue.")) return ACCEPTED;
-        else if (ResourceType.EXCHANGE.equals(check.getResource())  && !Permission.CONFIGURE.equals(check.getPermission()) && check.getName().equals("acuitybotting.general")) return ACCEPTED;
+        if (ResourceType.QUEUE.equals(check.getResource()) && check.getName().startsWith("user." + check.getUsername() + ".queue."))
+            return ACCEPTED;
+        else if (ResourceType.EXCHANGE.equals(check.getResource()) && !Permission.CONFIGURE.equals(check.getPermission()) && check.getName().equals("acuitybotting.general"))
+            return ACCEPTED;
 
         return REFUSED;
     }
@@ -66,7 +65,8 @@ public class RabbitAuthBackendHttpController {
         log.info("Checking topic access with {}", check);
 
         if (Permission.CONFIGURE.equals(check.getPermission())) return REFUSED;
-        if (ResourceType.TOPIC.equals(check.getResource()) && check.getName().equals("acuitybotting.general") && check.getRouting_key().startsWith("user." + check.getUsername() + ".")) return ACCEPTED;
+        if (ResourceType.TOPIC.equals(check.getResource()) && check.getName().equals("acuitybotting.general") && check.getRouting_key().startsWith("user." + check.getUsername() + "."))
+            return ACCEPTED;
 
         return REFUSED;
     }

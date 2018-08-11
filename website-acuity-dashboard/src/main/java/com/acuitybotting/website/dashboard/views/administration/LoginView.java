@@ -3,6 +3,7 @@ package com.acuitybotting.website.dashboard.views.administration;
 import com.acuitybotting.db.arango.acuity.identities.domain.AcuityBottingUser;
 import com.acuitybotting.db.arango.acuity.identities.service.AcuityUsersService;
 import com.acuitybotting.website.dashboard.security.view.interfaces.Authed;
+import com.acuitybotting.website.dashboard.utils.Authentication;
 import com.acuitybotting.website.dashboard.utils.Notifications;
 import com.acuitybotting.website.dashboard.views.RootLayout;
 import com.acuitybotting.website.dashboard.views.user.ProfileView;
@@ -33,7 +34,9 @@ public class LoginView extends VerticalLayout {
             AcuityBottingUser user = acuityUserService.login(username.getValue(), password.getValue()).orElse(null);
 
             getUI().ifPresent(ui -> {
-                if (user != null && Authed.applyUser(user)){
+                if (user != null){
+                    Authentication.setAcuityPrincipalId(user.getPrincipalId());
+                    Authentication.updateSession(acuityUserService);
                     ui.navigate(ProfileView.class);
                     Notifications.display("Welcome " + user.getDisplayName() + ".");
                 }

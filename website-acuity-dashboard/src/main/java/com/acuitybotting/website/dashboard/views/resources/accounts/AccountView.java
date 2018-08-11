@@ -4,6 +4,7 @@ import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocume
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.RsAccountInfo;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.website.dashboard.security.view.interfaces.Authed;
+import com.acuitybotting.website.dashboard.utils.Authentication;
 import com.acuitybotting.website.dashboard.utils.Notifications;
 import com.acuitybotting.website.dashboard.views.RootLayout;
 import com.vaadin.flow.component.AttachEvent;
@@ -44,7 +45,7 @@ public class AccountView extends VerticalLayout implements HasUrlParameter<Strin
 
     private Map<String, Object> getQueryMap(String accountId){
         return RabbitDbService.buildQueryMap(
-                Authed.getAcuityPrincipalId(),
+                Authentication.getAcuityPrincipalId(),
                 "services.player-cache",
                 "players",
                 accountId

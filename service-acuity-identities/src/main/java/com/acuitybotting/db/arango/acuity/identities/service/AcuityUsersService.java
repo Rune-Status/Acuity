@@ -8,6 +8,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -107,6 +108,7 @@ public class AcuityUsersService {
         user.setEmail(email.toLowerCase());
         user.setPasswordHash(encryptionService.encodePassword(password));
         user.setDisplayName(displayName);
+        user.setConnectionKey(generateKey());
         user.setLinkedPrincipals(new HashSet<>());
 
         try {
@@ -126,7 +128,7 @@ public class AcuityUsersService {
         try {
             String encrypted = acuityBottingUser.getMasterKey();
             if (encrypted == null){
-                acuityBottingUser.setMasterKey(encryptionService.encrypt(updatedPassword, generateMasterKey()));
+                acuityBottingUser.setMasterKey(encryptionService.encrypt(updatedPassword, generateKey()));
             }
             else {
                 acuityBottingUser.setMasterKey(encryptionService.encrypt(updatedPassword, encryptionService.decrypt(oldPassword, encrypted)));
@@ -142,7 +144,7 @@ public class AcuityUsersService {
         return false;
     }
 
-    private String generateMasterKey(){
+    private static String generateKey(){
         byte[] bytes = new byte[256];
         ThreadLocalRandom.current().nextBytes(bytes);
         return Base64.getEncoder().encodeToString(bytes);
@@ -160,5 +162,29 @@ public class AcuityUsersService {
         }
 
         return null;
+    }
+
+    public boolean isValidConnectionKey(String acuityPrincipalId, String connectionKey) {
+        return connectionKey != null && findUserByUid(acuityPrincipalId).map(acuityBottingUser -> connectionKey.equals(acuityBottingUser.getConnectionKey())).orElse(false);
+    }
+
+    public boolean generateNewConnectionKey(String acuityPrincipalId) {
+        AcuityBottingUser acuityBottingUser = findUserByUid(acuityPrincipalId).orElse(null);
+        if (acuityBottingUser == null) return false;
+
+        try {
+            Map<String, String> properties = new HashMap<>();
+            properties.put("secret", generateKey());
+            properties.put("principalId", acuityPrincipalId);
+
+            acuityBottingUser.setConnectionKey(Base64.getEncoder().encodeToString(new Gson().toJson(properties).getBytes()));
+            userRepository.save(acuityBottingUser);
+            return true;
+        }
+        catch (Throwable e){
+            log.error("Error updating connection key.", e);
+        }
+
+        return false;
     }
 }
