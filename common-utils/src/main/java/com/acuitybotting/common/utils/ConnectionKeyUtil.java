@@ -6,6 +6,14 @@ import java.nio.file.Files;
 
 public class ConnectionKeyUtil {
 
+    public static void writeKey(String key){
+        try {
+            Files.write(new File(System.getProperty("user.home"), "acuity-connection-key.txt").toPath(), key.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static String findKey() {
         String key = System.getenv("acuity.connection-key");
         if (key != null) return key;

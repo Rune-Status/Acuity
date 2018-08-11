@@ -26,7 +26,7 @@ public class RabbitHub {
     private Set<MessagingChannel> channelPool = new HashSet<>();
 
     public void start(String connectionPrefix, String connectionKey, int poolSize){
-        Objects.requireNonNull(connectionKey, "Failed to acquire user jwt.");
+        Objects.requireNonNull(connectionKey, "Failed to acquire user connection key.");
         sub = new Gson().fromJson(new String(Base64.getDecoder().decode(connectionKey)), JsonObject.class).get("principalId").getAsString();
         allowedPrefix = "user." + sub + ".";
         connectionId = connectionPrefix + "_" + UUID.randomUUID().toString();

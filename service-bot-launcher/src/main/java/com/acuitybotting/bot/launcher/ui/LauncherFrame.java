@@ -27,7 +27,10 @@ public class LauncherFrame extends JFrame {
         getContentPane().add(keyField);
 
         JButton set = new JButton("Set");
-        set.addActionListener(e -> launcherRabbitService.connect());
+        set.addActionListener(e -> {
+            ConnectionKeyUtil.writeKey(getConnectionKey());
+            launcherRabbitService.connect();
+        });
         getContentPane().add(set, BorderLayout.SOUTH);
 
         setTitle("Acuity Launcher");
