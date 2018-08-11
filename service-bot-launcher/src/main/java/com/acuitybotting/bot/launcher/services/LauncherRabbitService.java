@@ -2,6 +2,7 @@ package com.acuitybotting.bot.launcher.services;
 
 
 import com.acuitybotting.bot.launcher.enviroments.RSPeerEnviroment;
+import com.acuitybotting.bot.launcher.ui.LauncherFrame;
 import com.acuitybotting.bot.launcher.utils.CommandLine;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.utils.RabbitHub;
@@ -32,9 +33,9 @@ public class LauncherRabbitService implements CommandLineRunner {
 
     private RabbitHub rabbitHub = new RabbitHub();
 
-    private void connect() {
+    public void connect() {
         try {
-            rabbitHub.start("ABL", RSPeerEnviroment.getSession(), 1);
+            rabbitHub.start("ABL", LauncherFrame.getInstance().getConnectionKey(), 1);
             rabbitHub.createLocalQueue(true)
                     .withListener(this::handleMessage)
                     .open(true);
@@ -46,6 +47,7 @@ public class LauncherRabbitService implements CommandLineRunner {
     @Scheduled(initialDelay = 5000, fixedDelay = 60000)
     private void updateState(){
         try {
+            if (rabbitHub.getRandomChannel() == null) return;
             SystemInfo si = new SystemInfo();
             HardwareAbstractionLayer hal = si.getHardware();
             OperatingSystem os = si.getOperatingSystem();
@@ -98,6 +100,6 @@ public class LauncherRabbitService implements CommandLineRunner {
 
     @Override
     public void run(String... strings) throws Exception {
-        connect();
+        LauncherFrame.setInstance(new LauncherFrame(this)).setVisible(true);
     }
 }

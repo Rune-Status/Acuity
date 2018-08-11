@@ -7,20 +7,3 @@ language: java
 
 script:
   - mvn package
-  - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" ;
-  - if [[ "$TRAVIS_TAG" = *"bot-control-"* ]]; then
-      docker build service-bot-control/ -t acuitybotting/service-bot-control ;
-      docker push acuitybotting/service-bot-control ;
-    fi
-  - if [[ "$TRAVIS_TAG" = *"path-finding-"* ]]; then
-      docker build service-path-finding/ -t acuitybotting/service-path-finding ;
-      docker push acuitybotting/service-path-finding ;
-    fi
-  - if [[ "$TRAVIS_TAG" = *"dashboard-"* ]]; then
-      docker build website-acuity-dashboard/ -t acuitybotting/website-acuity-dashboard ;
-      docker push acuitybotting/website-acuity-dashboard ;
-    fi
-  - if [[ "$TRAVIS_TAG" = *"discord-bot-"* ]]; then
-      docker build service-discord-bot/ -t acuitybotting/service-discord-bot ;
-      docker push acuitybotting/service-discord-bot ;
-    fi

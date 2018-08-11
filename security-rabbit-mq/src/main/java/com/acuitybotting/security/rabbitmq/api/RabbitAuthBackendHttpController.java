@@ -39,6 +39,9 @@ public class RabbitAuthBackendHttpController {
     @RequestMapping("user")
     public String user(@RequestParam("username") String username, @RequestParam("password") String password) {
         log.info("Trying to authenticate user {}", username);
+
+        if (username.equals("acuity-guest")) return ACCEPTED;
+
         return acuityUserService.isValidConnectionKey(username, password) ? ACCEPTED + StringUtils.collectionToDelimitedString(Collections.emptyList(), " ", " ", "") : REFUSED;
     }
 
@@ -65,6 +68,13 @@ public class RabbitAuthBackendHttpController {
         log.info("Checking topic access with {}", check);
 
         if (Permission.CONFIGURE.equals(check.getPermission())) return REFUSED;
+
+        if (check.getUsername().equals("acuity-guest")){
+            if (ResourceType.TOPIC.equals(check.getResource()) && check.getName().equals("acuitybotting.general") && check.getRouting_key().startsWith("user." + check.getUsername() + ".services.path-finding.find-path"))
+                return ACCEPTED;
+            return REFUSED;
+        }
+
         if (ResourceType.TOPIC.equals(check.getResource()) && check.getName().equals("acuitybotting.general") && check.getRouting_key().startsWith("user." + check.getUsername() + "."))
             return ACCEPTED;
 

@@ -6,11 +6,10 @@ import com.acuitybotting.data.flow.messaging.services.client.MessagingQueue;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitClient;
 import com.acuitybotting.data.flow.messaging.services.db.implementations.rabbit.RabbitDb;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Created by Zachary Herridge on 8/10/2018.
@@ -26,14 +25,14 @@ public class RabbitHub {
     private RabbitClient rabbitClient;
     private Set<MessagingChannel> channelPool = new HashSet<>();
 
-    public void start(String connectionPrefix, String jwt, int poolSize){
-        Objects.requireNonNull(jwt, "Failed to acquire user jwt.");
-        sub = JwtUtil.decodeBody(jwt).get("sub").getAsString();
+    public void start(String connectionPrefix, String connectionKey, int poolSize){
+        Objects.requireNonNull(connectionKey, "Failed to acquire user jwt.");
+        sub = new Gson().fromJson(new String(Base64.getDecoder().decode(connectionKey)), JsonObject.class).get("principalId").getAsString();
         allowedPrefix = "user." + sub + ".";
         connectionId = connectionPrefix + "_" + UUID.randomUUID().toString();
 
         rabbitClient = new RabbitClient();
-        rabbitClient.auth("195.201.248.164", sub, jwt);
+        rabbitClient.auth("195.201.248.164", sub, connectionKey);
         rabbitClient.connect(connectionId);
 
         for (int i = 0; i < poolSize; i++) {
