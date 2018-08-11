@@ -1,7 +1,6 @@
 package com.acuitybotting.website.dashboard.views;
 
 import com.acuitybotting.website.dashboard.components.general.nav.TopMenuComponent;
-import com.google.common.eventbus.EventBus;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.HasElement;
@@ -21,8 +20,6 @@ import com.vaadin.flow.theme.lumo.Lumo;
 @Theme(value = Lumo.class, variant = Lumo.DARK)
 @StyleSheet("/acuity.css")
 public class RootLayout extends Div implements RouterLayout {
-
-    private static EventBus globalEventBus = new EventBus();
 
     private VerticalLayout content = new VerticalLayout();
 
@@ -44,9 +41,9 @@ public class RootLayout extends Div implements RouterLayout {
         content.setSpacing(false);
 
         TopMenuComponent topMenuComponent = new TopMenuComponent();
-        root.add(topMenuComponent, content);
+        root.add(content);
 
-        add(root);
+        add(topMenuComponent, root);
     }
 
     @Override
@@ -55,10 +52,6 @@ public class RootLayout extends Div implements RouterLayout {
             this.content.removeAll();
             this.content.add(component);
         });
-    }
-
-    public static EventBus getGlobalEventBus() {
-        return globalEventBus;
     }
 
     @Override

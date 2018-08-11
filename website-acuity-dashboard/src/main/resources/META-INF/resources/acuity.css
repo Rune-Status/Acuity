@@ -8,6 +8,14 @@
     background-color: #116e97;
 }
 
+.acuity-top-nav-profile-img{
+    width: 46px;
+    border-radius: 10px;
+    height: 46px;
+    padding-top: 2px;
+    padding-right: 2px;
+}
+
 .acuity-interactive-list-headers {
     box-shadow: inset 0 -1px 0 0 #66a8fe;
     padding-bottom: 6px;
@@ -50,7 +58,7 @@
 }
 
 .acuity-nav-button:hover {
-    background-color: #66a8fe;
+    box-shadow: 0 24px 30px -24px #66a8fe;
 }
 
 .acuity-nav-button span {

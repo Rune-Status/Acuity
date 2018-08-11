@@ -5,6 +5,7 @@ import com.acuitybotting.db.arango.acuity.identities.service.AcuityUsersService;
 import com.acuitybotting.website.dashboard.components.general.list_display.InteractiveList;
 import com.acuitybotting.website.dashboard.components.general.separator.TitleSeparator;
 import com.acuitybotting.website.dashboard.security.view.interfaces.Authed;
+import com.acuitybotting.website.dashboard.utils.Notifications;
 import com.acuitybotting.website.dashboard.views.RootLayout;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.button.Button;
@@ -15,7 +16,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.shared.Registration;
 
 
 /**
@@ -40,7 +40,7 @@ public class ProfileView extends VerticalLayout implements Authed {
                 Authed::getAllPrincipals
         );
 
-        linkedList.withColumn("Type", "15%", principal -> new Span(), (principal, span) -> span.setText(principal.getType()));
+        linkedList.withColumn("Source", "15%", principal -> new Span(), (principal, span) -> span.setText(principal.getType()));
         linkedList.withColumn("ID", "35%", principal -> new Span(), (principal, span) -> span.setText(principal.getUid()));
 
         TextField jwtField = new TextField();
@@ -51,6 +51,7 @@ public class ProfileView extends VerticalLayout implements Authed {
             acuityUsersService.linkToPrincipal(Authed.getAcuityPrincipalId(), jwtField.getValue());
             acuityUsersService.findUserByUid(Authed.getAcuityPrincipalId()).ifPresent(Authed::applyUser);
             linkedList.load();
+            Notifications.display("Added token.");
         });
         linkedList.getControls().add(jwtField, addLink);
         add(
@@ -90,11 +91,19 @@ public class ProfileView extends VerticalLayout implements Authed {
                     if (keyField1.getValue().equals(keyField2.getValue())) {
                         result = acuityUsersService.createOrUpdateMasterKey(Authed.getAcuityPrincipalId(), null, keyField1.getValue());
                     }
+                    else {
+                        Notifications.error("Keys do not match.");
+                        return;
+                    }
                 }
 
                 if (result) {
+                    Notifications.display("Key " + (keySet ? " set" : "updated") + ".");
                     keyField1.clear();
                     keyField2.clear();
+                }
+                else {
+                    Notifications.error("Failed to update key.");
                 }
             });
         }

@@ -3,6 +3,7 @@ package com.acuitybotting.website.dashboard.views.administration;
 import com.acuitybotting.db.arango.acuity.identities.domain.AcuityBottingUser;
 import com.acuitybotting.db.arango.acuity.identities.service.AcuityUsersService;
 import com.acuitybotting.website.dashboard.security.view.interfaces.Authed;
+import com.acuitybotting.website.dashboard.utils.Notifications;
 import com.acuitybotting.website.dashboard.views.RootLayout;
 import com.acuitybotting.website.dashboard.views.user.ProfileView;
 
@@ -26,8 +27,6 @@ public class LoginView extends VerticalLayout {
 
         TextField username = new TextField("Email");
         PasswordField password = new PasswordField("Password");
-        Span error = new Span();
-        error.setVisible(false);
         Button login = new Button("Login");
 
         login.addClickListener(buttonClickEvent -> {
@@ -36,14 +35,14 @@ public class LoginView extends VerticalLayout {
             getUI().ifPresent(ui -> {
                 if (user != null && Authed.applyUser(user)){
                     ui.navigate(ProfileView.class);
+                    Notifications.display("Welcome " + user.getDisplayName() + ".");
                 }
                 else {
-                    error.setText("Failed to login.'");
-                    error.setVisible(true);
+                    Notifications.error("Failed to login.");
                 }
             });
         });
 
-        add(username, password, error, login);
+        add(username, password, login);
     }
 }
