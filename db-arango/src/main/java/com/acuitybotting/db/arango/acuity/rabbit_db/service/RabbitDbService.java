@@ -1,7 +1,8 @@
 package com.acuitybotting.db.arango.acuity.rabbit_db.service;
 
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.GsonRabbitDocument;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.RabbitDocumentBase;
+import com.arangodb.ArangoCursor;
 import com.arangodb.springframework.core.ArangoOperations;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -113,14 +114,14 @@ public class RabbitDbService {
 
     public <T> T loadByKey(Map<String, Object> queryMap, Class<T> type) {
         String query = "FOR u IN " + COLLECTION + " FILTER u.principalId == @principalId && u.database == @database && u.subGroup == @subGroup && u.subKey == @subKey RETURN u";
-        List<String> json = arangoOperations.query(query, queryMap, null, String.class).asListRemaining();
-        if (json.size() > 0) return gson.fromJson(json.get(0), type);
-        return null;
+        ArangoCursor<String> result = arangoOperations.query(query, queryMap, null, String.class);
+        if (result == null || !result.hasNext()) return null;
+        return gson.fromJson(result.next(), type);
     }
 
     public <T> Set<T> loadByGroup(Map<String, Object> queryMap, Class<T> type) {
         String query = "FOR u IN " + COLLECTION + " FILTER u.principalId == @principalId && u.database == @database && u.subGroup == @subGroup RETURN u";
-        if (queryMap.containsKey("principalIds")){
+        if (queryMap.containsKey("principalIds")) {
             query = "FOR u IN " + COLLECTION + " FILTER u.principalId IN @principalIds && u.database == @database && u.subGroup == @subGroup RETURN u";
         }
         List<String> json = arangoOperations.query(query, queryMap, null, String.class).asListRemaining();

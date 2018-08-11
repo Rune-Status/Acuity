@@ -1,6 +1,6 @@
 package com.acuitybotting.website.dashboard.views.connections.clients;
 
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.GsonRabbitDocument;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.website.dashboard.DashboardRabbitService;
 import com.acuitybotting.website.dashboard.components.general.list_display.InteractiveList;

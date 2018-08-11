@@ -9,7 +9,7 @@ import com.acuitybotting.data.flow.messaging.services.identity.RoutingUtil;
 import com.acuitybotting.db.arango.acuity.identities.domain.Principal;
 import com.acuitybotting.db.arango.acuity.identities.service.AcuityUsersService;
 import com.acuitybotting.db.arango.acuity.identities.service.PrincipalLinkTypes;
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.GsonRabbitDocument;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;

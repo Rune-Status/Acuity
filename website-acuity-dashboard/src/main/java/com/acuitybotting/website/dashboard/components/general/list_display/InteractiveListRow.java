@@ -2,12 +2,15 @@ package com.acuitybotting.website.dashboard.components.general.list_display;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasSize;
+import com.vaadin.flow.component.HasText;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Getter
 public class InteractiveListRow<T> extends HorizontalLayout {
@@ -26,6 +29,15 @@ public class InteractiveListRow<T> extends HorizontalLayout {
         getClassNames().add("acuity-interactive-list-row");
         selectionBox.addValueChangeListener(event -> list.updateSelectionCount());
         add(selectionBox);
+    }
+
+    public String getSearchableText(){
+        return getChildren()
+                .filter(component -> component instanceof HasText)
+                .map(component -> ((HasText) component).getText())
+                .filter(Objects::nonNull)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.joining(" "));
     }
 
     @SuppressWarnings("unchecked")

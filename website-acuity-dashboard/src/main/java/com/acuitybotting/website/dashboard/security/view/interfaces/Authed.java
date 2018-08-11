@@ -29,7 +29,7 @@ public interface Authed extends BeforeEnterObserver {
     }
 
     @SuppressWarnings("unchecked")
-    static Collection<Principal> getAllPrincipals(){
+    static Collection<Principal> getAllPrincipals() {
         UI current = UI.getCurrent();
         if (current == null || current.getSession() == null) return Collections.emptySet();
         Collection<Principal> principals = (Collection<Principal>) current.getSession().getAttribute(ALL_PRINCIPALS);
@@ -37,11 +37,11 @@ public interface Authed extends BeforeEnterObserver {
         return principals;
     }
 
-    static Collection<String> getAllPrincipalsIds(){
+    static Collection<String> getAllPrincipalsIds() {
         return getAllPrincipals().stream().map(Principal::getUid).collect(Collectors.toSet());
     }
 
-    static boolean applyUser(AcuityBottingUser user){
+    static boolean applyUser(AcuityBottingUser user) {
         Principal acuityPrincipal = Principal.of(PrincipalLinkTypes.ACUITY, user.getPrincipalId());
         Set<Principal> principals = new HashSet<>(user.getLinkedPrincipals());
         principals.add(acuityPrincipal);
@@ -54,17 +54,17 @@ public interface Authed extends BeforeEnterObserver {
         return true;
     }
 
-    static AcuityBottingUser getAcuityUser(){
+    static AcuityBottingUser getAcuityUser() {
         return (AcuityBottingUser) UI.getCurrent().getSession().getAttribute(ACUITY_USER);
     }
 
-    static String getAcuityPrincipalId(){
+    static String getAcuityPrincipalId() {
         Principal acuityPrincipal = getAcuityPrincipal();
         if (acuityPrincipal == null) return null;
         return acuityPrincipal.getUid();
     }
 
-    static Principal getAcuityPrincipal(){
+    static Principal getAcuityPrincipal() {
         UI current = UI.getCurrent();
         if (current == null || current.getSession() == null) return null;
         return (Principal) current.getSession().getAttribute(ACUITY_PRINCIPAL);

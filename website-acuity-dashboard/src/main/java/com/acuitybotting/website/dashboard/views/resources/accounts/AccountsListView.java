@@ -1,6 +1,7 @@
 package com.acuitybotting.website.dashboard.views.resources.accounts;
 
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.RabbitDocumentBase;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.RsAccountInfo;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.website.dashboard.components.general.list_display.InteractiveList;
 import com.acuitybotting.website.dashboard.security.view.interfaces.Authed;
@@ -14,6 +15,7 @@ import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
 import lombok.Getter;
 import lombok.ToString;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Set;
 
@@ -42,15 +44,28 @@ public class AccountsListView extends VerticalLayout implements Authed {
 
         private final RabbitDbService rabbitDbService;
 
+        @Autowired
         public AccountListComponent(RabbitDbService rabbitDbService) {
             this.rabbitDbService = rabbitDbService;
-            withColumn("Email", "33%", document -> new Span(), (document, span) -> span.setText(document.getSubKey()));
+            withColumn("Email", "33%", document -> {
+                Span span = new Span();
+                span.getElement().addEventListener("click", domEvent -> getUI().ifPresent(ui -> ui.navigate(AccountView.class, document.getSubKey())));
+                return span;
+            }, (document, span) -> span.setText(document.getSubKey()));
             withColumn("Last World", "33%", document -> new Span(), (document, span) -> span.setText(String.valueOf(document.getSubDocument().getWorld())));
             withLoad(RsAccountDocument::getSubKey, this::loadAccounts);
         }
 
         private Set<RsAccountDocument> loadAccounts() {
-            return rabbitDbService.loadByGroup(RabbitDbService.buildQueryMapMultiPrincipal(Authed.getAllPrincipalsIds(), "services.player-cache", "players"), RsAccountDocument.class);
+            return rabbitDbService
+                    .loadByGroup(
+                            RabbitDbService.buildQueryMapMultiPrincipal(
+                                    Authed.getAllPrincipalsIds(),
+                                    "services.player-cache",
+                                    "players"
+                            ),
+                            RsAccountDocument.class
+                    );
         }
 
         @Getter
@@ -58,12 +73,6 @@ public class AccountsListView extends VerticalLayout implements Authed {
         public static class RsAccountDocument extends RabbitDocumentBase {
 
             private RsAccountInfo subDocument;
-
-            @Getter
-            @ToString
-            public static class RsAccountInfo {
-                private int world;
-            }
         }
     }
 }

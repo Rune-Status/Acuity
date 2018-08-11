@@ -2,7 +2,7 @@ package com.acuitybotting.path_finding.xtea;
 
 
 import com.acuitybotting.common.utils.ExecutorUtil;
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.GsonRabbitDocument;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.RegionMap;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.SceneEntityDefinition;

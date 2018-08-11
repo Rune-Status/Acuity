@@ -1,8 +1,7 @@
 package com.acuitybotting.website.dashboard.views.connections.launchers;
 
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
-import com.acuitybotting.db.arango.acuity.identities.domain.Principal;
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.GsonRabbitDocument;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.website.dashboard.DashboardRabbitService;
 import com.acuitybotting.website.dashboard.components.general.list_display.InteractiveList;

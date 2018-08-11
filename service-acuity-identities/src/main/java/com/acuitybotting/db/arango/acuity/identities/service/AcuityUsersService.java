@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.security.GeneralSecurityException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -145,5 +146,19 @@ public class AcuityUsersService {
         byte[] bytes = new byte[256];
         ThreadLocalRandom.current().nextBytes(bytes);
         return Base64.getEncoder().encodeToString(bytes);
+    }
+
+    public String encrypt(String acuityPrincipalId, String userKey, String password) {
+        String encryptedMasterKey = userRepository.findByPrincipalId(acuityPrincipalId).map(AcuityBottingUser::getMasterKey).orElse(null);
+        if (encryptedMasterKey == null) return null;
+
+        try {
+            String masterKey = encryptionService.decrypt(userKey, encryptedMasterKey);
+            return encryptionService.encrypt(masterKey, password);
+        } catch (GeneralSecurityException e) {
+            log.warn("Failed to decrypt.");
+        }
+
+        return null;
     }
 }

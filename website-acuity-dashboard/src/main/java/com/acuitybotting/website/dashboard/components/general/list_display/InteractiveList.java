@@ -45,7 +45,7 @@ public class InteractiveList<T> extends VerticalLayout {
         setPadding(false);
 
         refreshButton.addClickListener(event -> load());
-        searchField.addValueChangeListener(event -> applySearch(searchField.getValue()));
+        searchField.addValueChangeListener(event -> applySearch(searchField.getOptionalValue().orElse(null)));
         selectAll.addValueChangeListener(event -> {
             for (InteractiveListRow<T> row : rows.values()) {
                 if (row.isVisible() && row.isEnabled()) row.getSelectionBox().setValue(event.getValue());
@@ -101,15 +101,7 @@ public class InteractiveList<T> extends VerticalLayout {
         }
 
         for (InteractiveListRow<T> row : rows.values()) {
-            String finalSearchTxt = searchTxt;
-            boolean visible = searchTxt == null || row.getChildren().anyMatch(component -> {
-                if (component instanceof HasText) {
-                    String text = ((HasText) component).getText();
-                    return text != null && text.toLowerCase().contains(finalSearchTxt);
-                }
-                return false;
-            });
-            row.setVisible(visible);
+            row.setVisible(searchTxt == null || row.getSearchableText().toLowerCase().contains(searchTxt));
         }
     }
 

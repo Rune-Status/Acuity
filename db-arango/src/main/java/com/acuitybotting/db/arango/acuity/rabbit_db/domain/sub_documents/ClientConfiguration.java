@@ -1,4 +1,4 @@
-package com.acuitybotting.data.flow.messaging.services.db.domain.sub_documents;
+package com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents;
 
 import com.google.gson.JsonObject;
 import lombok.Getter;
