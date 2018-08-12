@@ -121,6 +121,7 @@ public class HPAGraph {
         edges.addAll(TeleportNode.getEdges());
         edges.addAll(WildernessEdge.getEdges());
         edges.addAll(AgilityObstacleEdgeData.getEdges());
+        edges.addAll(StairEdgeData.getEdges());
 
         for (CustomEdgeData data : edges) {
             HPANode start = null;
