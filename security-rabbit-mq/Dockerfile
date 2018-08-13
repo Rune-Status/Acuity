@@ -1,4 +1,3 @@
-FROM rabbitmq:3.7-management
 FROM openjdk:8-jdk-alpine
 VOLUME /tmp
 ARG JAR_FILE

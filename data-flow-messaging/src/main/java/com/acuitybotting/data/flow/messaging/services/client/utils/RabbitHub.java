@@ -1,6 +1,5 @@
 package com.acuitybotting.data.flow.messaging.services.client.utils;
 
-import com.acuitybotting.common.utils.JwtUtil;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingQueue;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
@@ -16,7 +15,9 @@ import java.util.*;
  */
 public class RabbitHub {
 
-    private String sub;
+    private String username;
+    private String password;
+
     private String allowedPrefix;
     private String connectionId;
 
@@ -25,14 +26,23 @@ public class RabbitHub {
     private RabbitClient rabbitClient;
     private Set<MessagingChannel> channelPool = new HashSet<>();
 
-    public void start(String connectionPrefix, String connectionKey, int poolSize){
+    public void auth(String connectionKey){
         Objects.requireNonNull(connectionKey, "Failed to acquire user connection key.");
-        sub = new Gson().fromJson(new String(Base64.getDecoder().decode(connectionKey)), JsonObject.class).get("principalId").getAsString();
-        allowedPrefix = "user." + sub + ".";
+        username = new Gson().fromJson(new String(Base64.getDecoder().decode(connectionKey)), JsonObject.class).get("principalId").getAsString();
+        password = connectionKey;
+    }
+
+    public void auth(String username, String password){
+        this.username = username;
+        this.password = password;
+    }
+
+    public void start(String connectionPrefix, int poolSize){
+        allowedPrefix = "user." + username + ".";
         connectionId = connectionPrefix + "_" + UUID.randomUUID().toString();
 
         rabbitClient = new RabbitClient();
-        rabbitClient.auth("195.201.248.164", sub, connectionKey);
+        rabbitClient.auth("messaging.acuitybotting.com", "30672", username, password);
         rabbitClient.connect(connectionId);
 
         for (int i = 0; i < poolSize; i++) {
@@ -71,8 +81,8 @@ public class RabbitHub {
         return connectionId;
     }
 
-    public String getSub() {
-        return sub;
+    public String getUsername() {
+        return username;
     }
 
     public String getAllowedPrefix() {

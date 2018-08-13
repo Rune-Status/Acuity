@@ -1,7 +1,6 @@
 package com.acuitybotting.bot.launcher.services;
 
 
-import com.acuitybotting.bot.launcher.enviroments.RSPeerEnviroment;
 import com.acuitybotting.bot.launcher.ui.LauncherFrame;
 import com.acuitybotting.bot.launcher.utils.CommandLine;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
@@ -10,19 +9,12 @@ import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import oshi.json.SystemInfo;
-import oshi.json.hardware.HardwareAbstractionLayer;
-import oshi.json.json.AbstractOshiJsonObject;
-import oshi.json.software.os.OperatingSystem;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Created by Zachary Herridge on 8/6/2018.
@@ -31,11 +23,19 @@ import java.util.stream.Collectors;
 @Slf4j
 public class LauncherRabbitService implements CommandLineRunner {
 
+    private final StateService stateService;
+
     private RabbitHub rabbitHub = new RabbitHub();
+
+    @Autowired
+    public LauncherRabbitService(StateService stateService) {
+        this.stateService = stateService;
+    }
 
     public void connect() {
         try {
-            rabbitHub.start("ABL", LauncherFrame.getInstance().getConnectionKey(), 1);
+            rabbitHub.auth(LauncherFrame.getInstance().getConnectionKey());
+            rabbitHub.start("ABL", 1);
             rabbitHub.createLocalQueue(true)
                     .withListener(this::handleMessage)
                     .open(true);
@@ -48,34 +48,7 @@ public class LauncherRabbitService implements CommandLineRunner {
     private void updateState(){
         try {
             if (rabbitHub.getRandomChannel() == null) return;
-            SystemInfo si = new SystemInfo();
-            HardwareAbstractionLayer hal = si.getHardware();
-            OperatingSystem os = si.getOperatingSystem();
-
-            Map<String, Object> state = new HashMap<>();
-            state.put("processes", Arrays.stream(os.getProcesses(5, oshi.software.os.OperatingSystem.ProcessSort.MEMORY)).map(AbstractOshiJsonObject::toJSON).collect(Collectors.toList()));
-
-            state.put("cpuLoad", hal.getProcessor().getSystemCpuLoad());
-            state.put("cpuUpTime", hal.getProcessor().getSystemUptime());
-            state.put("cpuTemp", hal.getSensors().getCpuTemperature());
-
-            state.put("halMemoryAvailable", hal.getMemory().getAvailable());
-            state.put("memoryTotal", hal.getMemory().getTotal());
-
-            state.put("javaHome", System.getProperty("java.home"));
-            state.put("javaVendor", System.getProperty("java.vendor"));
-            state.put("javaVersionUrl", System.getProperty("java.vendor.url"));
-            state.put("javaVersion", System.getProperty("java.version"));
-
-            state.put("osArch", System.getProperty("os.arch"));
-            state.put("osName", System.getProperty("os.name"));
-            state.put("osVersion", System.getProperty("os.version"));
-
-            state.put("userName", System.getProperty("user.name"));
-            state.put("userHome", System.getProperty("user.home"));
-            state.put("userDir", System.getProperty("user.dir"));
-
-            rabbitHub.updateConnectionDocument(new Gson().toJson(Collections.singletonMap("state", state)));
+            rabbitHub.updateConnectionDocument(new Gson().toJson(Collections.singletonMap("state", stateService.buildState())));
             log.info("Updated state.");
         } catch (MessagingException e) {
             log.error("Error updating state.", e);
@@ -99,7 +72,10 @@ public class LauncherRabbitService implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... strings) throws Exception {
+    public void run(String... strings) {
         LauncherFrame.setInstance(new LauncherFrame(this)).setVisible(true);
+        if (LauncherFrame.getInstance().getConnectionKey() != null){
+            connect();
+        }
     }
 }

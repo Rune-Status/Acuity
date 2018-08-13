@@ -11,7 +11,7 @@ public interface MessagingClient {
     String RESPONSE_ID = "responseId";
     String RESPONSE_QUEUE = "responseQueue";
 
-    void auth(String endpoint, String username, String password);
+    void auth(String endpoint, String port, String username, String password);
 
     void connect(String connectionId);
 

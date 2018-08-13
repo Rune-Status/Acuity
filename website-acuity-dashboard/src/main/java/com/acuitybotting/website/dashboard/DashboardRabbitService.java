@@ -41,10 +41,10 @@ public class DashboardRabbitService implements CommandLineRunner {
 
     private void connect(){
         try {
-            RabbitClient rabbitClient = new RabbitClient();
+          /*  RabbitClient rabbitClient = new RabbitClient();
             rabbitClient.auth(host, username, password);
             rabbitClient.connect("AWD_001_" + UUID.randomUUID().toString());
-            messagingChannel = rabbitClient.openChannel();
+            messagingChannel = rabbitClient.openChannel();*/
         }
         catch (Throwable e){
             log.error("Error during dashboard RabbitMQ setup.", e);

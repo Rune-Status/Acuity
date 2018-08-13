@@ -108,7 +108,7 @@ public class HpaPathFindingService {
             loadHpa(1);
 
             RabbitClient rabbitClient = new RabbitClient();
-            rabbitClient.auth(host, username, password);
+            rabbitClient.auth(host, "30672", username, password);
             rabbitClient.connect("APW_002_" + UUID.randomUUID().toString());
 
             for (int i = 0; i < 5; i++) {

@@ -26,6 +26,7 @@ public class RabbitClient implements MessagingClient {
     private String virtualHost;
     private String username;
     private String password;
+    private String port;
 
     private ScheduledExecutorService scheduledExecutorService = ExecutorUtil.newScheduledExecutorPool(1);
 
@@ -44,10 +45,11 @@ public class RabbitClient implements MessagingClient {
     private ScheduledFuture<?> scheduledFuture;
 
     @Override
-    public void auth(String endpoint, String username, String password) {
+    public void auth(String endpoint, String port, String username, String password) {
         this.endpoint = endpoint;
         this.username = username;
         this.password = password;
+        this.port = port;
     }
 
     @Override
@@ -56,6 +58,7 @@ public class RabbitClient implements MessagingClient {
 
         rabbitId = connectionId;
         factory.setHost(endpoint);
+        factory.setPort(Integer.parseInt(port));
         factory.setUsername(username);
         factory.setPassword(password);
         factory.setTopologyRecoveryEnabled(false);

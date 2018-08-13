@@ -3,6 +3,7 @@ package com.acuitybotting.bot_control.services.rabbit;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitClient;
+import com.acuitybotting.data.flow.messaging.services.client.utils.RabbitHub;
 import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.data.flow.messaging.services.identity.RoutingUtil;
@@ -51,7 +52,7 @@ public class BotControlRabbitService implements CommandLineRunner {
     private void connect() {
         try {
             RabbitClient rabbitClient = new RabbitClient();
-            rabbitClient.auth(host, username, password);
+            rabbitClient.auth("messaging.acuitybotting.com", "30672", username, password);
             rabbitClient.connect("ABW_" + UUID.randomUUID().toString());
 
             rabbitClient.openChannel().createQueue("bot-control-worker-" + UUID.randomUUID().toString(), true)

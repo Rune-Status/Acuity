@@ -20,10 +20,7 @@ public class LauncherFrame extends JFrame {
         getContentPane().setLayout(new BorderLayout());
 
         String key = ConnectionKeyUtil.findKey();
-        if (key != null) {
-            keyField.setText(key);
-            launcherRabbitService.connect();
-        }
+        if (key != null) keyField.setText(key);
         getContentPane().add(keyField);
 
         JButton set = new JButton("Set");
