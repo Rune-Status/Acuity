@@ -82,7 +82,8 @@ public class ProfileView extends VerticalLayout implements Authed {
         public ConnectionKeyComponent() {
             setPadding(false);
 
-            String connectionKey = Authentication.getAcuityUser().getConnectionKey();
+
+            String connectionKey = acuityUsersService.wrapConnectionKey(Authentication.getAcuityPrincipalId(), Authentication.getAcuityUser().getConnectionKey());
 
             PasswordField currentKey = new PasswordField();
             currentKey.setValue(connectionKey);

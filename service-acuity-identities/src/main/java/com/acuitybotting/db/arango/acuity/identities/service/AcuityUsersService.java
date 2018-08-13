@@ -173,18 +173,25 @@ public class AcuityUsersService {
         if (acuityBottingUser == null) return false;
 
         try {
-            Map<String, String> properties = new HashMap<>();
-            properties.put("secret", generateKey());
-            properties.put("principalId", acuityPrincipalId);
-
-            acuityBottingUser.setConnectionKey(Base64.getEncoder().encodeToString(new Gson().toJson(properties).getBytes()));
+            acuityBottingUser.setConnectionKey(generateKey());
             userRepository.save(acuityBottingUser);
             return true;
         }
+
         catch (Throwable e){
             log.error("Error updating connection key.", e);
         }
 
         return false;
+    }
+
+    public String wrapConnectionKey(String acuityPrincipalId, String connectionKey) {
+        if (connectionKey == null || acuityPrincipalId == null) return null;
+
+        Map<String, String> info = new HashMap<>();
+        info.put("secret", connectionKey);
+        info.put("principalId", acuityPrincipalId);
+
+        return Base64.getEncoder().encodeToString(new Gson().toJson(info).getBytes());
     }
 }
