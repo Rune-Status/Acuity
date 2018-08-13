@@ -2,7 +2,7 @@ package com.acuitybotting.path_finding.service;
 
 import com.acuitybotting.data.flow.messaging.services.Message;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
-import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitClient;
+import com.acuitybotting.data.flow.messaging.services.client.utils.RabbitHub;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.RegionMap;
 import com.acuitybotting.path_finding.algorithms.astar.AStarService;
@@ -107,21 +107,22 @@ public class HpaPathFindingService {
         try {
             loadHpa(1);
 
-            RabbitClient rabbitClient = new RabbitClient();
-            rabbitClient.auth(host, "30672", username, password);
-            rabbitClient.connect("APW_002_" + UUID.randomUUID().toString());
+            RabbitHub rabbitHub = new RabbitHub();
+            rabbitHub.auth(username, password);
+            rabbitHub.start("APW");
 
-            for (int i = 0; i < 5; i++) {
-                rabbitClient.openChannel().createQueue("acuitybotting.work.find-path-1", false)
-                        .withListener(this::handleRequest)
-                        .open(false);
-            }
+            rabbitHub.createPool(5, channel ->
+                    channel
+                            .createQueue("acuitybotting.work.find-path-1", false)
+                            .withListener(this::handleRequest)
+                            .open(false));
+
         } catch (Throwable e) {
             e.printStackTrace();
         }
     }
 
-    private void handleRequest(MessageEvent messageEvent){
+    private void handleRequest(MessageEvent messageEvent) {
         Gson outGson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
         Gson inGson = new Gson();
 

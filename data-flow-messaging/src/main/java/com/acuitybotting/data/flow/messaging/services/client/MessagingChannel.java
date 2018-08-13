@@ -2,6 +2,7 @@ package com.acuitybotting.data.flow.messaging.services.client;
 
 import com.acuitybotting.data.flow.messaging.services.Message;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
+import com.acuitybotting.data.flow.messaging.services.client.listeners.MessagingChannelListener;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.data.flow.messaging.services.futures.MessageFuture;
 
@@ -23,6 +24,8 @@ public interface MessagingChannel {
     MessagingClient getClient();
 
     void acknowledge(Message message) throws MessagingException;
+
+    MessagingChannel withListener(MessagingChannelListener listener);
 
     default MessageBuilder buildResponse(Message message, String body) {
         return buildResponse(message, null, body);

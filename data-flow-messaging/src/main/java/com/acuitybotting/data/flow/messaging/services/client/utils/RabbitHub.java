@@ -3,12 +3,16 @@ package com.acuitybotting.data.flow.messaging.services.client.utils;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingQueue;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitChannel;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitClient;
 import com.acuitybotting.data.flow.messaging.services.db.implementations.rabbit.RabbitDb;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
-import java.util.*;
+import java.util.Base64;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.function.Consumer;
 
 /**
  * Created by Zachary Herridge on 8/10/2018.
@@ -24,7 +28,6 @@ public class RabbitHub {
     private MessagingQueue localQueue;
 
     private RabbitClient rabbitClient;
-    private Set<MessagingChannel> channelPool = new HashSet<>();
 
     public void auth(String connectionKey){
         Objects.requireNonNull(connectionKey, "Failed to acquire user connection key.");
@@ -37,17 +40,13 @@ public class RabbitHub {
         this.password = password;
     }
 
-    public void start(String connectionPrefix, int poolSize){
+    public void start(String connectionPrefix){
         allowedPrefix = "user." + username + ".";
         connectionId = connectionPrefix + "_" + UUID.randomUUID().toString();
 
         rabbitClient = new RabbitClient();
-        rabbitClient.auth("messaging.acuitybotting.com", "30672", username, password);
+        rabbitClient.auth("nodes-1.admin-acuitybotting.com", "31457", username, password);
         rabbitClient.connect(connectionId);
-
-        for (int i = 0; i < poolSize; i++) {
-            channelPool.add(rabbitClient.openChannel());
-        }
     }
 
     public void updateConnectionDocument(String body) throws MessagingException {
@@ -60,6 +59,10 @@ public class RabbitHub {
         );
     }
 
+    public RabbitChannelPool createPool(int size, Consumer<MessagingChannel> consumer){
+        return new RabbitChannelPool(this, size, consumer);
+    }
+
     public String getGeneralExchange(){
         return "acuitybotting.general";
     }
@@ -68,13 +71,17 @@ public class RabbitHub {
         return new RabbitDb(db, getGeneralExchange(), getAllowedPrefix() + "services.rabbit-db.handleRequest.", () -> localQueue);
     }
 
-    public MessagingQueue createLocalQueue(boolean create){
-        localQueue = getRandomChannel().createQueue(getAllowedPrefix() + "queue." + getConnectionId(), create);
+    public MessagingQueue createLocalQueue(){
+        localQueue = rabbitClient.openChannel().createQueue(getAllowedPrefix() + "queue." + getConnectionId(), true);
         return localQueue;
     }
 
-    public MessagingChannel getRandomChannel(){
-        return channelPool.stream().findAny().orElse(null);
+    public MessagingQueue getLocalQueue() {
+        return localQueue;
+    }
+
+    public RabbitClient getRabbitClient() {
+        return rabbitClient;
     }
 
     public String getConnectionId() {

@@ -5,10 +5,13 @@ import com.acuitybotting.data.flow.messaging.services.client.MessageBuilder;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingQueue;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
+import com.acuitybotting.data.flow.messaging.services.client.listeners.MessagingChannelListener;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.data.flow.messaging.services.futures.MessageFuture;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ShutdownListener;
+import com.rabbitmq.client.ShutdownSignalException;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -23,13 +26,14 @@ import static com.acuitybotting.data.flow.messaging.services.client.MessagingCli
 /**
  * Created by Zachary Herridge on 7/10/2018.
  */
-public class RabbitChannel implements MessagingChannel {
+public class RabbitChannel implements MessagingChannel, ShutdownListener {
 
     private RabbitClient rabbitClient;
 
     private Channel rabbitChannel;
 
     private Collection<RabbitQueue> queues = new CopyOnWriteArrayList<>();
+    private Collection<MessagingChannelListener> listeners = new CopyOnWriteArrayList<>();
 
     public RabbitChannel(RabbitClient rabbitClient) {
         this.rabbitClient = rabbitClient;
@@ -45,8 +49,18 @@ public class RabbitChannel implements MessagingChannel {
                     if (connection == null) return;
                     rabbitChannel = connection.createChannel();
                     if (rabbitChannel.isOpen()) {
+                        rabbitChannel.addShutdownListener(this);
                         rabbitClient.getLog().accept("Channel opened.");
                         rabbitChannel.basicQos(10);
+
+                        for (MessagingChannelListener listener : listeners) {
+                            try {
+                                listener.onConnect(this);
+                            }
+                            catch (Throwable e){
+                                getClient().getExceptionHandler().accept(e);
+                            }
+                        }
                     } else {
                         rabbitClient.getLog().accept("Failed to open channel connection, waiting 10 seconds and trying again.");
                     }
@@ -105,6 +119,12 @@ public class RabbitChannel implements MessagingChannel {
     }
 
     @Override
+    public MessagingChannel withListener(MessagingChannelListener listener) {
+        listeners.add(listener);
+        return this;
+    }
+
+    @Override
     public Future<MessageEvent> send(MessageBuilder messageBuilder) throws MessagingException {
         Channel channel = getChannel();
         if (channel == null || !channel.isOpen()) throw new MessagingException("Not connected to RabbitMQ.");
@@ -158,5 +178,17 @@ public class RabbitChannel implements MessagingChannel {
 
     public Channel getChannel() {
         return rabbitChannel;
+    }
+
+    @Override
+    public void shutdownCompleted(ShutdownSignalException e) {
+        for (MessagingChannelListener listener : listeners) {
+            try {
+                listener.onDisconnect(this, e);
+            }
+            catch (Throwable e1){
+                getClient().getExceptionHandler().accept(e1);
+            }
+        }
     }
 }

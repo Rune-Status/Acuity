@@ -6,7 +6,7 @@ import com.arangodb.springframework.repository.ArangoRepository;
 import java.util.Optional;
 import java.util.Set;
 
-public interface ScriptRepository extends ArangoRepository<Script> {
+public interface ScriptRepository extends ArangoRepository<Script, String> {
 
     Set<Script> findAllByAuthorOrAccessLevel(String authorId, int accessLevel);
 

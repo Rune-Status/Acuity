@@ -26,7 +26,6 @@ import com.vaadin.flow.router.Route;
 public class ProfileView extends VerticalLayout implements Authed {
 
     private final AcuityUsersService acuityUsersService;
-    private InteractiveList<Principal> linkedList = new InteractiveList<>();
 
     public ProfileView(AcuityUsersService acuityUsersService) {
         this.acuityUsersService = acuityUsersService;
@@ -36,29 +35,10 @@ public class ProfileView extends VerticalLayout implements Authed {
     protected void onAttach(AttachEvent attachEvent) {
         setPadding(false);
 
-        linkedList.withLoad(
-                principal -> principal.getType() + ":" + principal.getUid(),
-                Authentication.getAcuityUser()::getLinkedPrincipals
-        );
-
-        linkedList.withColumn("Source", "15%", principal -> new Span(), (principal, span) -> span.setText(principal.getType()));
-        linkedList.withColumn("ID", "35%", principal -> new Span(), (principal, span) -> span.setText(principal.getUid()));
-
-        TextField jwtField = new TextField();
-        jwtField.setPlaceholder("JWT");
-        Button addLink = new Button(VaadinIcon.PLUS_CIRCLE.create());
-
-        addLink.addClickListener(event -> {
-            acuityUsersService.linkToPrincipal(Authentication.getAcuityPrincipalId(), jwtField.getValue());
-            Authentication.updateSession(acuityUsersService);
-            linkedList.load();
-            Notifications.display("Added token.");
-        });
-        linkedList.getControls().add(jwtField, addLink);
         add(
                 new TitleSeparator("Linked Accounts"),
                 new Span("These are the current links to your Acuity-Account, by adding more links you will be able to view more information on your dashboards."),
-                linkedList
+                new LinkAccountComponent()
         );
 
         add(
@@ -72,16 +52,42 @@ public class ProfileView extends VerticalLayout implements Authed {
                 new Span("This key is used by your clients to connect to Acuity. If you regenerate it any current clients will lose access within a few mins as the cache clears."),
                 new ConnectionKeyComponent()
         );
-
-        linkedList.load();
     }
 
+    private class LinkAccountComponent extends InteractiveList<Principal> {
+
+        public LinkAccountComponent() {
+            withLoad(
+                    principal -> principal.getType() + ":" + principal.getUid(),
+                    Authentication.getAcuityUser()::getLinkedPrincipals
+            );
+
+            withColumn("Source", "15%", principal -> new Span(), (principal, span) -> span.setText(principal.getType()));
+            withColumn("ID", "35%", principal -> new Span(), (principal, span) -> span.setText(principal.getUid()));
+
+            TextField jwtField = new TextField();
+            jwtField.setPlaceholder("JWT");
+            Button addLink = new Button(VaadinIcon.PLUS_CIRCLE.create());
+
+            addLink.addClickListener(event -> {
+                acuityUsersService.linkToPrincipal(Authentication.getAcuityPrincipalId(), jwtField.getValue());
+                Authentication.updateSession(acuityUsersService);
+                load();
+                Notifications.display("Added token.");
+            });
+            getControls().add(jwtField, addLink);
+        }
+
+        @Override
+        protected void onAttach(AttachEvent attachEvent) {
+            load();
+        }
+    }
 
     private class ConnectionKeyComponent extends HorizontalLayout {
 
         public ConnectionKeyComponent() {
             setPadding(false);
-
 
             String connectionKey = acuityUsersService.wrapConnectionKey(Authentication.getAcuityPrincipalId(), Authentication.getAcuityUser().getConnectionKey());
 
@@ -118,7 +124,7 @@ public class ProfileView extends VerticalLayout implements Authed {
             keyField2.setPlaceholder(keySet ? "New Key" : "Confirm Key");
 
             set.addClickListener(buttonClickEvent -> {
-                boolean result = false;
+                boolean result;
                 if (keySet) {
                     result = acuityUsersService.createOrUpdateMasterKey(Authentication.getAcuityPrincipalId(), keyField1.getValue(), keyField2.getValue());
                 } else {
@@ -141,7 +147,5 @@ public class ProfileView extends VerticalLayout implements Authed {
                 }
             });
         }
-
     }
-
 }

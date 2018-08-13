@@ -23,7 +23,7 @@ import java.util.Collections;
  */
 @RestController
 @Slf4j
-@RequestMapping(path = "/auth", method = {RequestMethod.GET, RequestMethod.POST})
+@RequestMapping(path = "/api/rabbitmq/auth", method = {RequestMethod.GET, RequestMethod.POST})
 public class RabbitAuthBackendHttpController {
 
     private static final String REFUSED = "deny";

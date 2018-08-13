@@ -4,6 +4,7 @@ package com.acuitybotting.bot.launcher.services;
 import com.acuitybotting.bot.launcher.ui.LauncherFrame;
 import com.acuitybotting.bot.launcher.utils.CommandLine;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
+import com.acuitybotting.data.flow.messaging.services.client.utils.RabbitChannelPool;
 import com.acuitybotting.data.flow.messaging.services.client.utils.RabbitHub;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.google.gson.Gson;
@@ -35,8 +36,8 @@ public class LauncherRabbitService implements CommandLineRunner {
     public void connect() {
         try {
             rabbitHub.auth(LauncherFrame.getInstance().getConnectionKey());
-            rabbitHub.start("ABL", 1);
-            rabbitHub.createLocalQueue(true)
+            rabbitHub.start("ABL");
+            rabbitHub.createLocalQueue()
                     .withListener(this::handleMessage)
                     .open(true);
         } catch (Throwable e) {
@@ -47,7 +48,6 @@ public class LauncherRabbitService implements CommandLineRunner {
     @Scheduled(initialDelay = 5000, fixedDelay = 60000)
     private void updateState(){
         try {
-            if (rabbitHub.getRandomChannel() == null) return;
             rabbitHub.updateConnectionDocument(new Gson().toJson(Collections.singletonMap("state", stateService.buildState())));
             log.info("Updated state.");
         } catch (MessagingException e) {

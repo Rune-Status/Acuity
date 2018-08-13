@@ -51,24 +51,26 @@ public class BotControlRabbitService implements CommandLineRunner {
 
     private void connect() {
         try {
-            RabbitClient rabbitClient = new RabbitClient();
-            rabbitClient.auth("messaging.acuitybotting.com", "30672", username, password);
-            rabbitClient.connect("ABW_" + UUID.randomUUID().toString());
+            RabbitHub rabbitHub = new RabbitHub();
+            rabbitHub.auth(username, password);
+            rabbitHub.start("ABW");
 
-            rabbitClient.openChannel().createQueue("bot-control-worker-" + UUID.randomUUID().toString(), true)
-                    .bind("amq.rabbitmq.event", "connection.#")
-                    .withListener(publisher::publishEvent)
-                    .open(true);
+            rabbitHub.createPool(1, channel -> {
+                try {
+                    channel.createQueue("bot-control-worker-" + UUID.randomUUID().toString(), true)
+                            .bind("amq.rabbitmq.event", "connection.#")
+                            .withListener(publisher::publishEvent)
+                            .open(true);
+                } catch (MessagingException e) {
+                    e.printStackTrace();
+                }
+            });
 
-            for (int i = 0; i < 10; i++) {
-                MessagingChannel channel = rabbitClient.openChannel();
+            rabbitHub.createPool(10, channel -> {
                 channel.createQueue("acuitybotting.work.bot-control", false)
                         .withListener(this::handleRequest)
                         .open(false);
-            }
-
-
-
+            });
         } catch (Throwable e) {
             log.error("Error during dashboard RabbitMQ setup.", e);
         }
