@@ -41,8 +41,12 @@ public class RabbitHub {
     }
 
     public void start(String connectionPrefix){
+        start(connectionPrefix, UUID.randomUUID().toString());
+    }
+
+    public void start(String connectionPrefix, String connectionId){
         allowedPrefix = "user." + username + ".";
-        connectionId = connectionPrefix + "_" + UUID.randomUUID().toString();
+        connectionId = connectionPrefix + "_" + connectionId;
 
         rabbitClient = new RabbitClient();
         rabbitClient.auth("nodes-1.admin-acuitybotting.com", "31457", username, password);
