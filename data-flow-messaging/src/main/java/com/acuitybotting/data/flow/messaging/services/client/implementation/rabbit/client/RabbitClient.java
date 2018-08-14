@@ -1,8 +1,7 @@
-package com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit;
+package com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.client;
 
 import com.acuitybotting.common.utils.ExecutorUtil;
-import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
-import com.acuitybotting.data.flow.messaging.services.client.MessagingClient;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.channel.RabbitChannel;
 import com.acuitybotting.data.flow.messaging.services.futures.MessageFuture;
 import com.google.gson.Gson;
 import com.rabbitmq.client.Connection;
@@ -17,7 +16,11 @@ import java.util.function.Consumer;
  * Created by Zachary Herridge on 7/10/2018.
  */
 @Slf4j
-public class RabbitClient implements MessagingClient {
+public class RabbitClient {
+
+    public static final String FUTURE_ID = "futureId";
+    public static final String RESPONSE_ID = "responseId";
+    public static final String RESPONSE_QUEUE = "responseQueue";
 
     public final Object CONFIRM_STATE_LOCK = new Object();
 
@@ -44,7 +47,6 @@ public class RabbitClient implements MessagingClient {
 
     private ScheduledFuture<?> scheduledFuture;
 
-    @Override
     public void auth(String endpoint, String port, String username, String password) {
         this.endpoint = endpoint;
         this.username = username;
@@ -52,7 +54,6 @@ public class RabbitClient implements MessagingClient {
         this.port = port;
     }
 
-    @Override
     public void connect(String connectionId) {
         if (scheduledFuture != null) throw new IllegalStateException("Client already connected.");
 
@@ -129,18 +130,15 @@ public class RabbitClient implements MessagingClient {
         return messageFutures;
     }
 
-    @Override
     public Consumer<Throwable> getExceptionHandler() {
         return throwableConsumer;
     }
 
-    @Override
     public boolean isConnected() {
         return connection != null && connection.isOpen();
     }
 
-    @Override
-    public MessagingChannel openChannel() throws RuntimeException {
+    public RabbitChannel openChannel() throws RuntimeException {
         RabbitChannel rabbitChannel = new RabbitChannel(this);
         channels.add(rabbitChannel);
         confirmState();

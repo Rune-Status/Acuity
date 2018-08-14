@@ -114,7 +114,7 @@ public class LaunchClientsView extends VerticalLayout implements Authed, HasUrlP
             for (String subId : subIds) {
                 String queue = "user." + Authentication.getAcuityPrincipalId() + ".queue." + subId;
                 try {
-                    rabbitService.getMessagingChannel().buildMessage(
+                    rabbitService.getRabbitChannel().buildMessage(
                             "",
                             queue,
                             launchJson

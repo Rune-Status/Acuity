@@ -2,7 +2,8 @@ package com.acuitybotting.path_finding.service;
 
 import com.acuitybotting.data.flow.messaging.services.Message;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
-import com.acuitybotting.data.flow.messaging.services.client.utils.RabbitHub;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitHub;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.client.RabbitClient;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.RegionMap;
 import com.acuitybotting.path_finding.algorithms.astar.AStarService;
@@ -45,7 +46,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import static com.acuitybotting.data.flow.messaging.services.client.MessagingClient.RESPONSE_QUEUE;
 import static com.acuitybotting.path_finding.rs.domain.graph.TileNode.IGNORE_BLOCKED;
 
 @Getter
@@ -153,7 +153,7 @@ public class HpaPathFindingService {
         }
 
         String json = outGson.toJson(pathResult);
-        log.info("Responding. {} {}", message.getAttributes().get(RESPONSE_QUEUE), json);
+        log.info("Responding. {} {}", message.getAttributes().get(RabbitClient.RESPONSE_QUEUE), json);
         try {
             messageEvent.getQueue().getChannel().buildResponse(message, json).send();
             messageEvent.getQueue().getChannel().acknowledge(message);

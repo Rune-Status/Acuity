@@ -1,9 +1,7 @@
 package com.acuitybotting.bot_control.services.rabbit;
 
-import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
-import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitClient;
-import com.acuitybotting.data.flow.messaging.services.client.utils.RabbitHub;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitHub;
 import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.data.flow.messaging.services.identity.RoutingUtil;

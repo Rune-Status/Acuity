@@ -4,7 +4,7 @@ import com.acuitybotting.bot.launcher.ui.LoginFrame;
 import com.acuitybotting.bot.launcher.utils.CommandLine;
 import com.acuitybotting.common.utils.ConnectionKeyUtil;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
-import com.acuitybotting.data.flow.messaging.services.client.utils.RabbitHub;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitHub;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -43,9 +43,7 @@ public class LauncherRabbitService implements CommandLineRunner {
 
             rabbitHub.auth(username, password);
             rabbitHub.start("ABL");
-            rabbitHub.createLocalQueue()
-                    .withListener(this::handleMessage)
-                    .open(true);
+            rabbitHub.getLocalQueue().withListener(this::handleMessage);
 
             updateState();
         } catch (Throwable e) {

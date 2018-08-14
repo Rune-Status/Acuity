@@ -1,7 +1,7 @@
 package com.acuitybotting.discord.bot.services.rabbit;
 
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitHub;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.management.RabbitManagement;
-import com.acuitybotting.data.flow.messaging.services.client.utils.RabbitHub;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.data.flow.messaging.services.identity.RoutingUtil;
 import com.acuitybotting.db.arango.acuity.identities.service.AcuityUsersService;
@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 @Getter
 @Slf4j
 public class DiscordBotRabbitService implements CommandLineRunner {
-
 
     private final DiscordBotService discordBotService;
     private final AcuityUsersService acuityUsersService;
@@ -67,7 +66,6 @@ public class DiscordBotRabbitService implements CommandLineRunner {
                 channel.createQueue("acuitybotting.work.discord-bot", false)
                         .withListener(publisher::publishEvent)
                         .open(false);
-
             });
         } catch (Throwable e) {
             log.error("Error during dashboard RabbitMQ setup.", e);

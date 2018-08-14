@@ -1,9 +1,9 @@
 package com.acuitybotting.data.flow.messaging.services.db.implementations.rabbit;
 
 import com.acuitybotting.data.flow.messaging.services.Message;
-import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
-import com.acuitybotting.data.flow.messaging.services.client.MessagingQueue;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.channel.RabbitChannel;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.queue.RabbitQueue;
 import com.acuitybotting.data.flow.messaging.services.db.MessagingDb;
 import com.acuitybotting.data.flow.messaging.services.db.domain.Document;
 import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
@@ -23,7 +23,7 @@ public class RabbitDb implements MessagingDb {
     public static final int STRATEGY_REPLACE = RabbitDbRequest.SAVE_REPLACE;
     public static final int STRATEGY_UPDATE = RabbitDbRequest.SAVE_UPDATE;
 
-    private Supplier<MessagingQueue> queueSupplier;
+    private Supplier<RabbitQueue> queueSupplier;
     private String exchange;
     private String route;
 
@@ -31,7 +31,7 @@ public class RabbitDb implements MessagingDb {
 
     private Gson gson = new Gson();
 
-    public RabbitDb(String database, String exchange, String route, Supplier<MessagingQueue> queueSupplier) {
+    public RabbitDb(String database, String exchange, String route, Supplier<RabbitQueue> queueSupplier) {
         this.database = database;
         this.exchange = exchange;
         this.route = route;
@@ -110,7 +110,7 @@ public class RabbitDb implements MessagingDb {
     }
 
     public void send(RabbitDbRequest request) throws MessagingException {
-        MessagingChannel channel = Optional.ofNullable(queueSupplier.get()).map(MessagingQueue::getChannel).orElse(null);
+        RabbitChannel channel = Optional.ofNullable(queueSupplier.get()).map(RabbitQueue::getChannel).orElse(null);
         if (channel == null) throw new MessagingException("Not connected to RabbitMQ.");
         request.setDatabase(database);
         channel.buildMessage(
@@ -120,8 +120,8 @@ public class RabbitDb implements MessagingDb {
     }
 
     public String sendWithResponse(RabbitDbRequest request) throws MessagingException {
-        String queue = Optional.ofNullable(queueSupplier.get()).map(MessagingQueue::getName).orElse(null);
-        MessagingChannel channel = Optional.ofNullable(queueSupplier.get()).map(MessagingQueue::getChannel).orElse(null);
+        String queue = Optional.ofNullable(queueSupplier.get()).map(RabbitQueue::getName).orElse(null);
+        RabbitChannel channel = Optional.ofNullable(queueSupplier.get()).map(RabbitQueue::getChannel).orElse(null);
         if (channel == null || queue == null) throw new MessagingException("Not connected to RabbitMQ.");
         request.setDatabase(database);
         try {

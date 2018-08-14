@@ -1,20 +1,20 @@
 package com.acuitybotting.data.flow.messaging.services.client.listeners.adapters;
 
-import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
-import com.acuitybotting.data.flow.messaging.services.client.listeners.MessagingChannelListener;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.channel.RabbitChannel;
+import com.acuitybotting.data.flow.messaging.services.client.listeners.RabbitChannelListener;
 import com.rabbitmq.client.ShutdownSignalException;
 
 /**
  * Created by Zachary Herridge on 8/13/2018.
  */
-public class ChannelListenerAdapter implements MessagingChannelListener {
+public class ChannelListenerAdapter implements RabbitChannelListener {
     @Override
-    public void onConnect(MessagingChannel channel) {
+    public void onConnect(RabbitChannel channel) {
 
     }
 
     @Override
-    public void onDisconnect(MessagingChannel channel, ShutdownSignalException e) {
+    public void onDisconnect(RabbitChannel channel, ShutdownSignalException e) {
 
     }
 }
