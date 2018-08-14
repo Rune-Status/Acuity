@@ -38,7 +38,7 @@ public class RabbitAuthBackendHttpController {
 
     @RequestMapping("user")
     public String user(@RequestParam("username") String username, @RequestParam("password") String password) {
-        log.info("Trying to authenticate user {}", username);
+        log.info("Trying to authenticate user {} vs {}", username, password);
 
         if (username.equals("acuity-guest")) return ACCEPTED;
 

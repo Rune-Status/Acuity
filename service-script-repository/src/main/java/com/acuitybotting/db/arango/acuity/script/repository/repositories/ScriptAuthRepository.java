@@ -8,7 +8,7 @@ import java.util.Collection;
 /**
  * Created by Zachary Herridge on 6/15/2018.
  */
-public interface ScriptAuthRepository extends ArangoRepository<ScriptAuth, String>{
+public interface ScriptAuthRepository extends ArangoRepository<ScriptAuth>{
 
     Collection<ScriptAuth> findAllByPrincipal(String principalId);
 

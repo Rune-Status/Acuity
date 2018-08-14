@@ -29,11 +29,11 @@ public class RabbitManagement {
         collect.forEach((key, value) -> connections.put(key, value));
     }
 
-    public static Map<String, List<RabbitConnection>> getConnections(){
+    public static Map<String, List<RabbitConnection>> getConnections() {
         return connections.asMap();
     }
 
-    public static List<RabbitConnection> getConnectionsByUser(String rabbitUsername){
+    public static List<RabbitConnection> getConnectionsByUser(String rabbitUsername) {
         return Optional.ofNullable(connections.getIfPresent(rabbitUsername)).orElse(Collections.emptyList());
     }
 }

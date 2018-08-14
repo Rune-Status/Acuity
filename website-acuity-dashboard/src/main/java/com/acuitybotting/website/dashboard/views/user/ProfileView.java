@@ -93,7 +93,7 @@ public class ProfileView extends VerticalLayout implements Authed {
 
             PasswordField currentKey = new PasswordField();
             currentKey.setValue(connectionKey);
-            currentKey.addValueChangeListener(event -> currentKey.setValue(Authentication.getAcuityUser().getConnectionKey()));
+            currentKey.addValueChangeListener(event -> currentKey.setValue(connectionKey));
             currentKey.setPlaceholder("Not Set");
 
             Button generate = new Button(VaadinIcon.REFRESH.create());

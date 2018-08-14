@@ -8,7 +8,7 @@ import java.util.Optional;
 /**
  * Created by Zachary Herridge on 8/9/2018.
  */
-public interface AcuityBottingUserRepository extends ArangoRepository<AcuityBottingUser, String> {
+public interface AcuityBottingUserRepository extends ArangoRepository<AcuityBottingUser> {
 
     Optional<AcuityBottingUser> findByEmail(String email);
 

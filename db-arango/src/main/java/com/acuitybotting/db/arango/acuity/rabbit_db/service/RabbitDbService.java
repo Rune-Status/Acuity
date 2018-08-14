@@ -101,6 +101,10 @@ public class RabbitDbService {
         gsonRabbitDocument.setSubDocument(gson.fromJson(insertDocumentJson, JsonElement.class));
         String insertDocument = gson.toJson(gsonRabbitDocument);
 
+        if (insertDocument == null) insertDocument = "{}";
+        if (updateDocument == null) insertDocument = "{}";
+
+
         String strategy = strategyType == 0 ? "REPLACE" : "UPDATE";
         String query = "UPSERT " + gson.toJson(queryMap) + " INSERT " + insertDocument + " " + strategy + " " + updateDocument + " IN " + COLLECTION;
 
@@ -121,9 +125,6 @@ public class RabbitDbService {
 
     public <T> Set<T> loadByGroup(Map<String, Object> queryMap, Class<T> type) {
         String query = "FOR u IN " + COLLECTION + " FILTER u.principalId == @principalId && u.database == @database && u.subGroup == @subGroup RETURN u";
-        if (queryMap.containsKey("principalIds")) {
-            query = "FOR u IN " + COLLECTION + " FILTER u.principalId IN @principalIds && u.database == @database && u.subGroup == @subGroup RETURN u";
-        }
         List<String> json = arangoOperations.query(query, queryMap, null, String.class).asListRemaining();
         return json.stream().map(s -> gson.fromJson(s, type)).collect(Collectors.toSet());
     }

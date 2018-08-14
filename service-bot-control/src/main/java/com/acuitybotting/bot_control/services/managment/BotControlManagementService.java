@@ -70,7 +70,7 @@ public class BotControlManagementService {
     @Scheduled(fixedDelay = 10000)
     public void updateConnections() {
         try {
-            RabbitManagement.loadAll("http://" + host + ":" + "15672", username, password);
+            RabbitManagement.loadAll("http://" + "nodes-1.admin-acuitybotting.com" + ":" + "31456", username, password);
             updateRegisteredConnections();
         } catch (Exception e) {
             log.error("Error during RabbitManagement.loadAll.", e);
