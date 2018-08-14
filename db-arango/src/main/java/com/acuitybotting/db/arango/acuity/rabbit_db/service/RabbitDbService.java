@@ -116,11 +116,11 @@ public class RabbitDbService {
         arangoOperations.query(query, null, null, null);
     }
 
-    public <T> T loadByKey(Map<String, Object> queryMap, Class<T> type) {
+    public <T> Optional<T> loadByKey(Map<String, Object> queryMap, Class<T> type) {
         String query = "FOR u IN " + COLLECTION + " FILTER u.principalId == @principalId && u.database == @database && u.subGroup == @subGroup && u.subKey == @subKey RETURN u";
         ArangoCursor<String> result = arangoOperations.query(query, queryMap, null, String.class);
-        if (result == null || !result.hasNext()) return null;
-        return gson.fromJson(result.next(), type);
+        if (result == null || !result.hasNext()) return Optional.empty();
+        return Optional.ofNullable(gson.fromJson(result.next(), type));
     }
 
     public <T> Set<T> loadByGroup(Map<String, Object> queryMap, Class<T> type) {

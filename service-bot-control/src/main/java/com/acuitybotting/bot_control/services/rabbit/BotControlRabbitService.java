@@ -94,7 +94,7 @@ public class BotControlRabbitService implements CommandLineRunner {
         try {
             if (dbService.isReadAccessible(userId, request.getDatabase())) {
                 if (request.getType() == RabbitDbRequest.FIND_BY_KEY) {
-                    GsonRabbitDocument gsonRabbitDocument = dbService.loadByKey(queryMap, GsonRabbitDocument.class);
+                    GsonRabbitDocument gsonRabbitDocument = dbService.loadByKey(queryMap, GsonRabbitDocument.class).orElse(null);
                     try {
                         messageEvent.getQueue().getChannel().buildResponse(messageEvent.getMessage(), gsonRabbitDocument == null ? "" : gson.toJson(gsonRabbitDocument)).send();
                     } catch (MessagingException e) {

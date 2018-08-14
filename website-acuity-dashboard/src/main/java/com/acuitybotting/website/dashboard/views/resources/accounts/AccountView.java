@@ -12,7 +12,6 @@ import com.acuitybotting.website.dashboard.views.RootLayout;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
@@ -30,6 +29,9 @@ public class AccountView extends VerticalLayout implements HasUrlParameter<Strin
 
     private InteractiveList<Map.Entry<String, Long>> levelList = new InteractiveList<>();
 
+    private InteractiveList<Map.Entry<Integer, Integer>> inventoryList = new InteractiveList<>();
+    private InteractiveList<Map.Entry<Integer, Integer>> bankList = new InteractiveList<>();
+
     @Autowired
     public AccountView(RabbitDbService rabbitDbService) {
         this.rabbitDbService = rabbitDbService;
@@ -37,19 +39,30 @@ public class AccountView extends VerticalLayout implements HasUrlParameter<Strin
         levelList.withColumn("Skill", "20%", entry -> new Span(), (entry, span) -> span.setText(entry.getKey()));
         levelList.withColumn("Level", "20%", entry -> new Span(), (entry, span) -> span.setText(String.valueOf(entry.getValue())));
         levelList.withLoadAction(Map.Entry::getKey, this::refresh);
-        add(new TitleSeparator("Account Skills"), levelList);
+        add(new TitleSeparator("Skills"), levelList);
 
+        inventoryList.withColumn("Item", "20%", entry -> new Span(), (entry, span) -> span.setText(String.valueOf(entry.getKey())));
+        inventoryList.withColumn("Count", "20%", entry -> new Span(), (entry, span) -> span.setText(String.valueOf(entry.getValue())));
+        inventoryList.withLoadAction(entry -> String.valueOf(entry.getKey()), this::refresh);
+        add(new TitleSeparator("Inventory"), inventoryList);
+
+        bankList.withColumn("Item", "20%", entry -> new Span(), (entry, span) -> span.setText(String.valueOf(entry.getKey())));
+        bankList.withColumn("Count", "20%", entry -> new Span(), (entry, span) -> span.setText(String.valueOf(entry.getValue())));
+        bankList.withLoadAction(entry -> String.valueOf(entry.getKey()), this::refresh);
+        add(new TitleSeparator("Bank"), bankList);
     }
     private void refresh(){
-        GsonRabbitDocument account = rabbitDbService.loadByKey(getQueryMap(accountId), GsonRabbitDocument.class);
-        if (account == null) {
+        GsonRabbitDocument gsonAccount = rabbitDbService.loadByKey(getQueryMap(accountId), GsonRabbitDocument.class).orElse(null);
+        if (gsonAccount == null) {
             getUI().ifPresent(ui -> ui.navigate(AccountsListView.class));
             Notifications.error("Failed to find account.");
             return;
         }
 
-        this.account = account.getSubDocumentAs(RsAccountInfo.class);
+        this.account = gsonAccount.getSubDocumentAs(RsAccountInfo.class);
         levelList.update(this.account.getLevels().entrySet());
+        inventoryList.update(this.account.getInventory().entrySet());
+        bankList.update(this.account.getBank().entrySet());
     }
 
     @Override

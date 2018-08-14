@@ -17,6 +17,9 @@ public class RsAccountInfo implements InheritSubId{
     private int world;
     private Map<String, Long> levels;
 
+    private Map<Integer, Integer> inventory;
+    private Map<Integer, Integer> bank;
+
     @Override
     public void setParentSubId(String id) {
         setId(id);

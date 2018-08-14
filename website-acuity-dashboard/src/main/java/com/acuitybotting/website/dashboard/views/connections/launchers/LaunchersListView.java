@@ -1,28 +1,23 @@
 package com.acuitybotting.website.dashboard.views.connections.launchers;
 
-import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.RabbitDocumentBase;
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.LauncherConnection;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
-import com.acuitybotting.website.dashboard.DashboardRabbitService;
 import com.acuitybotting.website.dashboard.components.general.list_display.InteractiveList;
 import com.acuitybotting.website.dashboard.security.view.interfaces.Authed;
 import com.acuitybotting.website.dashboard.utils.Authentication;
 import com.acuitybotting.website.dashboard.utils.Components;
 import com.acuitybotting.website.dashboard.views.RootLayout;
 import com.acuitybotting.website.dashboard.views.connections.ConnectionsTabNavComponent;
-import com.google.gson.Gson;
 import com.vaadin.flow.component.AttachEvent;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
 
-import java.util.*;
+import java.util.Base64;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -55,8 +50,8 @@ public class LaunchersListView extends VerticalLayout implements Authed {
 
             getControls().add(Components.button("Launch Client(s)", event -> launchClients()));
             withColumn("ID", "33%", document -> new Span(), (document, span) -> span.setText(document.getSubKey()));
-            withColumn("Username", "33%", document -> new Span(), (document, span) -> span.setText(document.getState().getUserName()));
-            withColumn("CPU", "33%", document -> new Span(), (document, span) -> span.setText(String.valueOf(document.getState().getCpuLoad())));
+            withColumn("Username", "25%", document -> new Span(), (document, span) -> span.setText(document.getState().getUserName()));
+            withColumn("CPU", "10%", document -> new Span(), (document, span) -> span.setText(String.valueOf(document.getState().getCpuLoad())));
             withLoad(LauncherConnection::getSubKey, this::loadLaunchers);
         }
 

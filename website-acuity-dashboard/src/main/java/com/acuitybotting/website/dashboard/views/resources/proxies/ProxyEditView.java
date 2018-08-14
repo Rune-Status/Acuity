@@ -51,7 +51,7 @@ public class ProxyEditView extends VerticalLayout implements HasUrlParameter<Str
 
         if (proxyId == null) proxy = new Proxy();
         else {
-            GsonRabbitDocument proxy = rabbitDbService.loadByKey(getQueryMap(proxyId), GsonRabbitDocument.class);
+            GsonRabbitDocument proxy = rabbitDbService.loadByKey(getQueryMap(proxyId), GsonRabbitDocument.class).orElse(null);
             if (proxy != null){
                 this.proxy = proxy.getSubDocumentAs(Proxy.class);
                 hostField.setValue(this.proxy.getHost());
