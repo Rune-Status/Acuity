@@ -3,12 +3,14 @@ package com.acuitybotting.bot.launcher.services;
 
 import com.acuitybotting.bot.launcher.ui.LauncherFrame;
 import com.acuitybotting.bot.launcher.utils.CommandLine;
+import com.acuitybotting.common.utils.ConnectionKeyUtil;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.utils.RabbitChannelPool;
 import com.acuitybotting.data.flow.messaging.services.client.utils.RabbitHub;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -35,7 +37,12 @@ public class LauncherRabbitService implements CommandLineRunner {
 
     public void connect() {
         try {
-            rabbitHub.auth(LauncherFrame.getInstance().getConnectionKey());
+
+            JsonObject jsonObject = ConnectionKeyUtil.decode(LauncherFrame.getInstance().getConnectionKey());
+            String username = jsonObject.get("principalId").getAsString();
+            String password = jsonObject.get("secret").getAsString();
+
+            rabbitHub.auth(username, password);
             rabbitHub.start("ABL");
             rabbitHub.createLocalQueue()
                     .withListener(this::handleMessage)

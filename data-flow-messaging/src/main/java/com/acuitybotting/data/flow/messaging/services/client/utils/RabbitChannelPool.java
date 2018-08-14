@@ -12,20 +12,21 @@ import java.util.function.Consumer;
  */
 public class RabbitChannelPool {
 
-    private Set<RabbitChannel> pool = new HashSet<>();
+    private Set<MessagingChannel> pool = new HashSet<>();
 
     public RabbitChannelPool(RabbitHub hub, int poolSize, Consumer<MessagingChannel> callback) {
         for (int i = 0; i < poolSize; i++) {
             MessagingChannel messagingChannel = hub.getRabbitClient().openChannel();
+            pool.add(messagingChannel);
             if (callback != null) callback.accept(messagingChannel);
         }
     }
 
-    public Set<RabbitChannel> getPool() {
+    public Set<MessagingChannel> getPool() {
         return pool;
     }
 
-    public RabbitChannel getChannel(){
+    public MessagingChannel getChannel(){
         return pool.stream().findAny().orElse(null);
     }
 }

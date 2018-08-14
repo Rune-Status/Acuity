@@ -29,12 +29,6 @@ public class RabbitHub {
 
     private RabbitClient rabbitClient;
 
-    public void auth(String connectionKey){
-        Objects.requireNonNull(connectionKey, "Failed to acquire user connection key.");
-        username = new Gson().fromJson(new String(Base64.getDecoder().decode(connectionKey)), JsonObject.class).get("principalId").getAsString();
-        password = connectionKey;
-    }
-
     public void auth(String username, String password){
         this.username = username;
         this.password = password;
@@ -46,11 +40,11 @@ public class RabbitHub {
 
     public void start(String connectionPrefix, String connectionId){
         allowedPrefix = "user." + username + ".";
-        connectionId = connectionPrefix + "_" + connectionId;
+        this.connectionId = connectionPrefix + "_" + connectionId;
 
         rabbitClient = new RabbitClient();
         rabbitClient.auth("nodes-1.admin-acuitybotting.com", "31457", username, password);
-        rabbitClient.connect(connectionId);
+        rabbitClient.connect(this.connectionId);
     }
 
     public void updateConnectionDocument(String body) throws MessagingException {

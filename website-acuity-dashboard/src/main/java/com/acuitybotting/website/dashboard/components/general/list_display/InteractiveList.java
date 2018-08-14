@@ -162,4 +162,9 @@ public class InteractiveList<T> extends VerticalLayout {
         rows.remove(id);
         list.remove(row);
     }
+
+    public InteractiveList hideControls(){
+        controlBar.setVisible(false);
+        return this;
+    }
 }

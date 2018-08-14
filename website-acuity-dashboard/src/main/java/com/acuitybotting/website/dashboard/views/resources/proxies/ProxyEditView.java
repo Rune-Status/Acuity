@@ -30,15 +30,13 @@ import java.util.UUID;
 public class ProxyEditView extends VerticalLayout implements HasUrlParameter<String>, Authed {
 
     private final RabbitDbService rabbitDbService;
-    private final AcuityUsersService acuityUsersService;
     private UserMasterPasswordField masterPasswordField;
     private String proxyId;
     private Proxy proxy;
 
     @Autowired
-    public ProxyEditView(RabbitDbService rabbitDbService, AcuityUsersService acuityUsersService, UserMasterPasswordField masterPasswordField) {
+    public ProxyEditView(RabbitDbService rabbitDbService, UserMasterPasswordField masterPasswordField) {
         this.rabbitDbService = rabbitDbService;
-        this.acuityUsersService = acuityUsersService;
         this.masterPasswordField = masterPasswordField;
     }
 

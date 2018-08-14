@@ -1,8 +1,12 @@
 package com.acuitybotting.common.utils;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Base64;
 
 public class ConnectionKeyUtil {
 
@@ -12,6 +16,10 @@ public class ConnectionKeyUtil {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static JsonObject decode(String key){
+        return new Gson().fromJson(new String(Base64.getDecoder().decode(key)), JsonObject.class);
     }
 
     public static String findKey() {
