@@ -28,6 +28,7 @@ public class AcuityBottingUser {
 
     private String email;
     private String displayName;
+    private String profileImgUrl;
 
     private String passwordHash;
     private String masterKey;

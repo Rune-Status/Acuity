@@ -24,6 +24,10 @@ public class Authentication {
         return false;
     }
 
+    public static Optional<AcuityBottingUser> getAcuityUserOptional(){
+        return Optional.ofNullable((AcuityBottingUser) getSessionAttribute(ACUITY_USER));
+    }
+
     public static AcuityBottingUser getAcuityUser(){
         return (AcuityBottingUser) getSessionAttribute(ACUITY_USER);
     }

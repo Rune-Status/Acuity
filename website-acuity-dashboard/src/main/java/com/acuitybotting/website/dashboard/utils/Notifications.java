@@ -11,7 +11,7 @@ public class Notifications {
         return Notification.show(message, 3000, Notification.Position.TOP_END);
     }
 
-    public static void error(String message) {
-
+    public static Notification error(String message, Object... values) {
+        return display(message, values);
     }
 }

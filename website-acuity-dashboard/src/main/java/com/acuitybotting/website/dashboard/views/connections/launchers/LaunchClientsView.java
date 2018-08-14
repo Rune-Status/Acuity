@@ -107,7 +107,7 @@ public class LaunchClientsView extends VerticalLayout implements Authed, HasUrlP
             launchConfig.put("command", commandField.getValue());
 
             Map<String, String> customEnvVars = new HashMap<>();
-            customEnvVars.put("acuityConfig", "");
+            customEnvVars.put("acuityConfig", "{}");
             launchConfig.put("cenvVariables", customEnvVars);
 
             String launchJson = new Gson().toJson(launchConfig);

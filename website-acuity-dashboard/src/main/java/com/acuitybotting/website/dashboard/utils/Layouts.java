@@ -14,9 +14,9 @@ public class Layouts {
         return wrapHorizontal(null, width, components);
     }
 
-    public static HorizontalLayout wrapHorizontal(FlexComponent.Alignment alignment, String width, Component... components){
+    public static HorizontalLayout wrapHorizontal(FlexComponent.JustifyContentMode justifyContentMode, String width, Component... components){
         HorizontalLayout horizontalLayout = new HorizontalLayout(components);
-        if (alignment != null) horizontalLayout.setAlignItems(alignment);
+        if (justifyContentMode != null) horizontalLayout.setJustifyContentMode(justifyContentMode);
         if (width != null) horizontalLayout.setWidth(width);
         horizontalLayout.setPadding(false);
         horizontalLayout.setMargin(false);

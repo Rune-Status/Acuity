@@ -197,4 +197,11 @@ public class AcuityUsersService {
 
         return Base64.getEncoder().encodeToString(new Gson().toJson(info).getBytes());
     }
+
+    public void setProfileImage(String acuityPrincipalId, String url) {
+        findUserByUid(acuityPrincipalId).ifPresent(user -> {
+            user.setProfileImgUrl(url);
+            userRepository.save(user);
+        });
+    }
 }
