@@ -53,6 +53,12 @@ public class AcuityHub {
         rabbitHub.auth(username, password);
         rabbitHub.start("RPC", connectionConfig.getConnectionId());
 
+        rabbitHub.getLocalQueue().withListener(messageEvent -> {
+            if (messageEvent.getMessage().getAttributes().containsKey("killConnection")){
+                System.exit(0);
+            }
+        });
+
         long start = System.currentTimeMillis();
         while ((System.currentTimeMillis() - start) < TimeUnit.SECONDS.toMillis(15) && !rabbitHub.getLocalQueue().getChannel().isConnected()) {
             try {
