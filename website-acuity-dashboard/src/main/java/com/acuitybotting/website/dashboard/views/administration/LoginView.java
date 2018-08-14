@@ -36,7 +36,7 @@ public class LoginView extends VerticalLayout {
             getUI().ifPresent(ui -> {
                 if (user != null){
                     Authentication.setAcuityPrincipalId(user.getPrincipalId());
-                    Authentication.updateSession(acuityUserService);
+                    Authentication.updateSession(acuityUserService, false);
                     ui.navigate(ProfileView.class);
                     Notifications.display("Welcome " + user.getDisplayName() + ".");
                 }

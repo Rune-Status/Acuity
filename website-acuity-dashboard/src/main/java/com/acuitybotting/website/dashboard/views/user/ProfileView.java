@@ -72,7 +72,6 @@ public class ProfileView extends VerticalLayout implements Authed {
             addLink.addClickListener(event -> {
                 acuityUsersService.linkToPrincipal(Authentication.getAcuityPrincipalId(), jwtField.getValue());
                 Authentication.updateSession(acuityUsersService);
-                load();
                 Notifications.display("Added token.");
             });
             getControls().add(jwtField, addLink);
@@ -101,6 +100,7 @@ public class ProfileView extends VerticalLayout implements Authed {
 
             generate.addClickListener(buttonClickEvent -> {
                 if (acuityUsersService.generateNewConnectionKey(Authentication.getAcuityPrincipalId())){
+                    Authentication.updateSession(acuityUsersService);
                     Notifications.display("New connection key set.");
                 }
             });
@@ -116,34 +116,44 @@ public class ProfileView extends VerticalLayout implements Authed {
 
             PasswordField keyField1 = new PasswordField();
             PasswordField keyField2 = new PasswordField();
-            Button set = new Button(VaadinIcon.PLUS_CIRCLE.create());
-            add(keyField1, keyField2, set);
+            PasswordField keyField3 = new PasswordField();
 
-            boolean keySet = Authentication.getAcuityUser().getMasterKey() != null;
-            keyField1.setPlaceholder(keySet ? "Old Key" : "Master Key");
-            keyField2.setPlaceholder(keySet ? "New Key" : "Confirm Key");
+            Button set = new Button(VaadinIcon.PLUS_CIRCLE.create());
+
+            boolean passwordSet = Authentication.getAcuityUser().getMasterKey() != null;
+            keyField1.setPlaceholder(passwordSet ? "Old Password" : "Master Password");
+            keyField2.setPlaceholder(passwordSet ? "New Password" : "Confirm Password");
+            keyField3.setPlaceholder("Confirm password.");
+
+            add(keyField1, keyField2);
+            if (passwordSet) add(keyField3);
+            add(set);
 
             set.addClickListener(buttonClickEvent -> {
                 boolean result;
-                if (keySet) {
+                if (passwordSet) {
+                    if (!keyField2.getValue().equals(keyField3.getValue())) {
+                        Notifications.error("Passwords do not match.");
+                        return;
+                    }
+
                     result = acuityUsersService.createOrUpdateMasterKey(Authentication.getAcuityPrincipalId(), keyField1.getValue(), keyField2.getValue());
                 } else {
                     if (keyField1.getValue().equals(keyField2.getValue())) {
                         result = acuityUsersService.createOrUpdateMasterKey(Authentication.getAcuityPrincipalId(), null, keyField1.getValue());
                     }
                     else {
-                        Notifications.error("Keys do not match.");
+                        Notifications.error("Passwords do not match.");
                         return;
                     }
                 }
 
                 if (result) {
-                    Notifications.display("Key " + (keySet ? " set" : "updated") + ".");
-                    keyField1.clear();
-                    keyField2.clear();
+                    Notifications.display("Password " + (passwordSet ? " set" : "updated") + ".");
+                    Authentication.updateSession(acuityUsersService);
                 }
                 else {
-                    Notifications.error("Failed to update key.");
+                    Notifications.error("Failed to update password.");
                 }
             });
         }

@@ -1,15 +1,12 @@
 package com.acuitybotting.bot.launcher.services;
 
-
-import com.acuitybotting.bot.launcher.ui.LauncherFrame;
+import com.acuitybotting.bot.launcher.ui.LoginFrame;
 import com.acuitybotting.bot.launcher.utils.CommandLine;
 import com.acuitybotting.common.utils.ConnectionKeyUtil;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
-import com.acuitybotting.data.flow.messaging.services.client.utils.RabbitChannelPool;
 import com.acuitybotting.data.flow.messaging.services.client.utils.RabbitHub;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,10 +33,10 @@ public class LauncherRabbitService implements CommandLineRunner {
         this.stateService = stateService;
     }
 
-    public void connect() {
+    public void connect(String connectionKey, String masterPassword) {
         try {
 
-            JsonObject jsonObject = ConnectionKeyUtil.decode(LauncherFrame.getInstance().getConnectionKey());
+            JsonObject jsonObject = ConnectionKeyUtil.decode(connectionKey);
             String username = jsonObject.get("principalId").getAsString();
             String password = jsonObject.get("secret").getAsString();
 
@@ -90,9 +87,12 @@ public class LauncherRabbitService implements CommandLineRunner {
 
     @Override
     public void run(String... strings) {
-        LauncherFrame.setInstance(new LauncherFrame(this)).setVisible(true);
-        if (LauncherFrame.getInstance().getConnectionKey() != null){
-            connect();
-        }
+        LoginFrame loginFrame = new LoginFrame() {
+            @Override
+            public void onConnect(String connectionKey, String masterPassword) {
+                connect(connectionKey, masterPassword);
+            }
+        };
+        loginFrame.setVisible(true);
     }
 }
