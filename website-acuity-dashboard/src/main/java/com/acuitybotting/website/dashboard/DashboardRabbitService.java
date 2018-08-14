@@ -21,9 +21,6 @@ import java.util.UUID;
 @Slf4j
 public class DashboardRabbitService implements CommandLineRunner {
 
-    @Value("${rabbit.host}")
-    private String host;
-
     @Value("${rabbit.username}")
     private String username;
 

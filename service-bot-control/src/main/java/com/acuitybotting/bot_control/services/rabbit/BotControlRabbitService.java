@@ -35,8 +35,6 @@ public class BotControlRabbitService implements CommandLineRunner {
 
     private final RabbitDbService dbService;
 
-    @Value("${rabbit.host}")
-    private String host;
     @Value("${rabbit.username}")
     private String username;
     @Value("${rabbit.password}")

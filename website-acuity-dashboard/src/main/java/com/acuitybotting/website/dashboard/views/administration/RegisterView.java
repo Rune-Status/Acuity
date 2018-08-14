@@ -33,9 +33,11 @@ public class RegisterView extends VerticalLayout {
 
         public RegisterComponent(AcuityUsersService acuityUserService) {
             TextField email = new TextField("Email");
+            email.setAutocorrect(false);
             email.setPlaceholder("email");
 
             TextField displayName = new TextField("Display Name");
+            displayName.setAutocorrect(false);
             displayName.setPlaceholder("display name");
 
             PasswordField password = new PasswordField("Password");

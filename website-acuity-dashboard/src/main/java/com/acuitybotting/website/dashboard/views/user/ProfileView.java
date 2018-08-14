@@ -65,9 +65,6 @@ public class ProfileView extends VerticalLayout implements Authed {
 
     private class AcuityUserSettingsComponent extends VerticalLayout {
 
-
-
-
         public AcuityUserSettingsComponent() {
             setPadding(false);
 
@@ -126,16 +123,19 @@ public class ProfileView extends VerticalLayout implements Authed {
 
         public ConnectionKeyComponent() {
             setPadding(false);
+            setWidth("100%");
 
             String connectionKey = acuityUsersService.wrapConnectionKey(Authentication.getAcuityPrincipalId(), Authentication.getAcuityUser().getConnectionKey());
 
             PasswordField currentKey = new PasswordField();
+            currentKey.setWidth("88%");
             currentKey.setValue(connectionKey);
             currentKey.addValueChangeListener(event -> currentKey.setValue(connectionKey));
             currentKey.setPlaceholder("Not Set");
 
             Button generate = new Button(VaadinIcon.REFRESH.create());
             generate.setText("Generate");
+            generate.setWidth("12%");
 
             generate.addClickListener(buttonClickEvent -> {
                 if (acuityUsersService.generateNewConnectionKey(Authentication.getAcuityPrincipalId())){

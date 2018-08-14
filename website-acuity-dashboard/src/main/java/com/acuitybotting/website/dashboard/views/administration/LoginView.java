@@ -36,6 +36,8 @@ public class LoginView extends HorizontalLayout {
 
         public LoginComponent(AcuityUsersService acuityUserService) {
             TextField username = new TextField("Email");
+            username.setAutocorrect(false);
+
             PasswordField password = new PasswordField("Password");
             Button login = Components.button("Login", event -> {
                 AcuityBottingUser user = acuityUserService.login(username.getValue(), password.getValue()).orElse(null);

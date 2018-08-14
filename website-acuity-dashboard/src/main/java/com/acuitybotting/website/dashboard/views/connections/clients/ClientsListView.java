@@ -49,8 +49,6 @@ public class ClientsListView extends VerticalLayout implements Authed {
             this.rabbitService = rabbitService;
 
             withColumn("ID", "33%", document -> new Span(), (document, span) -> span.setText(document.getSubKey()));
-            withColumn("Host", "15%", document -> new Span(), (document, span) -> span.setText(String.valueOf(document.getHeaders().getOrDefault("peerHost", ""))));
-            withColumn("Last Update", "33%", document -> new Span(), (document, span) -> span.setText(String.valueOf(document.getHeaders().getOrDefault("connectionConfirmationTime", ""))));
             withLoad(GsonRabbitDocument::getSubKey, this::loadClients);
         }
 

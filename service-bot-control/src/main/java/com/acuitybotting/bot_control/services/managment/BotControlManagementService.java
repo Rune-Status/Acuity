@@ -27,8 +27,6 @@ public class BotControlManagementService {
 
     private final RabbitDbService rabbitDbService;
 
-    @Value("${rabbit.host}")
-    private String host;
     @Value("${rabbit.username}")
     private String username;
     @Value("${rabbit.password}")
@@ -70,7 +68,7 @@ public class BotControlManagementService {
     @Scheduled(fixedDelay = 10000)
     public void updateConnections() {
         try {
-            RabbitManagement.loadAll("http://" + "nodes-1.admin-acuitybotting.com" + ":" + "31456", username, password);
+            RabbitManagement.loadAll(username, password);
             updateRegisteredConnections();
         } catch (Exception e) {
             log.error("Error during RabbitManagement.loadAll.", e);

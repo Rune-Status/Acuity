@@ -61,8 +61,6 @@ public class HpaPathFindingService {
     private PathResult lastResult;
 
     private HPAGraph graph;
-    @Value("${rabbit.host}")
-    private String host;
 
     @Value("${rabbit.username}")
     private String username;
