@@ -3,14 +3,9 @@ package com.acuitybotting.data.flow.messaging.services.client.utils;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.MessagingQueue;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
-import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitChannel;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitClient;
 import com.acuitybotting.data.flow.messaging.services.db.implementations.rabbit.RabbitDb;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 
-import java.util.Base64;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Consumer;
 

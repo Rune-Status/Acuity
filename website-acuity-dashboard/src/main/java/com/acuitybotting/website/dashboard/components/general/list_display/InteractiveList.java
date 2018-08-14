@@ -1,7 +1,6 @@
 package com.acuitybotting.website.dashboard.components.general.list_display;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.HasText;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.html.Span;
@@ -23,6 +22,7 @@ public class InteractiveList<T> extends VerticalLayout {
 
     private Function<T, String> idMapper;
     private Supplier<Collection<T>> loadSupplier;
+    private Runnable loadAction;
 
     private HorizontalLayout controlBar = new HorizontalLayout();
     private HorizontalLayout controls = new HorizontalLayout();
@@ -85,7 +85,7 @@ public class InteractiveList<T> extends VerticalLayout {
         add(controlBar, headers, list, footers);
     }
 
-    public void updateSelectionCount(){
+    public void updateSelectionCount() {
         long count = rows.values().stream().filter(row -> row.getSelectionBox().getValue()).count();
         if (count == 0) selectionCount.setVisible(false);
         else {
@@ -95,7 +95,7 @@ public class InteractiveList<T> extends VerticalLayout {
     }
 
     public void applySearch(String searchTxt) {
-        if (searchTxt != null){
+        if (searchTxt != null) {
             searchTxt = searchTxt.toLowerCase();
             if (searchTxt.isEmpty()) searchTxt = null;
         }
@@ -105,11 +105,11 @@ public class InteractiveList<T> extends VerticalLayout {
         }
     }
 
-    public Stream<InteractiveListRow<T>> getSelectedRows(){
+    public Stream<InteractiveListRow<T>> getSelectedRows() {
         return rows.values().stream().filter(row -> row.getSelectionBox().getValue());
     }
 
-    public Stream<T> getSelectedValues(){
+    public Stream<T> getSelectedValues() {
         return getSelectedRows().map(InteractiveListRow::getValue);
     }
 
@@ -130,24 +130,39 @@ public class InteractiveList<T> extends VerticalLayout {
     }
 
     public InteractiveList<T> withLoad(Function<T, String> idMapper, Supplier<Collection<T>> loadSupplier) {
+        return withLoad(idMapper, loadSupplier, null);
+    }
+
+    public InteractiveList<T> withLoadAction(Function<T, String> idMapper, Runnable action) {
+        return withLoad(idMapper, null, action);
+    }
+
+    public InteractiveList<T> withLoad(Function<T, String> idMapper, Supplier<Collection<T>> loadSupplier, Runnable action) {
         this.idMapper = idMapper;
         this.loadSupplier = loadSupplier;
+        this.loadAction = action;
+        return this;
+    }
+
+    public InteractiveList<T> update(Collection<T> values) {
+        Map<String, Set<T>> grouped = values.stream().collect(Collectors.groupingBy(idMapper, Collectors.toSet()));
+
+        for (Map.Entry<String, InteractiveListRow<T>> entry : rows.entrySet()) {
+            if (!grouped.containsKey(entry.getKey())) entry.getValue().removeFromList();
+        }
+
+        for (Map.Entry<String, Set<T>> entry : grouped.entrySet()) {
+            addOrUpdate(entry.getKey(), entry.getValue().stream().findAny().orElse(null));
+        }
+
         return this;
     }
 
     public InteractiveList<T> load() {
         getUI().ifPresent(ui -> ui.access(() -> {
-            Map<String, Set<T>> load = loadSupplier.get().stream().collect(Collectors.groupingBy(idMapper, Collectors.toSet()));
-
-            for (Map.Entry<String, InteractiveListRow<T>> entry : rows.entrySet()) {
-                if (!load.containsKey(entry.getKey())) entry.getValue().removeFromList();
-            }
-
-            for (Map.Entry<String, Set<T>> entry : load.entrySet()) {
-                addOrUpdate(entry.getKey(), entry.getValue().stream().findAny().orElse(null));
-            }
+            if (loadAction != null) loadAction.run();
+            if (loadSupplier != null) update(loadSupplier.get());
         }));
-
         return this;
     }
 
@@ -163,7 +178,7 @@ public class InteractiveList<T> extends VerticalLayout {
         list.remove(row);
     }
 
-    public InteractiveList hideControls(){
+    public InteractiveList hideControls() {
         controlBar.setVisible(false);
         return this;
     }

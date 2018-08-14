@@ -25,15 +25,16 @@ import java.util.stream.Collectors;
 public class LauncherRabbitService implements CommandLineRunner {
 
     private final StateService stateService;
-
     private RabbitHub rabbitHub = new RabbitHub();
+
+    private String masterPassword;
 
     @Autowired
     public LauncherRabbitService(StateService stateService) {
         this.stateService = stateService;
     }
 
-    public void connect(String connectionKey, String masterPassword) {
+    public void connect(String connectionKey) {
         try {
 
             JsonObject jsonObject = ConnectionKeyUtil.decode(connectionKey);
@@ -45,6 +46,8 @@ public class LauncherRabbitService implements CommandLineRunner {
             rabbitHub.createLocalQueue()
                     .withListener(this::handleMessage)
                     .open(true);
+
+            updateState();
         } catch (Throwable e) {
             log.error("Error during dashboard RabbitMQ setup.", e);
         }
@@ -53,6 +56,7 @@ public class LauncherRabbitService implements CommandLineRunner {
     @Scheduled(initialDelay = 5000, fixedDelay = 60000)
     private void updateState(){
         try {
+            if (rabbitHub.getLocalQueue() == null) return;
             rabbitHub.updateConnectionDocument(new Gson().toJson(Collections.singletonMap("state", stateService.buildState())));
             log.info("Updated state.");
         } catch (MessagingException e) {
@@ -70,9 +74,14 @@ public class LauncherRabbitService implements CommandLineRunner {
             String envVariableReplacement = "";
 
             JsonObject envVariables = launchConfig.getAsJsonObject("cenvVariables");
-            if (envVariables != null){
-                envVariableReplacement = envVariables.keySet().stream().map(s -> "-D" + s + "=" + envVariables.get(s).getAsString()).collect(Collectors.joining(" "));
+            if (envVariables == null) envVariables = new JsonObject();
+
+            if (masterPassword != null){
+                envVariables.addProperty("acuity-master-password", masterPassword);
             }
+
+            JsonObject finalEnvVariables = envVariables;
+            envVariableReplacement = envVariables.keySet().stream().map(s -> "-D" + s + "=" + finalEnvVariables.get(s).getAsString()).collect(Collectors.joining(" ", " ", ""));
             command = command.replaceAll(" \\{CENV_VARIABLES}", envVariableReplacement);
 
             log.info("Running command: {}", command);
@@ -90,7 +99,8 @@ public class LauncherRabbitService implements CommandLineRunner {
         LoginFrame loginFrame = new LoginFrame() {
             @Override
             public void onConnect(String connectionKey, String masterPassword) {
-                connect(connectionKey, masterPassword);
+                LauncherRabbitService.this.masterPassword = masterPassword;
+                connect(connectionKey);
             }
         };
         loginFrame.setVisible(true);

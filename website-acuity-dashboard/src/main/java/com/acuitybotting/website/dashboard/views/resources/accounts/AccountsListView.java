@@ -62,7 +62,7 @@ public class AccountsListView extends VerticalLayout implements Authed {
                     .loadByGroup(
                             RabbitDbService.buildQueryMap(
                                     Authentication.getAcuityPrincipalId(),
-                                    "services.player-cache",
+                                    "services.rs-accounts",
                                     "players"
                             ),
                             RsAccountDocument.class
