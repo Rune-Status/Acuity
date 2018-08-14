@@ -43,8 +43,8 @@ public class AccountView extends VerticalLayout implements HasUrlParameter<Strin
     private void refresh(){
         GsonRabbitDocument account = rabbitDbService.loadByKey(getQueryMap(accountId), GsonRabbitDocument.class);
         if (account == null) {
-            Notifications.error("Failed to find account.");
             getUI().ifPresent(ui -> ui.navigate(AccountsListView.class));
+            Notifications.error("Failed to find account.");
             return;
         }
 

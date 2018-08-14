@@ -6,6 +6,8 @@ import com.vaadin.flow.component.HasText;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import net.bytebuddy.implementation.bytecode.Throw;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,6 +15,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Getter
+@Slf4j
 public class InteractiveListRow<T> extends HorizontalLayout {
 
     private Checkbox selectionBox = new Checkbox();
@@ -44,13 +47,18 @@ public class InteractiveListRow<T> extends HorizontalLayout {
     public void update(T value) {
         this.value = value;
         for (InteractiveListColumn column : list.getColumns()) {
-            Object component = columnComponents.computeIfAbsent(column.getUid(), s -> {
-                Component apply = (Component) column.getConstructMapping().apply(value);
-                if (apply instanceof HasSize) ((HasSize) apply).setWidth(column.getMaxWidth());
-                add(apply);
-                return apply;
-            });
-            column.getUpdateMapping().accept(value, component);
+            try {
+                Object component = columnComponents.computeIfAbsent(column.getUid(), s -> {
+                    Component apply = (Component) column.getConstructMapping().apply(value);
+                    if (apply instanceof HasSize) ((HasSize) apply).setWidth(column.getMaxWidth());
+                    add(apply);
+                    return apply;
+                });
+                column.getUpdateMapping().accept(value, component);
+            }
+            catch (Throwable e){
+                log.info("Error while updating row.");
+            }
         }
     }
 

@@ -3,6 +3,7 @@ package com.acuitybotting.website.dashboard.views.connections.launchers;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.RabbitDocumentBase;
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.LauncherConnection;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.website.dashboard.DashboardRabbitService;
 import com.acuitybotting.website.dashboard.components.general.list_display.InteractiveList;
@@ -45,7 +46,7 @@ public class LaunchersListView extends VerticalLayout implements Authed {
 
     @SpringComponent
     @UIScope
-    private static class LauncherListComponent extends InteractiveList<GsonRabbitDocument> {
+    private static class LauncherListComponent extends InteractiveList<LauncherConnection> {
 
         private final RabbitDbService rabbitDbService;
 
@@ -54,21 +55,22 @@ public class LaunchersListView extends VerticalLayout implements Authed {
 
             getControls().add(Components.button("Launch Client(s)", event -> launchClients()));
             withColumn("ID", "33%", document -> new Span(), (document, span) -> span.setText(document.getSubKey()));
-            withColumn("Host", "15%", document -> new Span(), (document, span) -> span.setText(String.valueOf(document.getHeaders().getOrDefault("peerHost", ""))));
-            withColumn("Last Update", "33%", document -> new Span(), (document, span) -> span.setText(String.valueOf(document.getHeaders().getOrDefault("connectionConfirmationTime", ""))));
-            withLoad(GsonRabbitDocument::getSubKey, this::loadLaunchers);
+            withColumn("Username", "33%", document -> new Span(), (document, span) -> span.setText(document.getState().getUserName()));
+            withColumn("CPU", "33%", document -> new Span(), (document, span) -> span.setText(String.valueOf(document.getState().getCpuLoad())));
+            withLoad(LauncherConnection::getSubKey, this::loadLaunchers);
         }
 
         private void launchClients() {
-            String collect = Base64.getEncoder().encodeToString(getSelectedValues().map(RabbitDocumentBase::getSubKey).collect(Collectors.joining(",")).getBytes());
+            String collect = Base64.getEncoder().encodeToString(getSelectedValues().map(LauncherConnection::getSubKey).collect(Collectors.joining(",")).getBytes());
             getUI().ifPresent(ui -> ui.navigate(LaunchClientsView.class, collect));
         }
 
-        private Set<GsonRabbitDocument> loadLaunchers() {
+        private Set<LauncherConnection> loadLaunchers() {
             return rabbitDbService
                     .loadByGroup(RabbitDbService.buildQueryMap(Authentication.getAcuityPrincipalId(), "services.registered-connections", "connections"), GsonRabbitDocument.class)
                     .stream()
                     .filter(connection -> connection.getSubKey().startsWith("ABL_") && (boolean) connection.getHeaders().getOrDefault("connected", false))
+                    .map(gsonRabbitDocument -> gsonRabbitDocument.getSubDocumentAs(LauncherConnection.class))
                     .collect(Collectors.toSet());
         }
     }
