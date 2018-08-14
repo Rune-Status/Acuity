@@ -18,6 +18,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.stream.Collectors;
 
 /**
  * Created by Zachary Herridge on 8/6/2018.
@@ -64,9 +65,18 @@ public class LauncherRabbitService implements CommandLineRunner {
 
     private void handleMessage(MessageEvent messageEvent) {
         if ("runCommand".equals(messageEvent.getMessage().getAttributes().get("type"))) {
-            JsonElement launchConfig = new Gson().fromJson(messageEvent.getMessage().getBody(), JsonElement.class);
+            JsonObject launchConfig = new Gson().fromJson(messageEvent.getMessage().getBody(), JsonObject.class);
+            
             log.info("Got launch config: ", launchConfig);
-            String command = CommandLine.replacePlaceHolders(launchConfig.getAsJsonObject().get("command").getAsString());
+            String command = CommandLine.replacePlaceHolders(launchConfig.get("command").getAsString());
+
+            String envVariableReplacement = "";
+
+            JsonObject envVariables = launchConfig.getAsJsonObject("cenvVariables");
+            if (envVariables != null){
+                envVariableReplacement = envVariables.keySet().stream().map(s -> "-D" + s + "=" + envVariables.get(s).getAsString()).collect(Collectors.joining(" "));
+            }
+            command = command.replaceAll(" \\{CENV_VARIABLES}", envVariableReplacement);
 
             log.info("Running command: {}", command);
 

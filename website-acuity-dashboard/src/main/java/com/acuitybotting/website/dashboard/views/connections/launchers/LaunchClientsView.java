@@ -8,6 +8,7 @@ import com.acuitybotting.website.dashboard.security.view.interfaces.Authed;
 import com.acuitybotting.website.dashboard.utils.Authentication;
 import com.acuitybotting.website.dashboard.utils.Components;
 import com.acuitybotting.website.dashboard.utils.Layouts;
+import com.acuitybotting.website.dashboard.utils.Notifications;
 import com.acuitybotting.website.dashboard.views.RootLayout;
 import com.google.gson.Gson;
 import com.vaadin.flow.component.AttachEvent;
@@ -25,10 +26,7 @@ import com.vaadin.flow.spring.annotation.UIScope;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by Zachary Herridge on 8/14/2018.
@@ -69,7 +67,7 @@ public class LaunchClientsView extends VerticalLayout implements Authed, HasUrlP
         private InteractiveList<String> launchersList = new InteractiveList<>();
         private TextField commandField = new TextField();
 
-        private String defaultCommand = "{RSPEER_JAVA_PATH} -Djava.net.preferIPv4Stack=true -jar \"{RSPEER_SYSTEM_HOME}RSPeer/cache/rspeer.jar\"";
+        private String defaultCommand = "{RSPEER_JAVA_PATH} {CENV_VARIABLES} -Djava.net.preferIPv4Stack=true -jar \"{RSPEER_SYSTEM_HOME}RSPeer/cache/rspeer.jar\"";
 
         public LaunchClientsComponent(DashboardRabbitService rabbitService) {
             this.rabbitService = rabbitService;
@@ -103,19 +101,30 @@ public class LaunchClientsView extends VerticalLayout implements Authed, HasUrlP
         }
 
         private void deploy() {
+            Notifications.display("Deploying to {} launchers.", subIds.size());
+
+            Map<String, Object> launchConfig = new HashMap<>();
+            launchConfig.put("command", commandField.getValue());
+
+            Map<String, String> customEnvVars = new HashMap<>();
+            customEnvVars.put("acuityConfig", "");
+            launchConfig.put("cenvVariables", customEnvVars);
+
+            String launchJson = new Gson().toJson(launchConfig);
             for (String subId : subIds) {
                 String queue = "user." + Authentication.getAcuityPrincipalId() + ".queue." + subId;
                 try {
                     rabbitService.getMessagingChannel().buildMessage(
                             "",
                             queue,
-                            new Gson().toJson(Collections.singletonMap("command", commandField.getValue()))
+                            launchJson
                     ).setAttribute("type", "runCommand").send();
                 } catch (MessagingException e) {
                     e.printStackTrace();
                 }
 
             }
+            Notifications.display("Deployment complete.");
         }
     }
 }
