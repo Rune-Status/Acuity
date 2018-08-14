@@ -6,7 +6,6 @@ import com.acuitybotting.data.flow.messaging.services.futures.MessageFuture;
 import com.google.gson.Gson;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -15,7 +14,6 @@ import java.util.function.Consumer;
 /**
  * Created by Zachary Herridge on 7/10/2018.
  */
-@Slf4j
 public class RabbitClient {
 
     public static final String FUTURE_ID = "futureId";
@@ -40,8 +38,8 @@ public class RabbitClient {
 
     private Map<String, MessageFuture> messageFutures = new HashMap<>();
 
-    private Consumer<Throwable> throwableConsumer = throwable -> log.error("Error from Rabbit.", throwable);
-    private Consumer<String> logConsumer = s -> log.info(s);
+    private Consumer<Throwable> throwableConsumer = throwable -> throwable.printStackTrace();
+    private Consumer<String> logConsumer = s -> System.out.println(s);
 
     private Collection<RabbitChannel> channels = new CopyOnWriteArrayList<>();
 

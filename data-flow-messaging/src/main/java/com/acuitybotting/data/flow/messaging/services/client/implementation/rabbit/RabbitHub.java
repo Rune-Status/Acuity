@@ -68,6 +68,10 @@ public class RabbitHub {
         return new RabbitChannelPool(this, size, consumer);
     }
 
+    public RabbitChannelPool getLocalPool() {
+        return localPool;
+    }
+
     public String getGeneralExchange() {
         return "acuitybotting.general";
     }

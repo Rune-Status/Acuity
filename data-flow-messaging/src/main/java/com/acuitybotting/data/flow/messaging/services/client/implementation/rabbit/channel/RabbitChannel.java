@@ -172,6 +172,11 @@ public class RabbitChannel implements Messageable, ShutdownListener {
         return rabbitChannel;
     }
 
+    public boolean isConnected() {
+        Channel channel = getChannel();
+        return channel != null && channel.isOpen();
+    }
+
     @Override
     public void shutdownCompleted(ShutdownSignalException e) {
         for (RabbitChannelListener listener : listeners) {
