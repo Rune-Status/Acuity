@@ -1,15 +1,19 @@
 package com.acuitybotting.website.dashboard.views.connections.clients;
 
+import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.website.dashboard.DashboardRabbitService;
 import com.acuitybotting.website.dashboard.components.general.list_display.InteractiveList;
 import com.acuitybotting.website.dashboard.security.view.interfaces.Authed;
 import com.acuitybotting.website.dashboard.utils.Authentication;
+import com.acuitybotting.website.dashboard.utils.Components;
 import com.acuitybotting.website.dashboard.views.RootLayout;
 import com.acuitybotting.website.dashboard.views.connections.ConnectionsTabNavComponent;
 import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.SpringComponent;
@@ -49,7 +53,22 @@ public class ClientsListView extends VerticalLayout implements Authed {
             this.rabbitService = rabbitService;
 
             withColumn("ID", "33%", document -> new Span(), (document, span) -> span.setText(document.getSubKey()));
+            withColumn("", "33%", document -> Components.button(VaadinIcon.CLOSE, event -> kill(document.getSubKey())), (document, button) -> {});
+
             withLoad(GsonRabbitDocument::getSubKey, this::loadClients);
+        }
+
+        private void kill(String id){
+            String queue = "user." + Authentication.getAcuityPrincipalId() + ".queue." + id;
+            try {
+                rabbitService.getRabbitChannel().buildMessage(
+                        "",
+                        queue,
+                        "{}"
+                ).setAttribute("killConnection", "").send();
+            } catch (MessagingException e) {
+                e.printStackTrace();
+            }
         }
 
         private Set<GsonRabbitDocument> loadClients() {
