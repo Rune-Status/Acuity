@@ -3,6 +3,7 @@ package com.acuitybotting.website.dashboard.components.general.list_display;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -29,23 +30,32 @@ public class InteractiveList<T> extends VerticalLayout {
     private TextField searchField = new TextField();
     private Button refreshButton = new Button(VaadinIcon.REFRESH.create());
     private Checkbox selectAll = new Checkbox();
-    private Span selectionCount = new Span();
 
-    private HorizontalLayout headers = new HorizontalLayout();
+    private Button nextPage = new Button(VaadinIcon.ARROW_RIGHT.create());
+    private Span pagePosition = new Span();
+    private Button previousPage = new Button(VaadinIcon.ARROW_LEFT.create());
+
+    private Div selectionCount = new Div();
+
+    private Div headers = new Div();
+
+    private int currentPage = 1;
+    private int entriesPerPage = 10;
 
     private VerticalLayout list = new VerticalLayout();
-
     private HorizontalLayout footers = new HorizontalLayout();
-
     private List<InteractiveListColumn> columns = new ArrayList<>();
-    private Map<String, InteractiveListRow<T>> rows = new HashMap<>();
+    private TreeMap<String, InteractiveListRow<T>> rows = new TreeMap<>();
+    private Collection<T> values = Collections.emptyList();
+    private String searchText = "";
+    private Function<T, String> searchableFunction;
 
     public InteractiveList() {
         setMargin(false);
         setPadding(false);
 
         refreshButton.addClickListener(event -> load());
-        searchField.addValueChangeListener(event -> applySearch(searchField.getOptionalValue().orElse(null)));
+        searchField.addValueChangeListener(event -> applySearch(searchField.getValue()));
         selectAll.addValueChangeListener(event -> {
             for (InteractiveListRow<T> row : rows.values()) {
                 if (row.isVisible() && row.isEnabled()) row.getSelectionBox().setValue(event.getValue());
@@ -57,6 +67,7 @@ public class InteractiveList<T> extends VerticalLayout {
         controlBar.setPadding(false);
         controlBar.setMargin(false);
 
+        searchField.setVisible(false);
         searchField.setPlaceholder("Search...");
 
         controls.setWidth("100%");
@@ -67,20 +78,33 @@ public class InteractiveList<T> extends VerticalLayout {
         controlBar.add(controls, refreshButton, searchField);
 
         headers.setWidth("100%");
-        headers.setPadding(false);
-        headers.setMargin(false);
+        headers.getStyle().set("display", "-webkit-inline-box");
         headers.getClassNames().add("acuity-interactive-list-headers");
 
         headers.add(selectAll);
 
         list.setPadding(false);
         list.setMargin(false);
+        list.getStyle().set("overflow", "auto");
 
         footers.setWidth("100%");
         footers.setPadding(false);
         footers.setMargin(false);
 
-        footers.add(selectionCount);
+        previousPage.addClickListener(buttonClickEvent -> {
+            currentPage--;
+            updatePage();
+        });
+
+        nextPage.addClickListener(buttonClickEvent -> {
+            currentPage++;
+            updatePage();
+        });
+
+
+        pagePosition.setHeight("100%");
+
+        footers.add(previousPage, pagePosition, nextPage);
 
         add(controlBar, headers, list, footers);
     }
@@ -95,14 +119,8 @@ public class InteractiveList<T> extends VerticalLayout {
     }
 
     public void applySearch(String searchTxt) {
-        if (searchTxt != null) {
-            searchTxt = searchTxt.toLowerCase();
-            if (searchTxt.isEmpty()) searchTxt = null;
-        }
-
-        for (InteractiveListRow<T> row : rows.values()) {
-            row.setVisible(searchTxt == null || row.getSearchableText().toLowerCase().contains(searchTxt));
-        }
+        this.searchText = searchTxt;
+        updatePage();
     }
 
     public Stream<InteractiveListRow<T>> getSelectedRows() {
@@ -111,6 +129,28 @@ public class InteractiveList<T> extends VerticalLayout {
 
     public Stream<T> getSelectedValues() {
         return getSelectedRows().map(InteractiveListRow::getValue);
+    }
+
+    private void updatePage() {
+        Set<T> filtered = values.stream().filter(t -> searchText.isEmpty() || searchableFunction == null || searchableFunction.apply(t).toLowerCase().contains(searchText.toLowerCase())).collect(Collectors.toSet());
+        int pageCount = (int) Math.ceil((double) filtered.size() / (double) entriesPerPage);
+        currentPage = Math.max(Math.min(currentPage, pageCount), 1);
+
+        pagePosition.setText((pageCount == 0 ? 0 : currentPage) + "/" + pageCount);
+
+        Map<String, Set<T>> grouped =
+                filtered.stream()
+                        .sorted(Comparator.comparing(o -> idMapper.apply(o)))
+                        .skip((currentPage - 1) * entriesPerPage).limit(entriesPerPage)
+                        .collect(Collectors.groupingBy(idMapper, Collectors.toSet()));
+
+        for (Map.Entry<String, InteractiveListRow<T>> entry : new HashSet<>(rows.entrySet())) {
+            if (!grouped.containsKey(entry.getKey())) entry.getValue().removeFromList();
+        }
+
+        for (Map.Entry<String, Set<T>> entry : grouped.entrySet()) {
+            addOrUpdate(entry.getKey(), entry.getValue().stream().findAny().orElse(null));
+        }
     }
 
     public InteractiveList<T> addOrUpdate(String id, T value) {
@@ -125,6 +165,7 @@ public class InteractiveList<T> extends VerticalLayout {
         rows.put(id, row);
         row.update(value);
         list.add(row);
+        list.expand(row);
 
         return this;
     }
@@ -144,17 +185,15 @@ public class InteractiveList<T> extends VerticalLayout {
         return this;
     }
 
+    public InteractiveList<T> withSearchable(Function<T, String> searchableFunction) {
+        this.searchableFunction = searchableFunction;
+        searchField.setVisible(true);
+        return this;
+    }
+
     public InteractiveList<T> update(Collection<T> values) {
-        Map<String, Set<T>> grouped = values.stream().collect(Collectors.groupingBy(idMapper, Collectors.toSet()));
-
-        for (Map.Entry<String, InteractiveListRow<T>> entry : rows.entrySet()) {
-            if (!grouped.containsKey(entry.getKey())) entry.getValue().removeFromList();
-        }
-
-        for (Map.Entry<String, Set<T>> entry : grouped.entrySet()) {
-            addOrUpdate(entry.getKey(), entry.getValue().stream().findAny().orElse(null));
-        }
-
+        this.values = values;
+        updatePage();
         return this;
     }
 

@@ -1,6 +1,7 @@
 package com.acuitybotting.website.dashboard.components.general.list_display;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import lombok.Getter;
 
@@ -31,8 +32,9 @@ public class InteractiveListColumn<T, R extends Component> {
     }
 
     public Component getHeaderComponent(){
-        Span span = new Span(header);
-        span.setWidth(maxWidth);
-        return span;
+        Div div = new Div();
+        div.setText(header);
+        div.setWidth(maxWidth);
+        return div;
     }
 }

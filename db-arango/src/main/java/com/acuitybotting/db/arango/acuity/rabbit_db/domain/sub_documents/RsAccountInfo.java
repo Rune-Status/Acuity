@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Getter
@@ -15,10 +16,10 @@ public class RsAccountInfo implements InheritSubId{
     private transient String id;
 
     private int world;
-    private Map<String, Long> levels;
+    private Map<String, Long> levels = new HashMap<>();
 
-    private Map<Integer, Integer> inventory;
-    private Map<Integer, Integer> bank;
+    private Map<Integer, Integer> inventory = new HashMap<>();
+    private Map<Integer, Integer> bank = new HashMap<>();
 
     @Override
     public void setParentSubId(String id) {

@@ -38,7 +38,7 @@ public class RsPeerMessageHandler {
 
         if (event.getMessage().getContentRaw().startsWith("!jwt")) {
             String linkJwt = acuityUsersService.createLinkJwt(Principal.of(PrincipalLinkTypes.DISCORD, event.getAuthor().getId()));
-            discordBotService.sendMessage(event.getChannel(), "Your jwt is: {}", linkJwt);
+            discordBotService.sendMessage(event.getChannel(), "Your jwt is: {}", linkJwt).queue();
         }
     }
 }

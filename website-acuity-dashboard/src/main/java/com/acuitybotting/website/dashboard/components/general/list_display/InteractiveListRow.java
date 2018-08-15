@@ -4,6 +4,8 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasSize;
 import com.vaadin.flow.component.HasText;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.orderedlayout.BoxSizing;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +18,7 @@ import java.util.stream.Collectors;
 
 @Getter
 @Slf4j
-public class InteractiveListRow<T> extends HorizontalLayout {
+public class InteractiveListRow<T> extends Div {
 
     private Checkbox selectionBox = new Checkbox();
     private InteractiveList<T> list;
@@ -27,20 +29,12 @@ public class InteractiveListRow<T> extends HorizontalLayout {
     public InteractiveListRow(InteractiveList parent, String id) {
         this.list = parent;
         this.rowId = id;
-        setMargin(false);
-        setWidth("100%");
+        setSizeFull();
+
         getClassNames().add("acuity-interactive-list-row");
+        getStyle().set("display", "-webkit-inline-box");
         selectionBox.addValueChangeListener(event -> list.updateSelectionCount());
         add(selectionBox);
-    }
-
-    public String getSearchableText(){
-        return getChildren()
-                .filter(component -> component instanceof HasText)
-                .map(component -> ((HasText) component).getText())
-                .filter(Objects::nonNull)
-                .filter(s -> !s.isEmpty())
-                .collect(Collectors.joining(" "));
     }
 
     @SuppressWarnings("unchecked")

@@ -10,6 +10,7 @@ import com.acuitybotting.website.dashboard.utils.Authentication;
 import com.acuitybotting.website.dashboard.utils.Notifications;
 import com.acuitybotting.website.dashboard.views.RootLayout;
 import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEvent;
@@ -36,9 +37,10 @@ public class AccountView extends VerticalLayout implements HasUrlParameter<Strin
     public AccountView(RabbitDbService rabbitDbService) {
         this.rabbitDbService = rabbitDbService;
 
-        levelList.withColumn("Skill", "20%", entry -> new Span(), (entry, span) -> span.setText(entry.getKey()));
-        levelList.withColumn("Level", "20%", entry -> new Span(), (entry, span) -> span.setText(String.valueOf(entry.getValue())));
+        levelList.withColumn("Skill", "20%", entry -> new Div(), (entry, span) -> span.setText(entry.getKey()));
+        levelList.withColumn("Level", "20%", entry -> new Div(), (entry, span) -> span.setText(String.valueOf(entry.getValue())));
         levelList.withLoadAction(Map.Entry::getKey, this::refresh);
+        levelList.withSearchable(Map.Entry::getKey);
         add(new TitleSeparator("Skills"), levelList);
 
         inventoryList.withColumn("Item", "20%", entry -> new Span(), (entry, span) -> span.setText(String.valueOf(entry.getKey())));

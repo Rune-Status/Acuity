@@ -58,8 +58,8 @@ public class AcuityUsersService {
     public String createLinkJwt(Principal principal){
         return JWT.create()
                 .withIssuer("acuitybotting")
-                .withClaim("source", principal.getType())
-                .withClaim("sourceType", principal.getUid())
+                .withClaim("type", principal.getType())
+                .withClaim("uid", principal.getUid())
                 .withExpiresAt(Date.from(Instant.now().plus(Duration.of(10, ChronoUnit.MINUTES))))
                 .sign(Algorithm.HMAC256(jwtSecret));
     }
@@ -77,8 +77,8 @@ public class AcuityUsersService {
             return false;
         }
 
-        String sourceUid = verify.getClaims().get("source").asString();
-        String sourceType = verify.getClaims().get("sourceType").asString();
+        String sourceType = verify.getClaims().get("type").asString();
+        String sourceUid = verify.getClaims().get("uid").asString();
 
         if (sourceType == null || sourceUid == null) return false;
 
