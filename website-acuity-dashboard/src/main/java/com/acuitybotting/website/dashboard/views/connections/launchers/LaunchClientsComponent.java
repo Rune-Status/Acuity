@@ -1,5 +1,7 @@
 package com.acuitybotting.website.dashboard.views.connections.launchers;
 
+import com.acuitybotting.common.utils.connection_configuration.ConnectionConfigurationUtil;
+import com.acuitybotting.common.utils.connection_configuration.domain.ConnectionConfiguration;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.LauncherConnection;
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.Proxy;
@@ -25,6 +27,7 @@ import lombok.Getter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @SpringComponent
@@ -41,7 +44,7 @@ public class LaunchClientsComponent extends VerticalLayout {
     private ComboBox<RsAccountInfo> accountComboBox = new ComboBox<>();
 
     private TextField commandField = new TextField();
-    private String defaultCommand = "{RSPEER_JAVA_PATH} {CENV_VARIABLES} -Djava.net.preferIPv4Stack=true -jar \"{RSPEER_SYSTEM_HOME}RSPeer/cache/rspeer.jar\"";
+    private String defaultCommand = "{RSPEER_JAVA_PATH} -Dacuity.connection={CONNECTION} -Djava.net.preferIPv4Stack=true -jar \"{RSPEER_SYSTEM_HOME}RSPeer/cache/rspeer.jar\"";
 
     public LaunchClientsComponent(DashboardRabbitService rabbitService, LauncherListComponent launcherListComponent, ProxiesService proxiesService, AccountsService accountsService) {
         this.rabbitService = rabbitService;
@@ -90,9 +93,11 @@ public class LaunchClientsComponent extends VerticalLayout {
         Map<String, Object> launchConfig = new HashMap<>();
         launchConfig.put("command", commandField.getValue());
 
-        Map<String, String> customEnvVars = new HashMap<>();
-        customEnvVars.put("acuityConfig", "");
-        launchConfig.put("cenvVariables", customEnvVars);
+
+        ConnectionConfiguration connectionConfiguration = new ConnectionConfiguration();
+        connectionConfiguration.setConnectionId(UUID.randomUUID().toString());
+
+        launchConfig.put("acuityConnectionConfiguration", ConnectionConfigurationUtil.encode(connectionConfiguration));
 
         String launchJson = new Gson().toJson(launchConfig);
         for (String subId : subIds) {

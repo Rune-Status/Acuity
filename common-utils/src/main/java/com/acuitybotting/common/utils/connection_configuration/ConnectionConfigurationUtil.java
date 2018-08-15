@@ -12,9 +12,13 @@ import java.util.Optional;
 
 public class ConnectionConfigurationUtil {
 
-    public static void write(ConnectionConfiguration encodedConfiguration){
+    public static String encode(ConnectionConfiguration connectionConfiguration){
+        return new String(Base64.getEncoder().encode(new Gson().toJson(connectionConfiguration).getBytes()));
+    }
+
+    public static void write(ConnectionConfiguration connectionConfiguration){
         try {
-            Files.write(new File(System.getProperty("user.dir"), "acuity-connection.txt").toPath(), Base64.getEncoder().encode(new Gson().toJson(encodedConfiguration).getBytes()));
+            Files.write(new File(System.getProperty("user.dir"), "acuity-connection.txt").toPath(), encode(connectionConfiguration).getBytes());
         } catch (IOException e) {
             e.printStackTrace();
         }

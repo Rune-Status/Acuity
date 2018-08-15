@@ -29,6 +29,9 @@ public class LauncherRabbitService implements CommandLineRunner {
     private final StateService stateService;
     private RabbitHub rabbitHub = new RabbitHub();
 
+    private Gson gson = new Gson();
+
+    private String connectionKey;
     private String masterPassword;
 
     @Autowired
@@ -37,6 +40,7 @@ public class LauncherRabbitService implements CommandLineRunner {
     }
 
     public void connect(String connectionKey) {
+        this.connectionKey = connectionKey;
         try {
 
             JsonObject jsonObject = ConnectionConfigurationUtil.decodeConnectionKey(connectionKey);
@@ -66,23 +70,16 @@ public class LauncherRabbitService implements CommandLineRunner {
 
     private void handleMessage(MessageEvent messageEvent) {
         if ("runCommand".equals(messageEvent.getMessage().getAttributes().get("type"))) {
-            JsonObject launchConfig = new Gson().fromJson(messageEvent.getMessage().getBody(), JsonObject.class);
+            JsonObject launchConfig = gson.fromJson(messageEvent.getMessage().getBody(), JsonObject.class);
             
             log.info("Got launch config: ", launchConfig);
             String command = CommandLine.replacePlaceHolders(launchConfig.get("command").getAsString());
 
-            String envVariableReplacement = "";
+            ConnectionConfiguration connectionConfiguration = ConnectionConfigurationUtil.decode(launchConfig.get("acuityConnectionConfiguration").getAsString()).orElse(new ConnectionConfiguration());
+            if (connectionConfiguration.getConnectionKey() == null) connectionConfiguration.setConnectionKey(connectionKey);
+            if (connectionConfiguration.getMasterKey() == null) connectionConfiguration.setMasterKey(masterPassword);
 
-            JsonObject envVariables = launchConfig.getAsJsonObject("cenvVariables");
-            if (envVariables == null) envVariables = new JsonObject();
-
-            if (masterPassword != null){
-                envVariables.addProperty("acuity-master-password", masterPassword);
-            }
-
-            JsonObject finalEnvVariables = envVariables;
-            envVariableReplacement = envVariables.keySet().stream().map(s -> "-D" + s + "=" + finalEnvVariables.get(s).getAsString()).collect(Collectors.joining(" ", " ", ""));
-            command = command.replaceAll(" \\{CENV_VARIABLES}", envVariableReplacement);
+            command = command.replaceAll("\\{CONNECTION}", ConnectionConfigurationUtil.encode(connectionConfiguration));
 
             log.info("Running command: {}", command);
 
@@ -99,14 +96,15 @@ public class LauncherRabbitService implements CommandLineRunner {
         Optional<ConnectionConfiguration> decode = ConnectionConfigurationUtil.decode(ConnectionConfigurationUtil.find());
 
         LauncherFrame launcherFrame = new LauncherFrame() {
+
             @Override
             public void onConnect(String connectionKey, String masterPassword) {
-                LauncherRabbitService.this.masterPassword = masterPassword;
                 connect(connectionKey);
             }
 
             @Override
             public void onSave(String connectionKey, String masterPassword) {
+                LauncherRabbitService.this.masterPassword = masterPassword;
                 ConnectionConfiguration connectionConfiguration = new ConnectionConfiguration();
                 connectionConfiguration.setConnectionKey(connectionKey);
                 connectionConfiguration.setMasterKey(masterPassword);
