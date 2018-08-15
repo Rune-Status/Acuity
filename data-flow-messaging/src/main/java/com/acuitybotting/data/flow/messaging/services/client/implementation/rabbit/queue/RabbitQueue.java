@@ -88,7 +88,7 @@ public class RabbitQueue {
                     };
 
                     consumeId.set(channel.getChannel().basicConsume(queueName, autoAcknowledge, consumer));
-                    client.getLog().accept("Consuming queue named '" + queueName + "' with consume id '" + consumeId.get() + "'.");
+                    client.getLog().accept("Consuming queue named '" + queueName + "' with consume subId '" + consumeId.get() + "'.");
                 }
 
                 String consumeId = this.consumeId.get();
@@ -98,7 +98,7 @@ public class RabbitQueue {
 
                         channel.getChannel().queueBind(queueName, binding.getExchange(), binding.getRouting());
                         binding.setConsumeId(consumeId);
-                        client.getLog().accept("Bound queue '" + queueName + "' to exchange '" + binding.getExchange() + "' with routing key '" + binding.getRouting() + "' on consume id '" + binding.getConsumeId() + "'.");
+                        client.getLog().accept("Bound queue '" + queueName + "' to exchange '" + binding.getExchange() + "' with routing key '" + binding.getRouting() + "' on consume subId '" + binding.getConsumeId() + "'.");
                     }
                 }
             } catch (Throwable e) {
@@ -152,7 +152,7 @@ public class RabbitQueue {
             if (properties.getReplyTo() != null)
                 message.getAttributes().put("properties.reply-to", properties.getReplyTo());
             if (properties.getCorrelationId() != null)
-                message.getAttributes().put("properties.correlation-id", properties.getCorrelationId());
+                message.getAttributes().put("properties.correlation-subId", properties.getCorrelationId());
 
 
             MessageEvent messageEvent = new MessageEvent();

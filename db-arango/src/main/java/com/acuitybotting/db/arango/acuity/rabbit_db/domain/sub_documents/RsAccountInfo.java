@@ -13,7 +13,7 @@ import java.util.Map;
 @ToString
 public class RsAccountInfo implements InheritSubId{
 
-    private transient String id;
+    private transient String subKey;
 
     private int world;
     private Map<String, Long> levels = new HashMap<>();
@@ -23,6 +23,6 @@ public class RsAccountInfo implements InheritSubId{
 
     @Override
     public void setParentSubId(String id) {
-        setId(id);
+        setSubKey(id);
     }
 }
