@@ -1,19 +1,21 @@
 package com.acuitybotting.client.bot.control;
 
-import com.acuitybotting.client.bot.control.domain.AcuityConnectionConfig;
+import com.acuitybotting.common.utils.connection_configuration.domain.ConnectionConfiguration;
 import com.acuitybotting.client.bot.control.interfaces.ControlInterface;
 import com.acuitybotting.client.bot.control.interfaces.StateInterface;
-import com.acuitybotting.common.utils.ConnectionKeyUtil;
+import com.acuitybotting.common.utils.connection_configuration.ConnectionConfigurationUtil;
 import com.acuitybotting.common.utils.ExecutorUtil;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitHub;
-import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.channel.RabbitChannel;
 import com.acuitybotting.data.flow.messaging.services.db.implementations.rabbit.RabbitDb;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.rockaport.alice.Alice;
+import com.rockaport.alice.AliceContext;
+import com.rockaport.alice.AliceContextBuilder;
 
+import java.security.GeneralSecurityException;
 import java.util.Base64;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
@@ -24,6 +26,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class AcuityHub {
 
+    private static ConnectionConfiguration connectionConfiguration;
+
     private static RabbitHub rabbitHub = new RabbitHub();
 
     private static ControlInterface controlInterface;
@@ -32,26 +36,22 @@ public class AcuityHub {
     private static ScheduledExecutorService scheduledExecutorService = ExecutorUtil.newScheduledExecutorPool(2);
 
     public static void start() {
-        Optional<AcuityConnectionConfig> configOptional = Optional.ofNullable(System.getProperty("acuityConfig"))
-                .map(s -> s.isEmpty() ? null : s)
-                .map(s -> new Gson().fromJson(new String(Base64.getDecoder().decode(s)), AcuityConnectionConfig.class));
+        connectionConfiguration = ConnectionConfigurationUtil.decode(ConnectionConfigurationUtil.find()).orElse(new ConnectionConfiguration());
 
-        AcuityConnectionConfig connectionConfig = configOptional.orElse(new AcuityConnectionConfig());
-
-        if (connectionConfig.getConnectionKey() == null) connectionConfig.setConnectionKey(ConnectionKeyUtil.findKey());
-        if (connectionConfig.getConnectionId() == null) connectionConfig.setConnectionId(UUID.randomUUID().toString());
+        if (connectionConfiguration.getConnectionKey() == null) connectionConfiguration.setConnectionKey(ConnectionConfigurationUtil.find());
+        if (connectionConfiguration.getConnectionId() == null) connectionConfiguration.setConnectionId(UUID.randomUUID().toString());
 
         String username = "acuity-guest";
         String password = "";
 
-        if (connectionConfig.getConnectionKey() != null) {
-            JsonObject jsonObject = ConnectionKeyUtil.decode(connectionConfig.getConnectionKey());
+        if (connectionConfiguration.getConnectionKey() != null) {
+            JsonObject jsonObject = ConnectionConfigurationUtil.decodeConnectionKey(connectionConfiguration.getConnectionKey());
             username = jsonObject.get("principalId").getAsString();
             password = jsonObject.get("secret").getAsString();
         }
 
         rabbitHub.auth(username, password);
-        rabbitHub.start("RPC", connectionConfig.getConnectionId());
+        rabbitHub.start("RPC", connectionConfiguration.getConnectionId());
 
         rabbitHub.getLocalQueue().withListener(messageEvent -> {
             if (messageEvent.getMessage().getAttributes().containsKey("killConnection")){
@@ -69,6 +69,15 @@ public class AcuityHub {
         }
 
         if (!"acuity-guest".equals(username)) startAuthedServices();
+    }
+
+    public static String decrypt(String value) throws GeneralSecurityException {
+        if (connectionConfiguration.getMasterKey() == null) return null;
+        return new String(getAlice().decrypt(Base64.getDecoder().decode(value), connectionConfiguration.getMasterKey().toCharArray()));
+    }
+
+    private static Alice getAlice(){
+        return new Alice(new AliceContextBuilder().setKeyLength(AliceContext.KeyLength.BITS_128).build());
     }
 
     private static void startAuthedServices(){

@@ -10,5 +10,4 @@ public interface StateInterface {
     JsonObject buildClientState();
 
     JsonObject buildPlayerState();
-
 }

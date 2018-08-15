@@ -1,8 +1,9 @@
 package com.acuitybotting.bot.launcher.services;
 
-import com.acuitybotting.bot.launcher.ui.LoginFrame;
+import com.acuitybotting.bot.launcher.ui.LauncherFrame;
 import com.acuitybotting.bot.launcher.utils.CommandLine;
-import com.acuitybotting.common.utils.ConnectionKeyUtil;
+import com.acuitybotting.common.utils.connection_configuration.ConnectionConfigurationUtil;
+import com.acuitybotting.common.utils.connection_configuration.domain.ConnectionConfiguration;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitHub;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
@@ -15,6 +16,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -37,7 +39,7 @@ public class LauncherRabbitService implements CommandLineRunner {
     public void connect(String connectionKey) {
         try {
 
-            JsonObject jsonObject = ConnectionKeyUtil.decode(connectionKey);
+            JsonObject jsonObject = ConnectionConfigurationUtil.decodeConnectionKey(connectionKey);
             String username = jsonObject.get("principalId").getAsString();
             String password = jsonObject.get("secret").getAsString();
 
@@ -94,13 +96,26 @@ public class LauncherRabbitService implements CommandLineRunner {
 
     @Override
     public void run(String... strings) {
-        LoginFrame loginFrame = new LoginFrame() {
+        Optional<ConnectionConfiguration> decode = ConnectionConfigurationUtil.decode(ConnectionConfigurationUtil.find());
+
+        LauncherFrame launcherFrame = new LauncherFrame() {
             @Override
             public void onConnect(String connectionKey, String masterPassword) {
                 LauncherRabbitService.this.masterPassword = masterPassword;
                 connect(connectionKey);
             }
+
+            @Override
+            public void onSave(String connectionKey, String masterPassword) {
+                ConnectionConfiguration connectionConfiguration = new ConnectionConfiguration();
+                connectionConfiguration.setConnectionKey(connectionKey);
+                connectionConfiguration.setMasterKey(masterPassword);
+                ConnectionConfigurationUtil.write(connectionConfiguration);
+            }
         };
-        loginFrame.setVisible(true);
+
+        launcherFrame.getConnectionKey().setText(decode.map(ConnectionConfiguration::getConnectionKey).orElse(""));
+        launcherFrame.getPasswordField().setText(decode.map(ConnectionConfiguration::getMasterKey).orElse(""));
+        launcherFrame.setVisible(true);
     }
 }
