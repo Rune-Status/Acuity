@@ -5,4 +5,7 @@ package com.acuitybotting.client.bot.control.interfaces;
  */
 public interface ControlInterface {
 
+    void applyAccount(String email, String password);
+
+    void applyProxy(String asString, String asString1, String proxyUsername, String decrypt);
 }

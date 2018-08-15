@@ -9,6 +9,7 @@ import com.acuitybotting.data.flow.messaging.services.client.exceptions.Messagin
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitHub;
 import com.acuitybotting.data.flow.messaging.services.db.domain.Document;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.rockaport.alice.Alice;
 import com.rockaport.alice.AliceContext;
@@ -76,7 +77,34 @@ public class AcuityHub {
     private static void pullAndApplyConfiguration(){
         try {
             Document connection = rabbitHub.getDb("services.registered-connections").findByGroupAndKey("connections", rabbitHub.getConnectionId());
-            System.out.println();
+            if (connection == null || connection.getDocument() == null) return;
+            JsonObject document = connection.getDocument();
+
+            JsonElement rsEmail = document.get("rsEmail");
+            JsonElement rsEncryptedPassword = document.get("rsEncryptedPassword");
+            if (rsEmail != null && rsEncryptedPassword != null){
+                getControlInterface().ifPresent(control -> {
+                    try {
+                        control.applyAccount(rsEmail.getAsString(), decrypt(rsEncryptedPassword.getAsString()));
+                    } catch (GeneralSecurityException e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+
+            JsonElement proxyHost = document.get("proxyHost");
+            JsonElement proxyPort = document.get("proxyPort");
+            if (proxyHost != null && proxyPort != null){
+                String proxyUsername = Optional.ofNullable(document.get("proxyUsername")).map(JsonElement::getAsString).orElse(null);
+                String proxyEncryptedPassword = Optional.ofNullable(document.get("proxyEncryptedPassword")).map(JsonElement::getAsString).orElse(null);
+                getControlInterface().ifPresent(control -> {
+                    try {
+                        control.applyProxy(proxyHost.getAsString(), proxyPort.getAsString(), proxyUsername, decrypt(proxyEncryptedPassword));
+                    } catch (GeneralSecurityException e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
         } catch (MessagingException e) {
             e.printStackTrace();
         }
