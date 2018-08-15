@@ -2,8 +2,8 @@ package com.acuitybotting.bot.launcher.services;
 
 import com.acuitybotting.bot.launcher.ui.LauncherFrame;
 import com.acuitybotting.bot.launcher.utils.CommandLine;
-import com.acuitybotting.common.utils.connection_configuration.ConnectionConfigurationUtil;
-import com.acuitybotting.common.utils.connection_configuration.domain.ConnectionConfiguration;
+import com.acuitybotting.common.utils.configurations.utils.ConnectionConfigurationUtil;
+import com.acuitybotting.common.utils.configurations.ConnectionConfiguration;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitHub;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Created by Zachary Herridge on 8/6/2018.

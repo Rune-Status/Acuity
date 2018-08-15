@@ -14,7 +14,12 @@ import java.util.function.Supplier;
 public class Components {
 
     public static TextField textField(String placeHolder, Supplier<String> initalValueSupplier){
+        return textField(null, placeHolder, initalValueSupplier);
+    }
+
+    public static TextField textField(String label, String placeHolder, Supplier<String> initalValueSupplier){
         TextField textField = new TextField();
+        if (label != null) textField.setLabel(label);
         if (placeHolder != null) textField.setPlaceholder(placeHolder);
 
         if (initalValueSupplier != null){

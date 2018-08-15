@@ -1,4 +1,4 @@
-package com.acuitybotting.common.utils.connection_configuration.domain;
+package com.acuitybotting.common.utils.configurations;
 
 public class ConnectionConfiguration {
 

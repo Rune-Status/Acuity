@@ -1,6 +1,6 @@
-package com.acuitybotting.common.utils.connection_configuration;
+package com.acuitybotting.common.utils.configurations.utils;
 
-import com.acuitybotting.common.utils.connection_configuration.domain.ConnectionConfiguration;
+import com.acuitybotting.common.utils.configurations.ConnectionConfiguration;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 

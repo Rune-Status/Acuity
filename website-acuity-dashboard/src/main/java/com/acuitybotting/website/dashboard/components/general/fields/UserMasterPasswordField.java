@@ -9,7 +9,7 @@ import com.vaadin.flow.spring.annotation.UIScope;
 import org.springframework.web.context.annotation.SessionScope;
 
 @SpringComponent
-@SessionScope
+@UIScope
 public class UserMasterPasswordField extends PasswordField implements Authed {
 
     private AcuityUsersService acuityUsersService;

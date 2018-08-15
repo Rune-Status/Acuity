@@ -3,10 +3,11 @@ package com.acuitybotting.client.bot.control;
 import com.acuitybotting.client.bot.control.interfaces.ControlInterface;
 import com.acuitybotting.client.bot.control.interfaces.StateInterface;
 import com.acuitybotting.common.utils.ExecutorUtil;
-import com.acuitybotting.common.utils.connection_configuration.ConnectionConfigurationUtil;
-import com.acuitybotting.common.utils.connection_configuration.domain.ConnectionConfiguration;
+import com.acuitybotting.common.utils.configurations.utils.ConnectionConfigurationUtil;
+import com.acuitybotting.common.utils.configurations.ConnectionConfiguration;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitHub;
+import com.acuitybotting.data.flow.messaging.services.db.domain.Document;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.rockaport.alice.Alice;
@@ -66,7 +67,19 @@ public class AcuityHub {
             }
         }
 
-        if (!"acuity-guest".equals(username)) startAuthedServices();
+        if (!"acuity-guest".equals(username)) {
+            pullAndApplyConfiguration();
+            startAuthedServices();
+        }
+    }
+
+    private static void pullAndApplyConfiguration(){
+        try {
+            Document connection = rabbitHub.getDb("services.registered-connections").findByGroupAndKey("connections", rabbitHub.getConnectionId());
+            System.out.println();
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
     }
 
     public static String decrypt(String value) throws GeneralSecurityException {

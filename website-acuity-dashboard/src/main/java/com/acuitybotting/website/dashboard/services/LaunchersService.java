@@ -1,8 +1,9 @@
 package com.acuitybotting.website.dashboard.services;
 
-import com.acuitybotting.common.utils.connection_configuration.ConnectionConfigurationUtil;
-import com.acuitybotting.common.utils.connection_configuration.domain.ConnectionConfiguration;
+import com.acuitybotting.common.utils.configurations.ConnectionConfiguration;
+import com.acuitybotting.common.utils.configurations.utils.ConnectionConfigurationUtil;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
+import com.acuitybotting.data.flow.messaging.services.db.implementations.rabbit.RabbitDb;
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.LauncherConnection;
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.Proxy;
@@ -12,13 +13,12 @@ import com.acuitybotting.website.dashboard.DashboardRabbitService;
 import com.acuitybotting.website.dashboard.utils.Authentication;
 import com.acuitybotting.website.dashboard.utils.Notifications;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.SessionScope;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -50,6 +50,34 @@ public class LaunchersService {
 
         ConnectionConfiguration connectionConfiguration = new ConnectionConfiguration();
         connectionConfiguration.setConnectionId(UUID.randomUUID().toString());
+
+        JsonObject clientConfiguration = new JsonObject();
+
+        if (rsAccountInfo != null) {
+            clientConfiguration.addProperty("rsEmail", rsAccountInfo.getSubKey());
+            clientConfiguration.addProperty("rsEncryptedPassword", "");
+        }
+
+        if (proxy != null) {
+            clientConfiguration.addProperty("proxyHost", proxy.getHost());
+            clientConfiguration.addProperty("proxyPort", proxy.getPort());
+            clientConfiguration.addProperty("proxyUsername", proxy.getUsername());
+            clientConfiguration.addProperty("proxyEncryptedPassword", proxy.getEncryptedPassword());
+        }
+
+
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("connectionConfirmationTime", System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(30));
+
+
+        String configurationDoc = new Gson().toJson(Collections.singletonMap("configuration", clientConfiguration));
+        rabbitDbService.save(
+                RabbitDb.STRATEGY_UPDATE,
+                RabbitDbService.buildQueryMap(Authentication.getAcuityPrincipalId(), "services.registered-connections", "connections", "RPC_" + connectionConfiguration.getConnectionId()),
+                headers,
+                configurationDoc,
+                configurationDoc
+        );
 
         Map<String, Object> launchConfig = new HashMap<>();
         launchConfig.put("command", command);

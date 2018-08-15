@@ -11,9 +11,11 @@ import java.util.Map;
 @Getter
 @Setter
 @ToString
-public class RsAccountInfo implements InheritSubId{
+public class RsAccountInfo implements InheritSubId {
 
     private transient String subKey;
+
+    private String encryptedPassword;
 
     private int world;
     private Map<String, Long> levels = new HashMap<>();
