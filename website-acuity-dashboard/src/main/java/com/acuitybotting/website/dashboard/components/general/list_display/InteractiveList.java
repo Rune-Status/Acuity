@@ -39,7 +39,7 @@ public class InteractiveList<T> extends VerticalLayout {
 
     private Div selectionCount = new Div();
 
-    private Div headers = new Div();
+    private HorizontalLayout headers = new HorizontalLayout();
 
     private int currentPage = 1;
     private int entriesPerPage = 10;
@@ -79,8 +79,8 @@ public class InteractiveList<T> extends VerticalLayout {
         refreshButton.setWidth("45px");
         controlBar.add(controls, refreshButton, searchField);
 
+        headers.setPadding(false);
         headers.setWidth("100%");
-        headers.getStyle().set("display", "-webkit-inline-box");
         headers.getClassNames().add("acuity-interactive-list-headers");
 
         headers.add(selectAll);
