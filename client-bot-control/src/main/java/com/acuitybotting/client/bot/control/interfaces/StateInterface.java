@@ -1,14 +1,14 @@
 package com.acuitybotting.client.bot.control.interfaces;
 
-import java.util.Map;
+import com.google.gson.JsonObject;
 
 /**
  * Created by Zachary Herridge on 8/14/2018.
  */
 public interface StateInterface {
 
-    Map<String, Object> buildClientState();
+    JsonObject buildClientState();
 
-    Map<String, Object> buildPlayerState();
+    JsonObject buildPlayerState();
 
 }

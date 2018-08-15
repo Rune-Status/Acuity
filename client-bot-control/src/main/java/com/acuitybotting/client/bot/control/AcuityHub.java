@@ -72,19 +72,19 @@ public class AcuityHub {
     }
 
     private static void startAuthedServices(){
-        getScheduledExecutor().scheduleAtFixedRate(AcuityHub::sendPlayer, 100, 5, TimeUnit.SECONDS);
-        getScheduledExecutor().scheduleAtFixedRate(AcuityHub::sendClient, 100, 5, TimeUnit.SECONDS);
+        getScheduledExecutor().scheduleAtFixedRate(AcuityHub::sendPlayer, 1, 5, TimeUnit.SECONDS);
+        getScheduledExecutor().scheduleAtFixedRate(AcuityHub::sendClient, 1, 5, TimeUnit.SECONDS);
     }
 
     private static void sendPlayer(){
         if (stateInterface == null) return;
 
-        Map<String, Object> playerUpdate = stateInterface.buildPlayerState();
+        JsonObject playerUpdate = stateInterface.buildPlayerState();
         if (playerUpdate == null || playerUpdate.get("email") == null) return;
 
         try {
             RabbitDb db = rabbitHub.getDb("services.rs-accounts");
-            db.update("players", (String) playerUpdate.get("email"), new Gson().toJson(playerUpdate));
+            db.update("players", playerUpdate.get("email").getAsString(), new Gson().toJson(playerUpdate));
         } catch (MessagingException e) {
             e.printStackTrace();
         }
@@ -93,7 +93,7 @@ public class AcuityHub {
     private static void sendClient(){
         if (stateInterface == null) return;
 
-        Map<String, Object> clientUpdate = stateInterface.buildClientState();
+        JsonObject clientUpdate = stateInterface.buildClientState();
         if (clientUpdate == null) return;
 
         try {
