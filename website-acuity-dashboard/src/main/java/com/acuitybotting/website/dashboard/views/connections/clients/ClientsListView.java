@@ -18,6 +18,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
+import org.springframework.web.context.annotation.SessionScope;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -36,13 +37,8 @@ public class ClientsListView extends VerticalLayout implements Authed {
         add(connectionsTabNavComponent, clientListComponent);
     }
 
-    @Override
-    protected void onAttach(AttachEvent attachEvent) {
-        clientListComponent.load();
-    }
-
     @SpringComponent
-    @UIScope
+    @SessionScope
     private static class ClientListComponent extends InteractiveList<GsonRabbitDocument> {
 
         private final RabbitDbService rabbitDbService;

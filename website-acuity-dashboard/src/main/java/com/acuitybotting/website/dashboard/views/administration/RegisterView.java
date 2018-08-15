@@ -13,6 +13,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
+import org.springframework.web.context.annotation.SessionScope;
 
 /**
  * Created by Zachary Herridge on 8/9/2018.
@@ -28,7 +29,7 @@ public class RegisterView extends VerticalLayout {
     }
 
     @SpringComponent
-    @UIScope
+    @SessionScope
     private static class RegisterComponent extends FormLayout {
 
         public RegisterComponent(AcuityUsersService acuityUserService) {

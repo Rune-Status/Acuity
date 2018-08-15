@@ -19,6 +19,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.context.annotation.SessionScope;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -57,11 +58,6 @@ public class ProxiesListView extends VerticalLayout implements Authed {
             Button add = new Button(VaadinIcon.PLUS_CIRCLE.create());
             getControls().add(add);
             add.addClickListener(buttonClickEvent -> getUI().ifPresent(ui -> ui.navigate(ProxyEditView.class)));
-        }
-
-        @Override
-        protected void onAttach(AttachEvent attachEvent) {
-            load();
         }
 
         private Set<Proxy> loadProxies() {

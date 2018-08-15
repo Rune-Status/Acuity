@@ -17,7 +17,6 @@ public abstract class LauncherFrame extends AcuityFrame {
         add(createPadding(), "East");
         add(buildFields(), "Center");
         add(buildConnectButton(), "South");
-        add(buildSaveButton(), "South");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     }
 
@@ -26,7 +25,7 @@ public abstract class LauncherFrame extends AcuityFrame {
     public abstract void onSave(String connectionKey, String masterPassword);
 
     private JButton buildSaveButton() {
-        JButton save = createButton("Connect");
+        JButton save = createButton("Save");
         save.addActionListener(e -> onSave(connectionKey.getText(), passwordField.getText()));
         return save;
     }
@@ -44,11 +43,12 @@ public abstract class LauncherFrame extends AcuityFrame {
     }
 
     private Panel buildFields() {
-        Panel panel = new Panel(new GridLayout(4, 1));
+        Panel panel = new Panel(new GridLayout(5, 1));
         panel.add(createLabel("Connection Key:"));
         panel.add(connectionKey = createTextField(false));
         panel.add(createLabel("Master Password:"));
         panel.add(passwordField = createTextField(true));
+        panel.add(buildSaveButton());
         return panel;
     }
 

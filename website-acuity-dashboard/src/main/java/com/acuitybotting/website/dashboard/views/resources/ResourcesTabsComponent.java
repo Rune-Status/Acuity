@@ -6,6 +6,7 @@ import com.acuitybotting.website.dashboard.views.resources.accounts.AccountsList
 import com.acuitybotting.website.dashboard.views.resources.proxies.ProxiesListView;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
+import org.springframework.web.context.annotation.SessionScope;
 
 /**
  * Created by Zachary Herridge on 8/8/2018.

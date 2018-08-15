@@ -17,6 +17,7 @@ import com.vaadin.flow.spring.annotation.UIScope;
 import lombok.Getter;
 import lombok.ToString;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.context.annotation.SessionScope;
 
 import java.util.Set;
 
@@ -34,13 +35,8 @@ public class AccountsListView extends VerticalLayout implements Authed {
         add(resourcesTabsComponent, accountListComponent);
     }
 
-    @Override
-    protected void onAttach(AttachEvent attachEvent) {
-        accountListComponent.load();
-    }
-
     @SpringComponent
-    @UIScope
+    @SessionScope
     private static class AccountListComponent extends InteractiveList<AccountListComponent.RsAccountDocument> {
 
         private final RabbitDbService rabbitDbService;

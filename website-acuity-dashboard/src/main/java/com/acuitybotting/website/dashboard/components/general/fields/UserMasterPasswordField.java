@@ -6,9 +6,10 @@ import com.acuitybotting.website.dashboard.utils.Authentication;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
+import org.springframework.web.context.annotation.SessionScope;
 
 @SpringComponent
-@UIScope
+@SessionScope
 public class UserMasterPasswordField extends PasswordField implements Authed {
 
     private AcuityUsersService acuityUsersService;

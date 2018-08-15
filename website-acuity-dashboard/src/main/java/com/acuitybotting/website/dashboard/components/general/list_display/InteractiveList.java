@@ -1,6 +1,8 @@
 package com.acuitybotting.website.dashboard.components.general.list_display;
 
+import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.html.Div;
@@ -197,12 +199,25 @@ public class InteractiveList<T> extends VerticalLayout {
         return this;
     }
 
-    public InteractiveList<T> load() {
-        getUI().ifPresent(ui -> ui.access(() -> {
+    public InteractiveList<T> load(UI ui) {
+        ui.access(() -> {
             if (loadAction != null) loadAction.run();
             if (loadSupplier != null) update(loadSupplier.get());
-        }));
+        });
         return this;
+    }
+
+    public InteractiveList<T> load(AttachEvent attachEvent) {
+        return load(attachEvent.getUI());
+    }
+
+    public InteractiveList<T> load() {
+        return load(getUI().orElse(null));
+    }
+
+    @Override
+    public void onAttach(AttachEvent attachEvent) {
+        load(attachEvent);
     }
 
     public <R extends Component> InteractiveListColumn<T, R> withColumn(String header, String maxWidth, Function<T, R> constructMapping, BiConsumer<T, R> updateMapping) {

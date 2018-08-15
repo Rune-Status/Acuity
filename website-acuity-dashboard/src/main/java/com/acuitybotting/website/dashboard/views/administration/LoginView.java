@@ -15,6 +15,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
+import org.springframework.web.context.annotation.SessionScope;
 
 
 /**
@@ -31,7 +32,7 @@ public class LoginView extends HorizontalLayout {
     }
 
     @SpringComponent
-    @UIScope
+    @SessionScope
     private static class LoginComponent extends FormLayout {
 
         public LoginComponent(AcuityUsersService acuityUserService) {
@@ -46,6 +47,7 @@ public class LoginView extends HorizontalLayout {
                     if (user != null) {
                         Authentication.setAcuityPrincipalId(user.getPrincipalId());
                         Authentication.updateSession(acuityUserService, false);
+
                         ui.navigate(ProfileView.class);
                         Notifications.display("Welcome " + user.getDisplayName() + ".");
                     } else {

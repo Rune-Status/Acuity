@@ -112,11 +112,6 @@ public class ProfileView extends VerticalLayout implements Authed {
             });
             getControls().add(jwtField, addLink);
         }
-
-        @Override
-        protected void onAttach(AttachEvent attachEvent) {
-            load();
-        }
     }
 
     private class ConnectionKeyComponent extends HorizontalLayout {

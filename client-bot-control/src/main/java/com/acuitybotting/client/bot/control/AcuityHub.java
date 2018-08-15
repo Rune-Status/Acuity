@@ -1,13 +1,12 @@
 package com.acuitybotting.client.bot.control;
 
-import com.acuitybotting.common.utils.connection_configuration.domain.ConnectionConfiguration;
 import com.acuitybotting.client.bot.control.interfaces.ControlInterface;
 import com.acuitybotting.client.bot.control.interfaces.StateInterface;
-import com.acuitybotting.common.utils.connection_configuration.ConnectionConfigurationUtil;
 import com.acuitybotting.common.utils.ExecutorUtil;
+import com.acuitybotting.common.utils.connection_configuration.ConnectionConfigurationUtil;
+import com.acuitybotting.common.utils.connection_configuration.domain.ConnectionConfiguration;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitHub;
-import com.acuitybotting.data.flow.messaging.services.db.implementations.rabbit.RabbitDb;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.rockaport.alice.Alice;
@@ -35,10 +34,9 @@ public class AcuityHub {
 
     private static ScheduledExecutorService scheduledExecutorService = ExecutorUtil.newScheduledExecutorPool(2);
 
-    public static void start() {
+    public static void start(String prefix) {
         connectionConfiguration = ConnectionConfigurationUtil.decode(ConnectionConfigurationUtil.find()).orElse(new ConnectionConfiguration());
 
-        if (connectionConfiguration.getConnectionKey() == null) connectionConfiguration.setConnectionKey(ConnectionConfigurationUtil.find());
         if (connectionConfiguration.getConnectionId() == null) connectionConfiguration.setConnectionId(UUID.randomUUID().toString());
 
         String username = "acuity-guest";
@@ -51,10 +49,10 @@ public class AcuityHub {
         }
 
         rabbitHub.auth(username, password);
-        rabbitHub.start("RPC", connectionConfiguration.getConnectionId());
+        rabbitHub.start(prefix, connectionConfiguration.getConnectionId());
 
         rabbitHub.getLocalQueue().withListener(messageEvent -> {
-            if (messageEvent.getMessage().getAttributes().containsKey("killConnection")){
+            if (messageEvent.getMessage().getAttributes().containsKey("killConnection")) {
                 System.exit(0);
             }
         });
@@ -76,38 +74,44 @@ public class AcuityHub {
         return new String(getAlice().decrypt(Base64.getDecoder().decode(value), connectionConfiguration.getMasterKey().toCharArray()));
     }
 
-    private static Alice getAlice(){
+    private static Alice getAlice() {
         return new Alice(new AliceContextBuilder().setKeyLength(AliceContext.KeyLength.BITS_128).build());
     }
 
-    private static void startAuthedServices(){
+    private static void startAuthedServices() {
         getScheduledExecutor().scheduleAtFixedRate(AcuityHub::sendPlayer, 1, 5, TimeUnit.SECONDS);
         getScheduledExecutor().scheduleAtFixedRate(AcuityHub::sendClient, 1, 5, TimeUnit.SECONDS);
     }
 
-    private static void sendPlayer(){
+    private static void sendPlayer() {
         if (stateInterface == null) return;
 
         JsonObject playerUpdate = stateInterface.buildPlayerState();
         if (playerUpdate == null || playerUpdate.get("email") == null) return;
 
         try {
-            RabbitDb db = rabbitHub.getDb("services.rs-accounts");
-            db.update("players", playerUpdate.get("email").getAsString(), new Gson().toJson(playerUpdate));
+            rabbitHub.getDb("services.rs-accounts").update(
+                    "players",
+                    playerUpdate.get("email").getAsString(),
+                    new Gson().toJson(playerUpdate)
+            );
         } catch (MessagingException e) {
             e.printStackTrace();
         }
     }
 
-    private static void sendClient(){
+    private static void sendClient() {
         if (stateInterface == null) return;
 
         JsonObject clientUpdate = stateInterface.buildClientState();
         if (clientUpdate == null) return;
 
         try {
-            RabbitDb db = rabbitHub.getDb("services.registered-connections");
-            db.update("connections", rabbitHub.getConnectionId(), new Gson().toJson(clientUpdate));
+            rabbitHub.getDb("services.registered-connections").update(
+                    "connections",
+                    rabbitHub.getConnectionId(),
+                    new Gson().toJson(clientUpdate)
+            );
         } catch (MessagingException e) {
             e.printStackTrace();
         }
@@ -138,7 +142,7 @@ public class AcuityHub {
     }
 
     public static void main(String[] args) {
-        start();
+        start("RPC");
         while (true) {
 
         }
