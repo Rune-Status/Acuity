@@ -8,4 +8,6 @@ public interface ControlInterface {
     void applyAccount(String email, String password);
 
     void applyProxy(String asString, String asString1, String proxyUsername, String decrypt);
+
+    void applyScript(String scriptSelector, boolean scriptLocal);
 }

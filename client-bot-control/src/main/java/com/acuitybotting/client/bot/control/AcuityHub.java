@@ -80,8 +80,8 @@ public class AcuityHub {
             if (connection == null || connection.getDocument() == null || connection.getDocument().get("configuration") == null) return;
             JsonObject document = connection.getDocument().getAsJsonObject("configuration");
 
-            JsonElement rsEmail = document.get("rsEmail");
-            JsonElement rsEncryptedPassword = document.get("rsEncryptedPassword");
+            JsonElement rsEmail = document.get("accountLogin");
+            JsonElement rsEncryptedPassword = document.get("accountEncryptedPassword");
             if (rsEmail != null && rsEncryptedPassword != null){
                 getControlInterface().ifPresent(control -> {
                     try {
@@ -90,6 +90,11 @@ public class AcuityHub {
                         e.printStackTrace();
                     }
                 });
+            }
+
+            JsonElement scriptSelector = document.get("scriptSelector");
+            if (scriptSelector != null){
+                getControlInterface().ifPresent(control -> control.applyScript(scriptSelector.getAsString(), document.get("scriptLocal").getAsBoolean()));
             }
 
             JsonElement proxyHost = document.get("proxyHost");

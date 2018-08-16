@@ -55,8 +55,8 @@ public class LaunchersService {
         JsonObject clientConfiguration = new JsonObject();
 
         if (rsAccountInfo != null) {
-            clientConfiguration.addProperty("rsEmail", rsAccountInfo.getSubKey());
-            clientConfiguration.addProperty("rsEncryptedPassword", rsAccountInfo.getEncryptedPassword());
+            clientConfiguration.addProperty("accountLogin", rsAccountInfo.getSubKey());
+            clientConfiguration.addProperty("accountEncryptedPassword", rsAccountInfo.getEncryptedPassword());
         }
 
         if (proxy != null) {
