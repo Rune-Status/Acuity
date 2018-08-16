@@ -50,7 +50,7 @@ public class RabbitChannel implements Messageable, ShutdownListener {
                     if (rabbitChannel.isOpen()) {
                         rabbitChannel.addShutdownListener(this);
                         rabbitClient.getLog().accept("Channel opened.");
-                        rabbitChannel.basicQos(10);
+                        rabbitChannel.basicQos(2);
 
                         for (RabbitChannelListener listener : listeners) {
                             try {

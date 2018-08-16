@@ -42,6 +42,7 @@ public class RabbitHub {
 
         rabbitClient = new RabbitClient();
         rabbitClient.auth("nodes-1.admin-acuitybotting.com", "31457", username, password);
+        //rabbitClient.auth("195.201.248.164", "5672", username, password);
         rabbitClient.connect(this.connectionId);
 
         localPool = createPool(2, null);
