@@ -12,11 +12,10 @@ public abstract class LauncherFrame extends AcuityFrame {
     private JTextField passwordField;
 
     public LauncherFrame() {
-        setSize(400, 200);
+        setSize(400, 250);
         add(createPadding(), "West");
         add(createPadding(), "East");
         add(buildFields(), "Center");
-        add(buildConnectButton(), "South");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     }
 
@@ -43,12 +42,14 @@ public abstract class LauncherFrame extends AcuityFrame {
     }
 
     private Panel buildFields() {
-        Panel panel = new Panel(new GridLayout(5, 1));
+        Panel panel = new Panel(new GridLayout(6, 1));
+        panel.setBackground(StyleConstants.ACUITY_DARK_GREY);
         panel.add(createLabel("Connection Key:"));
         panel.add(connectionKey = createTextField(false));
         panel.add(createLabel("Master Password:"));
         panel.add(passwordField = createTextField(true));
         panel.add(buildSaveButton());
+        panel.add(buildConnectButton());
         return panel;
     }
 
@@ -62,7 +63,7 @@ public abstract class LauncherFrame extends AcuityFrame {
 
     private JTextField createTextField(boolean password) {
         JTextField jTextField = password ? new JPasswordField() : new JTextField();
-        jTextField.setForeground(Color.white);
+        jTextField.setForeground(Color.WHITE);
         jTextField.setBackground(StyleConstants.ACUITY_LIGHT_GREY);
         jTextField.setBorder(BorderFactory.createSoftBevelBorder(2));
         return jTextField;
@@ -72,6 +73,7 @@ public abstract class LauncherFrame extends AcuityFrame {
         JButton jButton = new JButton(text);
         jButton.setForeground(Color.white);
         jButton.setBackground(StyleConstants.ACUITY_DARK_GREY);
+        jButton.setFocusPainted(false);
         jButton.setRolloverEnabled(false);
         jButton.setBorderPainted(false);
         return jButton;
