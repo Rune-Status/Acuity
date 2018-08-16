@@ -19,8 +19,9 @@ public class ClientConfiguration {
     private String proxyUsername;
     private String proxyEncryptedPassword;
 
-
     private boolean scriptLocal;
     private String scriptSelector;
     private String scriptArgs;
+
+    private Integer world;
 }

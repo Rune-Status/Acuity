@@ -49,7 +49,7 @@ public class LaunchersService {
                 .collect(Collectors.toSet());
     }
 
-    public void deploy(Set<String> subIds, String command, RsAccountInfo rsAccountInfo, Proxy proxy, boolean localScript, String scriptArgs, String scriptSelector) {
+    public void deploy(Set<String> subIds, String command, RsAccountInfo rsAccountInfo, Proxy proxy, boolean localScript, String scriptArgs, String scriptSelector, String world) {
         Notifications.display("Deploying to {} launchers.", subIds.size());
 
         ConnectionConfiguration connectionConfiguration = new ConnectionConfiguration();
@@ -77,6 +77,10 @@ public class LaunchersService {
             clientConfiguration.addProperty("scriptLocal", localScript);
             clientConfiguration.addProperty("scriptSelector", scriptSelector);
             clientConfiguration.addProperty("scriptArgs", scriptArgs);
+        }
+
+        if (world != null){
+            clientConfiguration.addProperty("world", Integer.parseInt(world));
         }
 
         Map<String, Object> headers = new HashMap<>();

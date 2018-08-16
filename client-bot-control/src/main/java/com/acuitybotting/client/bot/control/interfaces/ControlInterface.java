@@ -10,4 +10,6 @@ public interface ControlInterface {
     void applyProxy(String asString, String asString1, String proxyUsername, String decrypt);
 
     void applyScript(String scriptSelector, boolean scriptLocal, String scriptArgs);
+
+    void applyWorld(Integer world);
 }

@@ -97,6 +97,12 @@ public class AcuityHub {
                 });
             }
 
+            if (configuration.getWorld() != null){
+                getControlInterface().ifPresent(control -> {
+                    control.applyWorld(configuration.getWorld());
+                });
+            }
+
             if (configuration.getScriptSelector() != null) {
                 getControlInterface().ifPresent(control -> control.applyScript(
                         configuration.getScriptSelector(),
@@ -213,6 +219,11 @@ public class AcuityHub {
             @Override
             public void applyScript(String scriptSelector, boolean scriptLocal, String scriptArgs) {
                 System.out.println("Applying script: " + scriptSelector + " " + scriptLocal);
+            }
+
+            @Override
+            public void applyWorld(Integer world) {
+                System.out.println("Applying world: " + world);
             }
         });
         start("RPC");
