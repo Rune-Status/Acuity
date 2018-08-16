@@ -1,15 +1,15 @@
 package com.acuitybotting.client.bot.control;
 
+import com.acuitybotting.client.bot.control.domain.ClientConfiguration;
 import com.acuitybotting.client.bot.control.interfaces.ControlInterface;
 import com.acuitybotting.client.bot.control.interfaces.StateInterface;
 import com.acuitybotting.common.utils.ExecutorUtil;
-import com.acuitybotting.common.utils.configurations.utils.ConnectionConfigurationUtil;
 import com.acuitybotting.common.utils.configurations.ConnectionConfiguration;
+import com.acuitybotting.common.utils.configurations.utils.ConnectionConfigurationUtil;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitHub;
 import com.acuitybotting.data.flow.messaging.services.db.domain.Document;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.rockaport.alice.Alice;
 import com.rockaport.alice.AliceContext;
@@ -39,7 +39,8 @@ public class AcuityHub {
     public static void start(String prefix) {
         connectionConfiguration = ConnectionConfigurationUtil.decode(ConnectionConfigurationUtil.find()).orElse(new ConnectionConfiguration());
 
-        if (connectionConfiguration.getConnectionId() == null) connectionConfiguration.setConnectionId(UUID.randomUUID().toString());
+        if (connectionConfiguration.getConnectionId() == null)
+            connectionConfiguration.setConnectionId(UUID.randomUUID().toString());
 
         String username = "acuity-guest";
         String password = "";
@@ -74,37 +75,44 @@ public class AcuityHub {
         }
     }
 
-    private static void pullAndApplyConfiguration(){
+    private static void pullAndApplyConfiguration() {
         try {
             Document connection = rabbitHub.getDb("services.registered-connections").findByGroupAndKey("connections", rabbitHub.getConnectionId());
-            if (connection == null || connection.getDocument() == null || connection.getDocument().get("configuration") == null) return;
-            JsonObject document = connection.getDocument().getAsJsonObject("configuration");
+            if (connection == null || connection.getDocument() == null || connection.getDocument().get("configuration") == null)
+                return;
 
-            JsonElement rsEmail = document.get("accountLogin");
-            JsonElement rsEncryptedPassword = document.get("accountEncryptedPassword");
-            if (rsEmail != null && rsEncryptedPassword != null){
+            ClientConfiguration configuration = new Gson().fromJson(connection.getDocument().getAsJsonObject("configuration"), ClientConfiguration.class);
+
+            if (configuration.getAccountLogin() != null && configuration.getAccountEncryptedPassword() != null) {
                 getControlInterface().ifPresent(control -> {
                     try {
-                        control.applyAccount(rsEmail.getAsString(), decrypt(rsEncryptedPassword.getAsString()));
+                        control.applyAccount(
+                                configuration.getAccountLogin(),
+                                decrypt(configuration.getAccountEncryptedPassword())
+                        );
                     } catch (GeneralSecurityException e) {
                         e.printStackTrace();
                     }
                 });
             }
 
-            JsonElement scriptSelector = document.get("scriptSelector");
-            if (scriptSelector != null){
-                getControlInterface().ifPresent(control -> control.applyScript(scriptSelector.getAsString(), document.get("scriptLocal").getAsBoolean(), Optional.ofNullable(document.get("scriptArgs")).map(JsonElement::getAsString).orElse(null)));
+            if (configuration.getScriptSelector() != null) {
+                getControlInterface().ifPresent(control -> control.applyScript(
+                        configuration.getScriptSelector(),
+                        configuration.isScriptLocal(),
+                        configuration.getScriptArgs()
+                ));
             }
 
-            JsonElement proxyHost = document.get("proxyHost");
-            JsonElement proxyPort = document.get("proxyPort");
-            if (proxyHost != null && proxyPort != null){
-                String proxyUsername = Optional.ofNullable(document.get("proxyUsername")).map(JsonElement::getAsString).orElse(null);
-                String proxyEncryptedPassword = Optional.ofNullable(document.get("proxyEncryptedPassword")).map(JsonElement::getAsString).orElse(null);
+            if (configuration.getProxyHost() != null && configuration.getProxyPort() != null) {
                 getControlInterface().ifPresent(control -> {
                     try {
-                        control.applyProxy(proxyHost.getAsString(), proxyPort.getAsString(), proxyUsername, decrypt(proxyEncryptedPassword));
+                        control.applyProxy(
+                                configuration.getProxyHost(),
+                                configuration.getProxyPort(),
+                                configuration.getProxyUsername(),
+                                decrypt(configuration.getProxyEncryptedPassword())
+                        );
                     } catch (GeneralSecurityException e) {
                         e.printStackTrace();
                     }
