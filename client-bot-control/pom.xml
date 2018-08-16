@@ -8,16 +8,23 @@
     <artifactId>client-bot-control</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.acuitybotting</groupId>
             <artifactId>data-flow-messaging</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
-    </dependencies>
 
-    <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-    </properties>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>RELEASE</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 </project>
