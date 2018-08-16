@@ -29,6 +29,8 @@ public class AccountListComponent extends InteractiveList<RsAccountInfo> {
         withColumn("Last World", "10%", document -> new Div(), (document, div) -> div.setText(String.valueOf(document.getWorld())));
         withColumn("Password", "10%", document -> new Div(), (document, div) -> div.setText(document.getEncryptedPassword() != null ? "Set" : "None"));
         withColumn("", "5%", "5%", rsAccountInfo -> Components.button(VaadinIcon.EDIT, event -> getUI().ifPresent(ui -> ui.navigate(AccountEditView.class, rsAccountInfo.getSubKey()))), (rsAccountInfo, button) -> {});
+
+        withSearchable(RsAccountInfo::getSubKey);
         withLoad(RsAccountInfo::getSubKey, accountsService::loadAccounts);
     }
 }

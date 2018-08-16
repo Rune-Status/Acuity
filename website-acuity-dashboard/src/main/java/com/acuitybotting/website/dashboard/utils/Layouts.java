@@ -1,8 +1,11 @@
 package com.acuitybotting.website.dashboard.utils;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
 public class Layouts {
 
@@ -23,4 +26,16 @@ public class Layouts {
         return horizontalLayout;
     }
 
+    public static VerticalLayout wrapVertical(String width, Component... components) {
+        return wrapVertical(null, width, components);
+    }
+
+    public static VerticalLayout wrapVertical(FlexComponent.JustifyContentMode justifyContentMode, String width, Component... components) {
+        VerticalLayout verticalLayout = new VerticalLayout(components);
+        if (justifyContentMode != null) verticalLayout.setJustifyContentMode(justifyContentMode);
+        if (width != null) verticalLayout.setWidth(width);
+        verticalLayout.setPadding(false);
+        verticalLayout.setMargin(false);
+        return verticalLayout;
+    }
 }

@@ -46,7 +46,7 @@ public class LaunchersService {
                 .collect(Collectors.toSet());
     }
 
-    public void deploy(Set<String> subIds, String command, RsAccountInfo rsAccountInfo, Proxy proxy) {
+    public void deploy(Set<String> subIds, String command, RsAccountInfo rsAccountInfo, Proxy proxy, boolean localScript, String scriptSelector) {
         Notifications.display("Deploying to {} launchers.", subIds.size());
 
         ConnectionConfiguration connectionConfiguration = new ConnectionConfiguration();
@@ -66,9 +66,13 @@ public class LaunchersService {
             clientConfiguration.addProperty("proxyEncryptedPassword", proxy.getEncryptedPassword());
         }
 
+        if (scriptSelector != null){
+            clientConfiguration.addProperty("scriptLocal", localScript);
+            clientConfiguration.addProperty("scriptSelector", scriptSelector);
+        }
+
         Map<String, Object> headers = new HashMap<>();
         headers.put("connectionConfirmationTime", System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(30));
-
 
         String configurationDoc = new Gson().toJson(Collections.singletonMap("configuration", clientConfiguration));
         rabbitDbService.save(

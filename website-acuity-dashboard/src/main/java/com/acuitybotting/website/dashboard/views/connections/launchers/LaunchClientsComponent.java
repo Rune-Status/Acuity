@@ -10,6 +10,7 @@ import com.acuitybotting.website.dashboard.services.ProxiesService;
 import com.acuitybotting.website.dashboard.utils.Components;
 import com.acuitybotting.website.dashboard.utils.Layouts;
 import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -33,6 +34,9 @@ public class LaunchClientsComponent extends VerticalLayout {
 
     private ComboBox<Proxy> proxyComboBox = new ComboBox<>();
     private ComboBox<RsAccountInfo> accountComboBox = new ComboBox<>();
+
+    private Checkbox localScript = new Checkbox("Local Script");
+    private ComboBox<String> scriptSelector = new ComboBox<>();
 
     private TextField commandField = new TextField();
     private String defaultCommand = "{RSPEER_JAVA_PATH} -Dacuity.connection={CONNECTION} -Djava.net.preferIPv4Stack=true -jar \"{RSPEER_SYSTEM_HOME}RSPeer/cache/rspeer.jar\"";
@@ -68,6 +72,10 @@ public class LaunchClientsComponent extends VerticalLayout {
             accountComboBox.setItemLabelGenerator(RsAccountInfo::getSubKey);
             add(new TitleSeparator("Account"), accountComboBox);
 
+            scriptSelector.setWidth("100%");
+            scriptSelector.setAllowCustomValue(true);
+            add(new TitleSeparator("Script"), Layouts.wrapVertical("65%", localScript, scriptSelector));
+
             add(new TitleSeparator("Deploy"), Components.button("Launch", event -> deploy()));
         }
 
@@ -82,7 +90,9 @@ public class LaunchClientsComponent extends VerticalLayout {
                 subIds,
                 commandField.getValue(),
                 accountComboBox.getOptionalValue().orElse(null),
-                proxyComboBox.getOptionalValue().orElse(null)
+                proxyComboBox.getOptionalValue().orElse(null),
+                localScript.getValue(),
+                scriptSelector.getOptionalValue().orElse(null)
         );
     }
 }

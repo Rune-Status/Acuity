@@ -45,6 +45,7 @@ public class LaunchersListView extends VerticalLayout implements Authed {
             withColumn("ID", "33%", document -> new Div(), (document, div) -> div.setText(document.getSubKey()));
             withColumn("Username", "25%", document -> new Div(), (document, div) -> div.setText(document.getState().getUserName()));
             withColumn("CPU", "10%", document -> new Div(), (document, div) -> div.setText(document.getState().getFormattedCpuLoad()));
+            withSearchable(launcherConnection -> launcherConnection.getSubKey() + " " + launcherConnection.getState().getUserName());
             withLoad(LauncherConnection::getSubKey, launchersService::loadLaunchers);
         }
     }
