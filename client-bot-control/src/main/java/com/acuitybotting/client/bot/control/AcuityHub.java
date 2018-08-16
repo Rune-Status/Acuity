@@ -94,7 +94,7 @@ public class AcuityHub {
 
             JsonElement scriptSelector = document.get("scriptSelector");
             if (scriptSelector != null){
-                getControlInterface().ifPresent(control -> control.applyScript(scriptSelector.getAsString(), document.get("scriptLocal").getAsBoolean()));
+                getControlInterface().ifPresent(control -> control.applyScript(scriptSelector.getAsString(), document.get("scriptLocal").getAsBoolean(), Optional.ofNullable(document.get("scriptArgs")).map(JsonElement::getAsString).orElse(null)));
             }
 
             JsonElement proxyHost = document.get("proxyHost");
@@ -188,6 +188,22 @@ public class AcuityHub {
     }
 
     public static void main(String[] args) {
+        setControlInterface(new ControlInterface() {
+            @Override
+            public void applyAccount(String email, String password) {
+                System.out.println("Applying account: " + email + " " + password);
+            }
+
+            @Override
+            public void applyProxy(String asString, String asString1, String proxyUsername, String decrypt) {
+                System.out.println("Applying proxy: " + asString + " " + asString1 + " " + proxyUsername + " " + decrypt);
+            }
+
+            @Override
+            public void applyScript(String scriptSelector, boolean scriptLocal, String scriptArgs) {
+                System.out.println("Applying script: " + scriptSelector + " " + scriptLocal);
+            }
+        });
         start("RPC");
         while (true) {
 

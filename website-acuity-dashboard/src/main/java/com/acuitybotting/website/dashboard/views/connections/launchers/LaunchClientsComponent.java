@@ -39,6 +39,7 @@ public class LaunchClientsComponent extends VerticalLayout {
 
     private Checkbox localScript = new Checkbox("Local Script");
     private ComboBox<String> scriptSelector = new ComboBox<>();
+    private TextField scriptArgs = Components.textField("Script Args", () -> null);
 
     private TextField commandField = new TextField();
     private String defaultCommand = "{RSPEER_JAVA_PATH} -Dacuity.connection={CONNECTION} -Djava.net.preferIPv4Stack=true -jar \"{RSPEER_SYSTEM_HOME}RSPeer/cache/rspeer.jar\"";
@@ -77,7 +78,9 @@ public class LaunchClientsComponent extends VerticalLayout {
 
             scriptSelector.setWidth("100%");
             scriptSelector.setAllowCustomValue(true);
-            add(new TitleSeparator("Script"), Layouts.wrapVertical("65%", localScript, scriptSelector));
+
+            scriptArgs.setWidth("100%");
+            add(new TitleSeparator("Script"), Layouts.wrapVertical("65%", localScript, scriptSelector, scriptArgs));
 
             add(new TitleSeparator("Deploy"), Components.button("Launch", event -> deploy()));
         }
@@ -96,6 +99,7 @@ public class LaunchClientsComponent extends VerticalLayout {
                 accountComboBox.getOptionalValue().orElse(null),
                 proxyComboBox.getOptionalValue().orElse(null),
                 localScript.getValue(),
+                scriptArgs.getOptionalValue().orElse(null),
                 scriptSelector.getOptionalValue().orElse(null)
         );
     }
