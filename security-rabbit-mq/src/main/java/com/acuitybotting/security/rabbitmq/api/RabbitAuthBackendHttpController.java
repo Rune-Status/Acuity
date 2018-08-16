@@ -23,7 +23,7 @@ import java.util.Collections;
  */
 @RestController
 @Slf4j
-@RequestMapping(path = "/auth", method = {RequestMethod.GET, RequestMethod.POST})
+@RequestMapping(path = "/api/rabbitmq/auth", method = {RequestMethod.GET, RequestMethod.POST})
 public class RabbitAuthBackendHttpController {
 
     private static final String REFUSED = "deny";
@@ -38,7 +38,7 @@ public class RabbitAuthBackendHttpController {
 
     @RequestMapping("user")
     public String user(@RequestParam("username") String username, @RequestParam("password") String password) {
-        log.info("Trying to authenticate user {}", username);
+        log.info("Trying to authenticate user {} vs {}", username, password);
 
         if (username.equals("acuity-guest")) return ACCEPTED;
 

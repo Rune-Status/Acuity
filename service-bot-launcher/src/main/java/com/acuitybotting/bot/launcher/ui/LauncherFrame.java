@@ -1,49 +1,88 @@
 package com.acuitybotting.bot.launcher.ui;
 
-import com.acuitybotting.bot.launcher.services.LauncherRabbitService;
-import com.acuitybotting.common.utils.ConnectionKeyUtil;
 import lombok.Getter;
-import lombok.Setter;
 
 import javax.swing.*;
 import java.awt.*;
 
 @Getter
-@Setter
-public class LauncherFrame extends JFrame {
+public abstract class LauncherFrame extends AcuityFrame {
 
-    private static LauncherFrame instance;
+    private JTextField connectionKey;
+    private JTextField passwordField;
 
-    private JPasswordField keyField = new JPasswordField();
+    public LauncherFrame() {
+        setSize(400, 250);
+        add(createPadding(), "West");
+        add(createPadding(), "East");
+        add(buildFields(), "Center");
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    }
 
-    public LauncherFrame(LauncherRabbitService launcherRabbitService) throws HeadlessException {
-        getContentPane().setLayout(new BorderLayout());
+    public abstract void onConnect(String connectionKey, String masterPassword);
 
-        String key = ConnectionKeyUtil.findKey();
-        if (key != null) keyField.setText(key);
-        getContentPane().add(keyField);
+    public abstract void onSave(String connectionKey, String masterPassword);
 
-        JButton set = new JButton("Set");
-        set.addActionListener(e -> {
-            ConnectionKeyUtil.writeKey(getConnectionKey());
-            launcherRabbitService.connect();
+    private JButton buildSaveButton() {
+        JButton save = createButton("Save");
+        save.addActionListener(e -> onSave(connectionKey.getText(), passwordField.getText()));
+        return save;
+    }
+
+    private JButton buildConnectButton() {
+        JButton connect = createButton("Connect");
+        connect.addActionListener(e -> {
+            connectionKey.setEnabled(false);
+            passwordField.setEnabled(false);
+            connect.setEnabled(false);
+            onConnect(connectionKey.getText(), passwordField.getText());
         });
-        getContentPane().add(set, BorderLayout.SOUTH);
 
-        setTitle("Acuity Launcher");
-        setSize(new Dimension(300, 600));
+        return connect;
     }
 
-    public static LauncherFrame setInstance(LauncherFrame instance) {
-        LauncherFrame.instance = instance;
-        return instance;
+    private Panel buildFields() {
+        Panel panel = new Panel(new GridLayout(6, 1));
+        panel.setBackground(StyleConstants.ACUITY_DARK_GREY);
+        panel.add(createLabel("Connection Key:"));
+        panel.add(connectionKey = createTextField(false));
+        panel.add(createLabel("Master Password:"));
+        panel.add(passwordField = createTextField(true));
+        panel.add(buildSaveButton());
+        panel.add(buildConnectButton());
+        return panel;
     }
 
-    public static LauncherFrame getInstance() {
-        return instance;
+    private JLabel createLabel(String text) {
+        JLabel jLabel = new JLabel(text);
+        jLabel.setOpaque(true);
+        jLabel.setForeground(Color.WHITE);
+        jLabel.setBackground(StyleConstants.ACUITY_DARK_GREY);
+        return jLabel;
     }
 
-    public String getConnectionKey(){
-        return String.valueOf(keyField.getPassword());
+    private JTextField createTextField(boolean password) {
+        JTextField jTextField = password ? new JPasswordField() : new JTextField();
+        jTextField.setForeground(Color.WHITE);
+        jTextField.setBackground(StyleConstants.ACUITY_LIGHT_GREY);
+        jTextField.setBorder(BorderFactory.createSoftBevelBorder(2));
+        return jTextField;
+    }
+
+    private JButton createButton(String text) {
+        JButton jButton = new JButton(text);
+        jButton.setForeground(Color.white);
+        jButton.setBackground(StyleConstants.ACUITY_DARK_GREY);
+        jButton.setFocusPainted(false);
+        jButton.setRolloverEnabled(false);
+        jButton.setBorderPainted(false);
+        return jButton;
+    }
+
+    private JPanel createPadding() {
+        JPanel padding = new JPanel();
+        padding.setSize(20, 200);
+        padding.setBackground(StyleConstants.ACUITY_DARK_GREY);
+        return padding;
     }
 }

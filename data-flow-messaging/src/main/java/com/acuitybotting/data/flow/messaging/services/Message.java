@@ -61,7 +61,7 @@ public class Message {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Message{");
-        sb.append("id='").append(id).append('\'');
+        sb.append("subId='").append(id).append('\'');
         sb.append(", source='").append(source).append('\'');
         sb.append(", rabbitTag=").append(rabbitTag);
         sb.append(", body='").append(body).append('\'');

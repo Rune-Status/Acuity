@@ -1,13 +1,14 @@
 package com.acuitybotting.bot.launcher.services;
 
-
 import com.acuitybotting.bot.launcher.ui.LauncherFrame;
 import com.acuitybotting.bot.launcher.utils.CommandLine;
+import com.acuitybotting.common.utils.configurations.utils.ConnectionConfigurationUtil;
+import com.acuitybotting.common.utils.configurations.ConnectionConfiguration;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
-import com.acuitybotting.data.flow.messaging.services.client.utils.RabbitHub;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitHub;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -15,6 +16,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Optional;
 
 /**
  * Created by Zachary Herridge on 8/6/2018.
@@ -24,30 +26,40 @@ import java.util.Collections;
 public class LauncherRabbitService implements CommandLineRunner {
 
     private final StateService stateService;
-
     private RabbitHub rabbitHub = new RabbitHub();
+
+    private Gson gson = new Gson();
+
+    private String connectionKey;
+    private String masterPassword;
 
     @Autowired
     public LauncherRabbitService(StateService stateService) {
         this.stateService = stateService;
     }
 
-    public void connect() {
+    public void connect(String connectionKey) {
+        this.connectionKey = connectionKey;
         try {
-            rabbitHub.auth(LauncherFrame.getInstance().getConnectionKey());
-            rabbitHub.start("ABL", 1);
-            rabbitHub.createLocalQueue(true)
-                    .withListener(this::handleMessage)
-                    .open(true);
+
+            JsonObject jsonObject = ConnectionConfigurationUtil.decodeConnectionKey(connectionKey);
+            String username = jsonObject.get("principalId").getAsString();
+            String password = jsonObject.get("secret").getAsString();
+
+            rabbitHub.auth(username, password);
+            rabbitHub.start("ABL");
+            rabbitHub.getLocalQueue().withListener(this::handleMessage);
+
+            updateState();
         } catch (Throwable e) {
             log.error("Error during dashboard RabbitMQ setup.", e);
         }
     }
 
-    @Scheduled(initialDelay = 5000, fixedDelay = 60000)
+    @Scheduled(initialDelay = 5000, fixedDelay = 10000)
     private void updateState(){
         try {
-            if (rabbitHub.getRandomChannel() == null) return;
+            if (rabbitHub.getLocalQueue() == null) return;
             rabbitHub.updateConnectionDocument(new Gson().toJson(Collections.singletonMap("state", stateService.buildState())));
             log.info("Updated state.");
         } catch (MessagingException e) {
@@ -57,9 +69,16 @@ public class LauncherRabbitService implements CommandLineRunner {
 
     private void handleMessage(MessageEvent messageEvent) {
         if ("runCommand".equals(messageEvent.getMessage().getAttributes().get("type"))) {
-            JsonElement launchConfig = new Gson().fromJson(messageEvent.getMessage().getBody(), JsonElement.class);
+            JsonObject launchConfig = gson.fromJson(messageEvent.getMessage().getBody(), JsonObject.class);
+            
             log.info("Got launch config: ", launchConfig);
-            String command = CommandLine.replacePlaceHolders(launchConfig.getAsJsonObject().get("command").getAsString());
+            String command = CommandLine.replacePlaceHolders(launchConfig.get("command").getAsString());
+
+            ConnectionConfiguration connectionConfiguration = ConnectionConfigurationUtil.decode(launchConfig.get("acuityConnectionConfiguration").getAsString()).orElse(new ConnectionConfiguration());
+            if (connectionConfiguration.getConnectionKey() == null) connectionConfiguration.setConnectionKey(connectionKey);
+            if (connectionConfiguration.getMasterKey() == null) connectionConfiguration.setMasterKey(masterPassword);
+
+            command = command.replaceAll("\\{CONNECTION}", ConnectionConfigurationUtil.encode(connectionConfiguration));
 
             log.info("Running command: {}", command);
 
@@ -73,9 +92,27 @@ public class LauncherRabbitService implements CommandLineRunner {
 
     @Override
     public void run(String... strings) {
-        LauncherFrame.setInstance(new LauncherFrame(this)).setVisible(true);
-        if (LauncherFrame.getInstance().getConnectionKey() != null){
-            connect();
-        }
+        Optional<ConnectionConfiguration> decode = ConnectionConfigurationUtil.decode(ConnectionConfigurationUtil.find());
+
+        LauncherFrame launcherFrame = new LauncherFrame() {
+
+            @Override
+            public void onConnect(String connectionKey, String masterPassword) {
+                connect(connectionKey);
+            }
+
+            @Override
+            public void onSave(String connectionKey, String masterPassword) {
+                LauncherRabbitService.this.masterPassword = masterPassword;
+                ConnectionConfiguration connectionConfiguration = new ConnectionConfiguration();
+                connectionConfiguration.setConnectionKey(connectionKey);
+                connectionConfiguration.setMasterKey(masterPassword);
+                ConnectionConfigurationUtil.write(connectionConfiguration);
+            }
+        };
+
+        launcherFrame.getConnectionKey().setText(decode.map(ConnectionConfiguration::getConnectionKey).orElse(""));
+        launcherFrame.getPasswordField().setText(decode.map(ConnectionConfiguration::getMasterKey).orElse(""));
+        launcherFrame.setVisible(true);
     }
 }

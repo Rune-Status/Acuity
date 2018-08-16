@@ -9,7 +9,7 @@ import java.util.regex.Matcher;
 public class CommandLine {
 
     public static Process runCommand(String command) throws IOException {
-        return System.getProperty("os.name").contains("Windows") ? Runtime.getRuntime().exec("cmd.exe /c start " + command) : Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", command});
+        return System.getProperty("os.name").contains("Windows") ? Runtime.getRuntime().exec("cmd.exe /c start /min " + command) : Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", command});
     }
 
     public static String replacePlaceHolders(String command){

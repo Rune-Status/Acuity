@@ -1,10 +1,10 @@
-package com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit;
+package com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.queue;
 
 import com.acuitybotting.data.flow.messaging.services.Message;
-import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
-import com.acuitybotting.data.flow.messaging.services.client.MessagingClient;
-import com.acuitybotting.data.flow.messaging.services.client.MessagingQueue;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.channel.RabbitChannel;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.channel.RabbitChannelPool;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.client.RabbitClient;
 import com.acuitybotting.data.flow.messaging.services.client.listeners.MessagingQueueListener;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.data.flow.messaging.services.futures.MessageFuture;
@@ -16,13 +16,12 @@ import com.rabbitmq.client.ShutdownSignalException;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Created by Zachary Herridge on 7/26/2018.
  */
-public class RabbitQueue implements MessagingQueue {
+public class RabbitQueue {
 
     private RabbitClient client;
     private RabbitChannel channel;
@@ -36,10 +35,14 @@ public class RabbitQueue implements MessagingQueue {
 
     private List<MessagingQueueListener> listeners = new CopyOnWriteArrayList<>();
 
+    public RabbitQueue(RabbitChannelPool channelPool, String queueName) {
+        this(channelPool.getChannel(), queueName);
+    }
+
     public RabbitQueue(RabbitChannel channel, String queueName) {
-        this.channel = channel;
         this.client = channel.getClient();
         this.queueName = queueName;
+        this.channel = channel;
     }
 
     public RabbitQueue setAutoAcknowledge(boolean autoAcknowledge) {
@@ -52,7 +55,6 @@ public class RabbitQueue implements MessagingQueue {
         return this;
     }
 
-    @Override
     public RabbitQueue open(boolean autoAcknowledge) {
         this.autoAcknowledge = autoAcknowledge;
         channel.getQueues().add(this);
@@ -61,7 +63,7 @@ public class RabbitQueue implements MessagingQueue {
     }
 
     public void confirmState() {
-        synchronized (channel.getClient().CONFIRM_STATE_LOCK) {
+        synchronized (client.CONFIRM_STATE_LOCK) {
             if (!channel.getQueues().contains(this)) return;
 
             try {
@@ -86,7 +88,7 @@ public class RabbitQueue implements MessagingQueue {
                     };
 
                     consumeId.set(channel.getChannel().basicConsume(queueName, autoAcknowledge, consumer));
-                    client.getLog().accept("Consuming queue named '" + queueName + "' with consume id '" + consumeId.get() + "'.");
+                    client.getLog().accept("Consuming queue named '" + queueName + "' with consume subId '" + consumeId.get() + "'.");
                 }
 
                 String consumeId = this.consumeId.get();
@@ -96,7 +98,7 @@ public class RabbitQueue implements MessagingQueue {
 
                         channel.getChannel().queueBind(queueName, binding.getExchange(), binding.getRouting());
                         binding.setConsumeId(consumeId);
-                        client.getLog().accept("Bound queue '" + queueName + "' to exchange '" + binding.getExchange() + "' with routing key '" + binding.getRouting() + "' on consume id '" + binding.getConsumeId() + "'.");
+                        client.getLog().accept("Bound queue '" + queueName + "' to exchange '" + binding.getExchange() + "' with routing key '" + binding.getRouting() + "' on consume subId '" + binding.getConsumeId() + "'.");
                     }
                 }
             } catch (Throwable e) {
@@ -105,8 +107,7 @@ public class RabbitQueue implements MessagingQueue {
         }
     }
 
-    @Override
-    public MessagingQueue bind(String exchange, String routing) throws MessagingException {
+    public RabbitQueue bind(String exchange, String routing) throws MessagingException {
         RabbitQueueBinding binding = new RabbitQueueBinding();
         binding.setRabbitQueue(this);
         binding.setExchange(exchange);
@@ -115,18 +116,15 @@ public class RabbitQueue implements MessagingQueue {
         return this;
     }
 
-    @Override
-    public MessagingChannel getChannel() {
+    public RabbitChannel getChannel() {
         return channel;
     }
 
-    @Override
-    public MessagingQueue withListener(MessagingQueueListener listener) {
+    public RabbitQueue withListener(MessagingQueueListener listener) {
         listeners.add(listener);
         return this;
     }
 
-    @Override
     public String getName() {
         return queueName;
     }
@@ -154,14 +152,14 @@ public class RabbitQueue implements MessagingQueue {
             if (properties.getReplyTo() != null)
                 message.getAttributes().put("properties.reply-to", properties.getReplyTo());
             if (properties.getCorrelationId() != null)
-                message.getAttributes().put("properties.correlation-id", properties.getCorrelationId());
+                message.getAttributes().put("properties.correlation-subId", properties.getCorrelationId());
 
 
             MessageEvent messageEvent = new MessageEvent();
             messageEvent.setMessage(message);
             messageEvent.setQueue(this);
 
-            String futureId = message.getAttributes().get(MessagingClient.FUTURE_ID);
+            String futureId = message.getAttributes().get(RabbitClient.FUTURE_ID);
             if (futureId != null) {
                 MessageFuture messageFuture = client.getMessageFutures().get(futureId);
                 if (messageFuture != null) {

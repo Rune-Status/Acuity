@@ -1,6 +1,7 @@
 package com.acuitybotting.data.flow.messaging.services.client;
 
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.channel.RabbitChannel;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 
 import java.util.HashMap;
@@ -9,7 +10,7 @@ import java.util.concurrent.Future;
 
 public class MessageBuilder {
 
-    private MessagingChannel channel;
+    private RabbitChannel channel;
 
     private String targetExchange;
     private String targetRouting;
@@ -18,7 +19,7 @@ public class MessageBuilder {
     private String body;
     private Map<String, String> messageAttributes = new HashMap<>();
 
-    public MessageBuilder(MessagingChannel channel) {
+    public MessageBuilder(RabbitChannel channel) {
         this.channel = channel;
     }
 
@@ -36,11 +37,11 @@ public class MessageBuilder {
         return this;
     }
 
-    public MessagingChannel getChannel() {
+    public RabbitChannel getChannel() {
         return channel;
     }
 
-    public MessageBuilder setChannel(MessagingChannel channel) {
+    public MessageBuilder setChannel(RabbitChannel channel) {
         this.channel = channel;
         return this;
     }

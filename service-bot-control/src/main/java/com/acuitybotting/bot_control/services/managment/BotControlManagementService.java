@@ -27,8 +27,6 @@ public class BotControlManagementService {
 
     private final RabbitDbService rabbitDbService;
 
-    @Value("${rabbit.host}")
-    private String host;
     @Value("${rabbit.username}")
     private String username;
     @Value("${rabbit.password}")
@@ -67,10 +65,10 @@ public class BotControlManagementService {
         rabbitDbService.getArangoOperations().query(updateTimeout, Collections.singletonMap("timeout", System.currentTimeMillis() - TimeUnit.SECONDS.toMillis(11)), null, null);
     }
 
-    @Scheduled(fixedDelay = 10000)
+    @Scheduled(fixedDelay = 4000)
     public void updateConnections() {
         try {
-            RabbitManagement.loadAll("http://" + host + ":" + "15672", username, password);
+            RabbitManagement.loadAll(username, password);
             updateRegisteredConnections();
         } catch (Exception e) {
             log.error("Error during RabbitManagement.loadAll.", e);

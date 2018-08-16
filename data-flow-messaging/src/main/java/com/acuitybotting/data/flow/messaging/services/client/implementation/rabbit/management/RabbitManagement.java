@@ -22,18 +22,18 @@ public class RabbitManagement {
             .build();
 
 
-    public static void loadAll(String host, String username, String password) throws Exception {
-        String json = HttpUtil.get(HttpUtil.addBasicAuthHeader(new HashMap<>(), username, password), host + "/api/connections", null);
+    public static void loadAll(String username, String password) throws Exception {
+        String json = HttpUtil.get(HttpUtil.addBasicAuthHeader(new HashMap<>(), username, password), "http://" + "nodes-1.admin-acuitybotting.com" + ":" + "31456" + "/api/connections", null);
         RabbitConnection[] rabbitConnections = new Gson().fromJson(json, RabbitConnection[].class);
         Map<String, List<RabbitConnection>> collect = Arrays.stream(rabbitConnections).collect(Collectors.groupingBy(RabbitConnection::getUser));
         collect.forEach((key, value) -> connections.put(key, value));
     }
 
-    public static Map<String, List<RabbitConnection>> getConnections(){
+    public static Map<String, List<RabbitConnection>> getConnections() {
         return connections.asMap();
     }
 
-    public static List<RabbitConnection> getConnectionsByUser(String rabbitUsername){
+    public static List<RabbitConnection> getConnectionsByUser(String rabbitUsername) {
         return Optional.ofNullable(connections.getIfPresent(rabbitUsername)).orElse(Collections.emptyList());
     }
 }

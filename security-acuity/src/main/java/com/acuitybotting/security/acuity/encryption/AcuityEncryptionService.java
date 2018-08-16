@@ -1,14 +1,15 @@
 package com.acuitybotting.security.acuity.encryption;
 
+
 import com.rockaport.alice.Alice;
 import com.rockaport.alice.AliceContext;
 import com.rockaport.alice.AliceContextBuilder;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.binary.Base64;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.GeneralSecurityException;
+import java.util.Base64;
 
 
 /**
@@ -25,11 +26,11 @@ public class AcuityEncryptionService {
     }
 
     public String encrypt(String key, String value) throws GeneralSecurityException {
-        return Base64.encodeBase64String(getAlice().encrypt(value.getBytes(), key.toCharArray()));
+        return Base64.getEncoder().encodeToString(getAlice().encrypt(value.getBytes(), key.toCharArray()));
     }
 
     public String decrypt(String key, String value) throws GeneralSecurityException {
-        return new String(getAlice().decrypt(Base64.decodeBase64(value), key.toCharArray()));
+        return new String(getAlice().decrypt(Base64.getDecoder().decode(value), key.toCharArray()));
     }
 
     public String encodePassword(String password) {

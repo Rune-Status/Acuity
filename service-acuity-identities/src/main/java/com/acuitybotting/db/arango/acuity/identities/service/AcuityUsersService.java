@@ -9,6 +9,8 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,8 +58,8 @@ public class AcuityUsersService {
     public String createLinkJwt(Principal principal){
         return JWT.create()
                 .withIssuer("acuitybotting")
-                .withClaim("source", principal.getType())
-                .withClaim("sourceType", principal.getUid())
+                .withClaim("type", principal.getType())
+                .withClaim("uid", principal.getUid())
                 .withExpiresAt(Date.from(Instant.now().plus(Duration.of(10, ChronoUnit.MINUTES))))
                 .sign(Algorithm.HMAC256(jwtSecret));
     }
@@ -75,8 +77,8 @@ public class AcuityUsersService {
             return false;
         }
 
-        String sourceUid = verify.getClaims().get("source").asString();
-        String sourceType = verify.getClaims().get("sourceType").asString();
+        String sourceType = verify.getClaims().get("type").asString();
+        String sourceUid = verify.getClaims().get("uid").asString();
 
         if (sourceType == null || sourceUid == null) return false;
 
@@ -165,7 +167,8 @@ public class AcuityUsersService {
     }
 
     public boolean isValidConnectionKey(String acuityPrincipalId, String connectionKey) {
-        return connectionKey != null && findUserByUid(acuityPrincipalId).map(acuityBottingUser -> connectionKey.equals(acuityBottingUser.getConnectionKey())).orElse(false);
+        if (connectionKey == null) return false;
+        return findUserByUid(acuityPrincipalId).map(acuityBottingUser -> connectionKey.equals(acuityBottingUser.getConnectionKey())).orElse(false);
     }
 
     public boolean generateNewConnectionKey(String acuityPrincipalId) {
@@ -173,18 +176,32 @@ public class AcuityUsersService {
         if (acuityBottingUser == null) return false;
 
         try {
-            Map<String, String> properties = new HashMap<>();
-            properties.put("secret", generateKey());
-            properties.put("principalId", acuityPrincipalId);
-
-            acuityBottingUser.setConnectionKey(Base64.getEncoder().encodeToString(new Gson().toJson(properties).getBytes()));
+            acuityBottingUser.setConnectionKey(generateKey());
             userRepository.save(acuityBottingUser);
             return true;
         }
+
         catch (Throwable e){
             log.error("Error updating connection key.", e);
         }
 
         return false;
+    }
+
+    public String wrapConnectionKey(String acuityPrincipalId, String connectionKey) {
+        if (connectionKey == null || acuityPrincipalId == null) return null;
+
+        Map<String, String> info = new HashMap<>();
+        info.put("secret", connectionKey);
+        info.put("principalId", acuityPrincipalId);
+
+        return Base64.getEncoder().encodeToString(new Gson().toJson(info).getBytes());
+    }
+
+    public void setProfileImage(String acuityPrincipalId, String url) {
+        findUserByUid(acuityPrincipalId).ifPresent(user -> {
+            user.setProfileImgUrl(url);
+            userRepository.save(user);
+        });
     }
 }

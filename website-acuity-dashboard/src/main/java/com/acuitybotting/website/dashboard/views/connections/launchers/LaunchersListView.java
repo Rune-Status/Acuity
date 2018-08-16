@@ -1,25 +1,18 @@
 package com.acuitybotting.website.dashboard.views.connections.launchers;
 
-import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
-import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
-import com.acuitybotting.website.dashboard.DashboardRabbitService;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.LauncherConnection;
 import com.acuitybotting.website.dashboard.components.general.list_display.InteractiveList;
 import com.acuitybotting.website.dashboard.security.view.interfaces.Authed;
-import com.acuitybotting.website.dashboard.utils.Authentication;
+import com.acuitybotting.website.dashboard.services.LaunchersService;
+import com.acuitybotting.website.dashboard.utils.Components;
 import com.acuitybotting.website.dashboard.views.RootLayout;
 import com.acuitybotting.website.dashboard.views.connections.ConnectionsTabNavComponent;
-import com.google.gson.Gson;
 import com.vaadin.flow.component.AttachEvent;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Created by Zachary Herridge on 8/8/2018.
@@ -27,61 +20,33 @@ import java.util.stream.Collectors;
 @Route(value = "connections/launchers", layout = RootLayout.class)
 public class LaunchersListView extends VerticalLayout implements Authed {
 
-    private LauncherListComponent launcherListComponent;
+    private final LauncherListComponent launcherListComponent;
+    private final ConnectionsTabNavComponent connectionsTabNavComponent;
 
     public LaunchersListView(LauncherListComponent launcherListComponent, ConnectionsTabNavComponent connectionsTabNavComponent) {
         this.launcherListComponent = launcherListComponent;
-        setPadding(false);
-        add(connectionsTabNavComponent, launcherListComponent);
+        this.connectionsTabNavComponent = connectionsTabNavComponent;
     }
 
     @Override
     protected void onAttach(AttachEvent attachEvent) {
-        launcherListComponent.load();
+        if (attachEvent.isInitialAttach()) {
+            setPadding(false);
+            add(connectionsTabNavComponent, launcherListComponent);
+        }
     }
 
     @SpringComponent
     @UIScope
-    private static class LauncherListComponent extends InteractiveList<GsonRabbitDocument> {
+    public static class LauncherListComponent extends InteractiveList<LauncherConnection> implements Authed {
 
-        private final RabbitDbService rabbitDbService;
-        private final DashboardRabbitService rabbitService;
-
-        public LauncherListComponent(RabbitDbService rabbitDbService, DashboardRabbitService rabbitService) {
-            this.rabbitDbService = rabbitDbService;
-            this.rabbitService = rabbitService;
-            Button launchClient = new Button("Launch Client");
-            launchClient.addClickListener(buttonClickEvent -> launchClients());
-            getControls().add(launchClient);
-            withColumn("ID", "33%", document -> new Span(), (document, span) -> span.setText(document.getSubKey()));
-            withColumn("Host", "15%", document -> new Span(), (document, span) -> span.setText(String.valueOf(document.getHeaders().getOrDefault("peerHost", ""))));
-            withColumn("Last Update", "33%", document -> new Span(), (document, span) -> span.setText(String.valueOf(document.getHeaders().getOrDefault("connectionConfirmationTime", ""))));
-            withLoad(GsonRabbitDocument::getSubKey, this::loadLaunchers);
-        }
-
-        private void launchClients() {
-            getSelectedValues().forEach(document -> {
-                String queue = "user." + document.getPrincipalId() + ".queue." + document.getSubKey();
-                String uid = UUID.randomUUID().toString();
-                String command = "{RSPEER_JAVA_PATH} -Djava.net.preferIPv4Stack=true -jar \"{RSPEER_SYSTEM_HOME}RSPeer/cache/rspeer.jar\" -acuityConnectionId " + uid;
-                try {
-                    rabbitService.getMessagingChannel().buildMessage(
-                            "",
-                            queue,
-                            new Gson().toJson(Collections.singletonMap("command", command))
-                    ).setAttribute("type", "runCommand").send();
-                } catch (MessagingException e) {
-                    e.printStackTrace();
-                }
-            });
-        }
-
-        private Set<GsonRabbitDocument> loadLaunchers() {
-            return rabbitDbService
-                    .loadByGroup(RabbitDbService.buildQueryMap(Authentication.getAcuityPrincipalId(), "services.registered-connections", "connections"), GsonRabbitDocument.class)
-                    .stream()
-                    .filter(connection -> connection.getSubKey().startsWith("ABL_") && (boolean) connection.getHeaders().getOrDefault("connected", false))
-                    .collect(Collectors.toSet());
+        public LauncherListComponent(LaunchersService launchersService) {
+            getControls().add(Components.button("Launch Client(s)", event -> getUI().ifPresent(ui -> ui.navigate(LaunchClientsView.class))));
+            withColumn("ID", "33%", document -> new Div(), (document, div) -> div.setText(document.getSubKey()));
+            withColumn("Username", "25%", document -> new Div(), (document, div) -> div.setText(document.getState().getUserName()));
+            withColumn("CPU", "10%", document -> new Div(), (document, div) -> div.setText(document.getState().getFormattedCpuLoad()));
+            withSearchable(launcherConnection -> launcherConnection.getSubKey() + " " + launcherConnection.getState().getUserName());
+            withLoad(LauncherConnection::getSubKey, launchersService::loadLaunchers);
         }
     }
 }

@@ -6,10 +6,14 @@ import com.acuitybotting.website.dashboard.components.general.list_display.Inter
 import com.acuitybotting.website.dashboard.components.general.separator.TitleSeparator;
 import com.acuitybotting.website.dashboard.security.view.interfaces.Authed;
 import com.acuitybotting.website.dashboard.utils.Authentication;
+import com.acuitybotting.website.dashboard.utils.Components;
+import com.acuitybotting.website.dashboard.utils.Layouts;
 import com.acuitybotting.website.dashboard.utils.Notifications;
 import com.acuitybotting.website.dashboard.views.RootLayout;
+import com.google.common.base.Strings;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -17,6 +21,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.spring.annotation.SpringComponent;
 
 
 /**
@@ -26,7 +31,6 @@ import com.vaadin.flow.router.Route;
 public class ProfileView extends VerticalLayout implements Authed {
 
     private final AcuityUsersService acuityUsersService;
-    private InteractiveList<Principal> linkedList = new InteractiveList<>();
 
     public ProfileView(AcuityUsersService acuityUsersService) {
         this.acuityUsersService = acuityUsersService;
@@ -36,29 +40,15 @@ public class ProfileView extends VerticalLayout implements Authed {
     protected void onAttach(AttachEvent attachEvent) {
         setPadding(false);
 
-        linkedList.withLoad(
-                principal -> principal.getType() + ":" + principal.getUid(),
-                Authentication.getAcuityUser()::getLinkedPrincipals
+        add(
+                new TitleSeparator("Settings"),
+                new AcuityUserSettingsComponent()
         );
 
-        linkedList.withColumn("Source", "15%", principal -> new Span(), (principal, span) -> span.setText(principal.getType()));
-        linkedList.withColumn("ID", "35%", principal -> new Span(), (principal, span) -> span.setText(principal.getUid()));
-
-        TextField jwtField = new TextField();
-        jwtField.setPlaceholder("JWT");
-        Button addLink = new Button(VaadinIcon.PLUS_CIRCLE.create());
-
-        addLink.addClickListener(event -> {
-            acuityUsersService.linkToPrincipal(Authentication.getAcuityPrincipalId(), jwtField.getValue());
-            Authentication.updateSession(acuityUsersService);
-            linkedList.load();
-            Notifications.display("Added token.");
-        });
-        linkedList.getControls().add(jwtField, addLink);
         add(
-                new TitleSeparator("Linked Accounts"),
-                new Span("These are the current links to your Acuity-Account, by adding more links you will be able to view more information on your dashboards."),
-                linkedList
+                new TitleSeparator("Connection Key"),
+                new Span("This key is used by your clients to connect to Acuity. If you regenerate it any current clients will lose access within a few mins as the cache clears."),
+                new ConnectionKeyComponent()
         );
 
         add(
@@ -68,32 +58,84 @@ public class ProfileView extends VerticalLayout implements Authed {
         );
 
         add(
-                new TitleSeparator("Connection Key"),
-                new Span("This key is used by your clients to connect to Acuity. If you regenerate it any current clients will lose access within a few mins as the cache clears."),
-                new ConnectionKeyComponent()
+                new TitleSeparator("Linked Accounts"),
+                new Span("These are the current links to your Acuity-Account, by adding more links you will be able to view more information on your dashboards."),
+                new LinkAccountComponent()
         );
-
-        linkedList.load();
     }
 
+    private class AcuityUserSettingsComponent extends VerticalLayout {
+
+        public AcuityUserSettingsComponent() {
+            setPadding(false);
+
+            TextField profileImage = Components.textField("Profile Image (https://i.imgur.com/)", () -> Authentication.getAcuityUser().getProfileImgUrl());
+            profileImage.setWidth("40%");
+            Button setProfileImage = Components.button(VaadinIcon.PLUS_CIRCLE, event -> {
+                String url = Strings.nullToEmpty(profileImage.getValue());
+                if (!url.startsWith("https://i.imgur.com/")){
+                    Notifications.error("URL must start with 'https://i.imgur.com/'.");
+                    return;
+                }
+
+                if (!url.endsWith(".png") || !url.endsWith(".jpg")){
+                    Notifications.error("URL must end with .png or .jpg");
+                    return;
+                }
+
+                acuityUsersService.setProfileImage(Authentication.getAcuityPrincipalId(), url);
+                Authentication.updateSession(acuityUsersService);
+                Notifications.display("Updated profile image.");
+            });
+            add(Layouts.wrapHorizontal("100%", profileImage, setProfileImage));
+        }
+    }
+
+    private class LinkAccountComponent extends InteractiveList<Principal> {
+
+        public LinkAccountComponent() {
+            withLoad(
+                    principal -> principal.getType() + ":" + principal.getUid(),
+                    Authentication.getAcuityUser()::getLinkedPrincipals
+            );
+
+            withColumn("Source", "15%", principal -> new Div(), (principal, div) -> div.setText(principal.getType()));
+            withColumn("ID", "35%", principal -> new Div(), (principal, div) -> div.setText(principal.getUid()));
+
+            TextField jwtField = new TextField();
+            jwtField.setPlaceholder("JWT");
+            Button addLink = new Button(VaadinIcon.PLUS_CIRCLE.create());
+
+            addLink.addClickListener(event -> {
+                acuityUsersService.linkToPrincipal(Authentication.getAcuityPrincipalId(), jwtField.getValue());
+                Authentication.updateSession(acuityUsersService);
+                Notifications.display("Added token.");
+            });
+            getControls().add(jwtField, addLink);
+        }
+    }
 
     private class ConnectionKeyComponent extends HorizontalLayout {
 
         public ConnectionKeyComponent() {
             setPadding(false);
+            setWidth("100%");
 
-            String connectionKey = Authentication.getAcuityUser().getConnectionKey();
+            String connectionKey = acuityUsersService.wrapConnectionKey(Authentication.getAcuityPrincipalId(), Authentication.getAcuityUser().getConnectionKey());
 
             PasswordField currentKey = new PasswordField();
+            currentKey.setWidth("88%");
             currentKey.setValue(connectionKey);
-            currentKey.addValueChangeListener(event -> currentKey.setValue(Authentication.getAcuityUser().getConnectionKey()));
+            currentKey.addValueChangeListener(event -> currentKey.setValue(connectionKey));
             currentKey.setPlaceholder("Not Set");
 
             Button generate = new Button(VaadinIcon.REFRESH.create());
             generate.setText("Generate");
+            generate.setWidth("12%");
 
             generate.addClickListener(buttonClickEvent -> {
                 if (acuityUsersService.generateNewConnectionKey(Authentication.getAcuityPrincipalId())){
+                    Authentication.updateSession(acuityUsersService);
                     Notifications.display("New connection key set.");
                 }
             });
@@ -109,38 +151,46 @@ public class ProfileView extends VerticalLayout implements Authed {
 
             PasswordField keyField1 = new PasswordField();
             PasswordField keyField2 = new PasswordField();
-            Button set = new Button(VaadinIcon.PLUS_CIRCLE.create());
-            add(keyField1, keyField2, set);
+            PasswordField keyField3 = new PasswordField();
 
-            boolean keySet = Authentication.getAcuityUser().getMasterKey() != null;
-            keyField1.setPlaceholder(keySet ? "Old Key" : "Master Key");
-            keyField2.setPlaceholder(keySet ? "New Key" : "Confirm Key");
+            Button set = new Button(VaadinIcon.PLUS_CIRCLE.create());
+
+            boolean passwordSet = Authentication.getAcuityUser().getMasterKey() != null;
+            keyField1.setPlaceholder(passwordSet ? "Old Password" : "Master Password");
+            keyField2.setPlaceholder(passwordSet ? "New Password" : "Confirm Password");
+            keyField3.setPlaceholder("Confirm password.");
+
+            add(keyField1, keyField2);
+            if (passwordSet) add(keyField3);
+            add(set);
 
             set.addClickListener(buttonClickEvent -> {
-                boolean result = false;
-                if (keySet) {
+                boolean result;
+                if (passwordSet) {
+                    if (!keyField2.getValue().equals(keyField3.getValue())) {
+                        Notifications.error("Passwords do not match.");
+                        return;
+                    }
+
                     result = acuityUsersService.createOrUpdateMasterKey(Authentication.getAcuityPrincipalId(), keyField1.getValue(), keyField2.getValue());
                 } else {
                     if (keyField1.getValue().equals(keyField2.getValue())) {
                         result = acuityUsersService.createOrUpdateMasterKey(Authentication.getAcuityPrincipalId(), null, keyField1.getValue());
                     }
                     else {
-                        Notifications.error("Keys do not match.");
+                        Notifications.error("Passwords do not match.");
                         return;
                     }
                 }
 
                 if (result) {
-                    Notifications.display("Key " + (keySet ? " set" : "updated") + ".");
-                    keyField1.clear();
-                    keyField2.clear();
+                    Notifications.display("Password " + (passwordSet ? " set" : "updated") + ".");
+                    Authentication.updateSession(acuityUsersService);
                 }
                 else {
-                    Notifications.error("Failed to update key.");
+                    Notifications.error("Failed to update password.");
                 }
             });
         }
-
     }
-
 }

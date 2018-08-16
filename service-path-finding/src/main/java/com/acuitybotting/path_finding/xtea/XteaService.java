@@ -260,7 +260,7 @@ public class XteaService {
                         save.put("plane", plane);
                         save.put("actions", baseDefinition.getActions());
                         save.put("name", baseDefinition.getName());
-                        save.put("id", baseDefinition.getKey());
+                        save.put("subKey", baseDefinition.getKey());
                         banks.add(gson.toJsonTree(save));
                     }
 

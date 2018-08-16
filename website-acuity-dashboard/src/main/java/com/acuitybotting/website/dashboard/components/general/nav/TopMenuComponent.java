@@ -1,5 +1,7 @@
 package com.acuitybotting.website.dashboard.components.general.nav;
 
+import com.acuitybotting.db.arango.acuity.identities.domain.AcuityBottingUser;
+import com.acuitybotting.website.dashboard.utils.Authentication;
 import com.acuitybotting.website.dashboard.views.connections.clients.ClientsListView;
 import com.acuitybotting.website.dashboard.views.resources.accounts.AccountsListView;
 import com.acuitybotting.website.dashboard.views.user.ProfileView;
@@ -36,7 +38,7 @@ public class TopMenuComponent extends HorizontalLayout {
 
         HorizontalLayout barRight = new HorizontalLayout();
 
-        Image profileImage = new Image("https://avatars1.githubusercontent.com/u/6809142?s=400&u=cb5020f80436558b7cfc4df6ade4764df1a62147&v=4", "");
+        Image profileImage = new Image(Authentication.getAcuityUserOptional().map(AcuityBottingUser::getProfileImgUrl).orElse("https://www.gravatar.com/avatar/e71231152729827c401741cf99d27e33?s=64&d=identicon&r=PG&f=1"), "");
         profileImage.getClassNames().add("acuity-top-nav-profile-img");
         profileImage.getElement().addEventListener("click", domEvent -> UI.getCurrent().navigate(ProfileView.class));
         barRight.add(profileImage);
