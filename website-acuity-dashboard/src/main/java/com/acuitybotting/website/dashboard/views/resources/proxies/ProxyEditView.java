@@ -30,15 +30,13 @@ import java.util.UUID;
 public class ProxyEditView extends VerticalLayout implements HasUrlParameter<String>, Authed {
 
     private final RabbitDbService rabbitDbService;
-    private final AcuityUsersService acuityUsersService;
     private UserMasterPasswordField masterPasswordField;
     private String proxyId;
     private Proxy proxy;
 
     @Autowired
-    public ProxyEditView(RabbitDbService rabbitDbService, AcuityUsersService acuityUsersService, UserMasterPasswordField masterPasswordField) {
+    public ProxyEditView(RabbitDbService rabbitDbService, UserMasterPasswordField masterPasswordField) {
         this.rabbitDbService = rabbitDbService;
-        this.acuityUsersService = acuityUsersService;
         this.masterPasswordField = masterPasswordField;
     }
 
@@ -53,7 +51,7 @@ public class ProxyEditView extends VerticalLayout implements HasUrlParameter<Str
 
         if (proxyId == null) proxy = new Proxy();
         else {
-            GsonRabbitDocument proxy = rabbitDbService.loadByKey(getQueryMap(proxyId), GsonRabbitDocument.class);
+            GsonRabbitDocument proxy = rabbitDbService.loadByKey(getQueryMap(proxyId), GsonRabbitDocument.class).orElse(null);
             if (proxy != null){
                 this.proxy = proxy.getSubDocumentAs(Proxy.class);
                 hostField.setValue(this.proxy.getHost());

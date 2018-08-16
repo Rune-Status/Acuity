@@ -101,6 +101,10 @@ public class RabbitDbService {
         gsonRabbitDocument.setSubDocument(gson.fromJson(insertDocumentJson, JsonElement.class));
         String insertDocument = gson.toJson(gsonRabbitDocument);
 
+        if (insertDocument == null) insertDocument = "{}";
+        if (updateDocument == null) insertDocument = "{}";
+
+
         String strategy = strategyType == 0 ? "REPLACE" : "UPDATE";
         String query = "UPSERT " + gson.toJson(queryMap) + " INSERT " + insertDocument + " " + strategy + " " + updateDocument + " IN " + COLLECTION;
 
@@ -112,18 +116,15 @@ public class RabbitDbService {
         arangoOperations.query(query, null, null, null);
     }
 
-    public <T> T loadByKey(Map<String, Object> queryMap, Class<T> type) {
+    public <T> Optional<T> loadByKey(Map<String, Object> queryMap, Class<T> type) {
         String query = "FOR u IN " + COLLECTION + " FILTER u.principalId == @principalId && u.database == @database && u.subGroup == @subGroup && u.subKey == @subKey RETURN u";
         ArangoCursor<String> result = arangoOperations.query(query, queryMap, null, String.class);
-        if (result == null || !result.hasNext()) return null;
-        return gson.fromJson(result.next(), type);
+        if (result == null || !result.hasNext()) return Optional.empty();
+        return Optional.ofNullable(gson.fromJson(result.next(), type));
     }
 
     public <T> Set<T> loadByGroup(Map<String, Object> queryMap, Class<T> type) {
         String query = "FOR u IN " + COLLECTION + " FILTER u.principalId == @principalId && u.database == @database && u.subGroup == @subGroup RETURN u";
-        if (queryMap.containsKey("principalIds")) {
-            query = "FOR u IN " + COLLECTION + " FILTER u.principalId IN @principalIds && u.database == @database && u.subGroup == @subGroup RETURN u";
-        }
         List<String> json = arangoOperations.query(query, queryMap, null, String.class).asListRemaining();
         return json.stream().map(s -> gson.fromJson(s, type)).collect(Collectors.toSet());
     }

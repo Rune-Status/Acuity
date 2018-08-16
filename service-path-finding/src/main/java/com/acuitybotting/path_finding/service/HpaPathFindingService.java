@@ -2,7 +2,8 @@ package com.acuitybotting.path_finding.service;
 
 import com.acuitybotting.data.flow.messaging.services.Message;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
-import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitClient;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitHub;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.client.RabbitClient;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.RegionMap;
 import com.acuitybotting.path_finding.algorithms.astar.AStarService;
@@ -45,7 +46,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import static com.acuitybotting.data.flow.messaging.services.client.MessagingClient.RESPONSE_QUEUE;
 import static com.acuitybotting.path_finding.rs.domain.graph.TileNode.IGNORE_BLOCKED;
 
 @Getter
@@ -61,8 +61,6 @@ public class HpaPathFindingService {
     private PathResult lastResult;
 
     private HPAGraph graph;
-    @Value("${rabbit.host}")
-    private String host;
 
     @Value("${rabbit.username}")
     private String username;
@@ -107,21 +105,22 @@ public class HpaPathFindingService {
         try {
             loadHpa(1);
 
-            RabbitClient rabbitClient = new RabbitClient();
-            rabbitClient.auth(host, username, password);
-            rabbitClient.connect("APW_002_" + UUID.randomUUID().toString());
+            RabbitHub rabbitHub = new RabbitHub();
+            rabbitHub.auth(username, password);
+            rabbitHub.start("APW");
 
-            for (int i = 0; i < 5; i++) {
-                rabbitClient.openChannel().createQueue("acuitybotting.work.find-path-1", false)
-                        .withListener(this::handleRequest)
-                        .open(false);
-            }
+            rabbitHub.createPool(5, channel ->
+                    channel
+                            .createQueue("acuitybotting.work.find-path-1", false)
+                            .withListener(this::handleRequest)
+                            .open(false));
+
         } catch (Throwable e) {
             e.printStackTrace();
         }
     }
 
-    private void handleRequest(MessageEvent messageEvent){
+    private void handleRequest(MessageEvent messageEvent) {
         Gson outGson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
         Gson inGson = new Gson();
 
@@ -154,7 +153,7 @@ public class HpaPathFindingService {
         }
 
         String json = outGson.toJson(pathResult);
-        log.info("Responding. {} {}", message.getAttributes().get(RESPONSE_QUEUE), json);
+        log.info("Responding. {} {}", message.getAttributes().get(RabbitClient.RESPONSE_QUEUE), json);
         try {
             messageEvent.getQueue().getChannel().buildResponse(message, json).send();
             messageEvent.getQueue().getChannel().acknowledge(message);

@@ -1,22 +1,21 @@
 package com.acuitybotting.data.flow.messaging.services.events;
 
 import com.acuitybotting.data.flow.messaging.services.Message;
-import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
-import com.acuitybotting.data.flow.messaging.services.client.MessagingQueue;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.queue.RabbitQueue;
 
 /**
  * Created by Zachary Herridge on 7/19/2018.
  */
 public class MessageEvent {
 
-    private MessagingQueue queue;
+    private RabbitQueue queue;
     private Message message;
 
-    public MessagingQueue getQueue() {
+    public RabbitQueue getQueue() {
         return queue;
     }
 
-    public MessageEvent setQueue(MessagingQueue queue) {
+    public MessageEvent setQueue(RabbitQueue queue) {
         this.queue = queue;
         return this;
     }

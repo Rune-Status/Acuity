@@ -1,4 +1,4 @@
-package com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit;
+package com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.queue;
 
 /**
  * Created by Zachary Herridge on 8/2/2018.

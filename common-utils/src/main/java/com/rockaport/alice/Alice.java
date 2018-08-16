@@ -25,9 +25,9 @@ public class Alice {
 
     /**
      * Initializes a new {@code Alice} object for encryption and decryption. See
-     * {@link com.rockaport.alice.AliceContext} for an explanation of options.
+     * {@link AliceContext} for an explanation of options.
      *
-     * @param context an {@link com.rockaport.alice.AliceContext}
+     * @param context an {@link AliceContext}
      */
     @SuppressWarnings("WeakerAccess")
     public Alice(AliceContext context) {
@@ -139,7 +139,7 @@ public class Alice {
     /**
      * Gets a {@link javax.crypto.Mac} instance
      *
-     * @param macAlgorithm the {@link com.rockaport.alice.AliceContext.MacAlgorithm}
+     * @param macAlgorithm the {@link AliceContext.MacAlgorithm}
      * @param password     a password
      * @return an initialized {@link javax.crypto.Mac}
      * @throws GeneralSecurityException if MAC initialization fails

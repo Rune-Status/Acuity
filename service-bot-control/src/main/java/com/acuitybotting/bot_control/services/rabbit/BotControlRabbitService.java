@@ -1,8 +1,7 @@
 package com.acuitybotting.bot_control.services.rabbit;
 
-import com.acuitybotting.data.flow.messaging.services.client.MessagingChannel;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
-import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitClient;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitHub;
 import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.data.flow.messaging.services.identity.RoutingUtil;
@@ -34,8 +33,6 @@ public class BotControlRabbitService implements CommandLineRunner {
 
     private final RabbitDbService dbService;
 
-    @Value("${rabbit.host}")
-    private String host;
     @Value("${rabbit.username}")
     private String username;
     @Value("${rabbit.password}")
@@ -50,24 +47,26 @@ public class BotControlRabbitService implements CommandLineRunner {
 
     private void connect() {
         try {
-            RabbitClient rabbitClient = new RabbitClient();
-            rabbitClient.auth(host, username, password);
-            rabbitClient.connect("ABW_" + UUID.randomUUID().toString());
+            RabbitHub rabbitHub = new RabbitHub();
+            rabbitHub.auth(username, password);
+            rabbitHub.start("ABW");
 
-            rabbitClient.openChannel().createQueue("bot-control-worker-" + UUID.randomUUID().toString(), true)
-                    .bind("amq.rabbitmq.event", "connection.#")
-                    .withListener(publisher::publishEvent)
-                    .open(true);
+            rabbitHub.createPool(1, channel -> {
+                try {
+                    channel.createQueue("bot-control-worker-" + UUID.randomUUID().toString(), true)
+                            .bind("amq.rabbitmq.event", "connection.#")
+                            .withListener(publisher::publishEvent)
+                            .open(true);
+                } catch (MessagingException e) {
+                    e.printStackTrace();
+                }
+            });
 
-            for (int i = 0; i < 10; i++) {
-                MessagingChannel channel = rabbitClient.openChannel();
+            rabbitHub.createPool(10, channel -> {
                 channel.createQueue("acuitybotting.work.bot-control", false)
                         .withListener(this::handleRequest)
                         .open(false);
-            }
-
-
-
+            });
         } catch (Throwable e) {
             log.error("Error during dashboard RabbitMQ setup.", e);
         }
@@ -91,7 +90,7 @@ public class BotControlRabbitService implements CommandLineRunner {
         try {
             if (dbService.isReadAccessible(userId, request.getDatabase())) {
                 if (request.getType() == RabbitDbRequest.FIND_BY_KEY) {
-                    GsonRabbitDocument gsonRabbitDocument = dbService.loadByKey(queryMap, GsonRabbitDocument.class);
+                    GsonRabbitDocument gsonRabbitDocument = dbService.loadByKey(queryMap, GsonRabbitDocument.class).orElse(null);
                     try {
                         messageEvent.getQueue().getChannel().buildResponse(messageEvent.getMessage(), gsonRabbitDocument == null ? "" : gson.toJson(gsonRabbitDocument)).send();
                     } catch (MessagingException e) {

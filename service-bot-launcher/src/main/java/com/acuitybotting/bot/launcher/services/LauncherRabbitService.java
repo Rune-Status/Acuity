@@ -1,28 +1,22 @@
 package com.acuitybotting.bot.launcher.services;
 
-
-import com.acuitybotting.bot.launcher.enviroments.RSPeerEnviroment;
 import com.acuitybotting.bot.launcher.ui.LauncherFrame;
 import com.acuitybotting.bot.launcher.utils.CommandLine;
+import com.acuitybotting.common.utils.configurations.utils.ConnectionConfigurationUtil;
+import com.acuitybotting.common.utils.configurations.ConnectionConfiguration;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
-import com.acuitybotting.data.flow.messaging.services.client.utils.RabbitHub;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitHub;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import oshi.json.SystemInfo;
-import oshi.json.hardware.HardwareAbstractionLayer;
-import oshi.json.json.AbstractOshiJsonObject;
-import oshi.json.software.os.OperatingSystem;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 /**
  * Created by Zachary Herridge on 8/6/2018.
@@ -31,51 +25,42 @@ import java.util.stream.Collectors;
 @Slf4j
 public class LauncherRabbitService implements CommandLineRunner {
 
+    private final StateService stateService;
     private RabbitHub rabbitHub = new RabbitHub();
 
-    public void connect() {
+    private Gson gson = new Gson();
+
+    private String connectionKey;
+    private String masterPassword;
+
+    @Autowired
+    public LauncherRabbitService(StateService stateService) {
+        this.stateService = stateService;
+    }
+
+    public void connect(String connectionKey) {
+        this.connectionKey = connectionKey;
         try {
-            rabbitHub.start("ABL", LauncherFrame.getInstance().getConnectionKey(), 1);
-            rabbitHub.createLocalQueue(true)
-                    .withListener(this::handleMessage)
-                    .open(true);
+
+            JsonObject jsonObject = ConnectionConfigurationUtil.decodeConnectionKey(connectionKey);
+            String username = jsonObject.get("principalId").getAsString();
+            String password = jsonObject.get("secret").getAsString();
+
+            rabbitHub.auth(username, password);
+            rabbitHub.start("ABL");
+            rabbitHub.getLocalQueue().withListener(this::handleMessage);
+
+            updateState();
         } catch (Throwable e) {
             log.error("Error during dashboard RabbitMQ setup.", e);
         }
     }
 
-    @Scheduled(initialDelay = 5000, fixedDelay = 60000)
+    @Scheduled(initialDelay = 5000, fixedDelay = 10000)
     private void updateState(){
         try {
-            if (rabbitHub.getRandomChannel() == null) return;
-            SystemInfo si = new SystemInfo();
-            HardwareAbstractionLayer hal = si.getHardware();
-            OperatingSystem os = si.getOperatingSystem();
-
-            Map<String, Object> state = new HashMap<>();
-            state.put("processes", Arrays.stream(os.getProcesses(5, oshi.software.os.OperatingSystem.ProcessSort.MEMORY)).map(AbstractOshiJsonObject::toJSON).collect(Collectors.toList()));
-
-            state.put("cpuLoad", hal.getProcessor().getSystemCpuLoad());
-            state.put("cpuUpTime", hal.getProcessor().getSystemUptime());
-            state.put("cpuTemp", hal.getSensors().getCpuTemperature());
-
-            state.put("halMemoryAvailable", hal.getMemory().getAvailable());
-            state.put("memoryTotal", hal.getMemory().getTotal());
-
-            state.put("javaHome", System.getProperty("java.home"));
-            state.put("javaVendor", System.getProperty("java.vendor"));
-            state.put("javaVersionUrl", System.getProperty("java.vendor.url"));
-            state.put("javaVersion", System.getProperty("java.version"));
-
-            state.put("osArch", System.getProperty("os.arch"));
-            state.put("osName", System.getProperty("os.name"));
-            state.put("osVersion", System.getProperty("os.version"));
-
-            state.put("userName", System.getProperty("user.name"));
-            state.put("userHome", System.getProperty("user.home"));
-            state.put("userDir", System.getProperty("user.dir"));
-
-            rabbitHub.updateConnectionDocument(new Gson().toJson(Collections.singletonMap("state", state)));
+            if (rabbitHub.getLocalQueue() == null) return;
+            rabbitHub.updateConnectionDocument(new Gson().toJson(Collections.singletonMap("state", stateService.buildState())));
             log.info("Updated state.");
         } catch (MessagingException e) {
             log.error("Error updating state.", e);
@@ -84,9 +69,16 @@ public class LauncherRabbitService implements CommandLineRunner {
 
     private void handleMessage(MessageEvent messageEvent) {
         if ("runCommand".equals(messageEvent.getMessage().getAttributes().get("type"))) {
-            JsonElement launchConfig = new Gson().fromJson(messageEvent.getMessage().getBody(), JsonElement.class);
+            JsonObject launchConfig = gson.fromJson(messageEvent.getMessage().getBody(), JsonObject.class);
+            
             log.info("Got launch config: ", launchConfig);
-            String command = CommandLine.replacePlaceHolders(launchConfig.getAsJsonObject().get("command").getAsString());
+            String command = CommandLine.replacePlaceHolders(launchConfig.get("command").getAsString());
+
+            ConnectionConfiguration connectionConfiguration = ConnectionConfigurationUtil.decode(launchConfig.get("acuityConnectionConfiguration").getAsString()).orElse(new ConnectionConfiguration());
+            if (connectionConfiguration.getConnectionKey() == null) connectionConfiguration.setConnectionKey(connectionKey);
+            if (connectionConfiguration.getMasterKey() == null) connectionConfiguration.setMasterKey(masterPassword);
+
+            command = command.replaceAll("\\{CONNECTION}", ConnectionConfigurationUtil.encode(connectionConfiguration));
 
             log.info("Running command: {}", command);
 
@@ -99,7 +91,28 @@ public class LauncherRabbitService implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... strings) throws Exception {
-        LauncherFrame.setInstance(new LauncherFrame(this)).setVisible(true);
+    public void run(String... strings) {
+        Optional<ConnectionConfiguration> decode = ConnectionConfigurationUtil.decode(ConnectionConfigurationUtil.find());
+
+        LauncherFrame launcherFrame = new LauncherFrame() {
+
+            @Override
+            public void onConnect(String connectionKey, String masterPassword) {
+                connect(connectionKey);
+            }
+
+            @Override
+            public void onSave(String connectionKey, String masterPassword) {
+                LauncherRabbitService.this.masterPassword = masterPassword;
+                ConnectionConfiguration connectionConfiguration = new ConnectionConfiguration();
+                connectionConfiguration.setConnectionKey(connectionKey);
+                connectionConfiguration.setMasterKey(masterPassword);
+                ConnectionConfigurationUtil.write(connectionConfiguration);
+            }
+        };
+
+        launcherFrame.getConnectionKey().setText(decode.map(ConnectionConfiguration::getConnectionKey).orElse(""));
+        launcherFrame.getPasswordField().setText(decode.map(ConnectionConfiguration::getMasterKey).orElse(""));
+        launcherFrame.setVisible(true);
     }
 }
