@@ -86,9 +86,10 @@ public class AcuityHub {
             if (configuration.getAccountLogin() != null && configuration.getAccountEncryptedPassword() != null) {
                 getControlInterface().ifPresent(control -> {
                     try {
+                        String password = decrypt(decrypt(connectionConfiguration.getMasterKey(), configuration.getMasterSecret()), configuration.getAccountEncryptedPassword());
                         control.applyAccount(
                                 configuration.getAccountLogin(),
-                                decrypt(configuration.getAccountEncryptedPassword())
+                                password
                         );
                     } catch (GeneralSecurityException e) {
                         e.printStackTrace();
@@ -107,11 +108,12 @@ public class AcuityHub {
             if (configuration.getProxyHost() != null && configuration.getProxyPort() != null) {
                 getControlInterface().ifPresent(control -> {
                     try {
+                        String password = decrypt(decrypt(connectionConfiguration.getMasterKey(), configuration.getMasterSecret()), configuration.getProxyEncryptedPassword());
                         control.applyProxy(
                                 configuration.getProxyHost(),
                                 configuration.getProxyPort(),
                                 configuration.getProxyUsername(),
-                                decrypt(configuration.getProxyEncryptedPassword())
+                                password
                         );
                     } catch (GeneralSecurityException e) {
                         e.printStackTrace();
@@ -123,9 +125,10 @@ public class AcuityHub {
         }
     }
 
-    public static String decrypt(String value) throws GeneralSecurityException {
-        if (connectionConfiguration.getMasterKey() == null) return null;
-        return new String(getAlice().decrypt(Base64.getDecoder().decode(value), connectionConfiguration.getMasterKey().toCharArray()));
+
+
+    private static String decrypt(String key, String value) throws GeneralSecurityException {
+        return new String(getAlice().decrypt(Base64.getDecoder().decode(value), key.toCharArray()));
     }
 
     private static Alice getAlice() {

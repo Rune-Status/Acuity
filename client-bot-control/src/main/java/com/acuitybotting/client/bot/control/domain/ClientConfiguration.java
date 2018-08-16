@@ -9,6 +9,8 @@ import lombok.Getter;
 @Getter
 public class ClientConfiguration {
 
+    private String masterSecret;
+
     private String accountLogin;
     private String accountEncryptedPassword;
 

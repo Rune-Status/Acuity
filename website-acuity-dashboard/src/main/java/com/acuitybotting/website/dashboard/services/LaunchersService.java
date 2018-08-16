@@ -4,6 +4,8 @@ import com.acuitybotting.common.utils.configurations.ConnectionConfiguration;
 import com.acuitybotting.common.utils.configurations.utils.ConnectionConfigurationUtil;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.db.implementations.rabbit.RabbitDb;
+import com.acuitybotting.db.arango.acuity.identities.domain.AcuityBottingUser;
+import com.acuitybotting.db.arango.acuity.identities.service.AcuityUsersService;
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.LauncherConnection;
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.Proxy;
@@ -29,10 +31,12 @@ import java.util.stream.Collectors;
 public class LaunchersService {
 
     private final RabbitDbService rabbitDbService;
+    private final AcuityUsersService acuityUsersService;
     private final DashboardRabbitService rabbitService;
 
-    public LaunchersService(RabbitDbService rabbitDbService, DashboardRabbitService rabbitService) {
+    public LaunchersService(RabbitDbService rabbitDbService, AcuityUsersService acuityUsersService, DashboardRabbitService rabbitService) {
         this.rabbitDbService = rabbitDbService;
+        this.acuityUsersService = acuityUsersService;
         this.rabbitService = rabbitService;
     }
 
@@ -52,6 +56,10 @@ public class LaunchersService {
         connectionConfiguration.setConnectionId(UUID.randomUUID().toString());
 
         JsonObject clientConfiguration = new JsonObject();
+
+        AcuityBottingUser acuityBottingUser = acuityUsersService.findUserByUid(Authentication.getAcuityPrincipalId()).orElse(null);
+        if (acuityBottingUser == null) return;
+        clientConfiguration.addProperty("masterSecret", acuityBottingUser.getMasterKey());
 
         if (rsAccountInfo != null) {
             clientConfiguration.addProperty("accountLogin", rsAccountInfo.getSubKey());
