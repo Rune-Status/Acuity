@@ -7,6 +7,7 @@ import com.acuitybotting.website.dashboard.components.general.separator.TitleSep
 import com.acuitybotting.website.dashboard.services.AccountsService;
 import com.acuitybotting.website.dashboard.services.LaunchersService;
 import com.acuitybotting.website.dashboard.services.ProxiesService;
+import com.acuitybotting.website.dashboard.services.ScriptsService;
 import com.acuitybotting.website.dashboard.utils.Components;
 import com.acuitybotting.website.dashboard.utils.Layouts;
 import com.vaadin.flow.component.AttachEvent;
@@ -31,6 +32,7 @@ public class LaunchClientsComponent extends VerticalLayout {
     private final ProxiesService proxiesService;
     private final AccountsService accountsService;
     private final LaunchersService launchersService;
+    private final ScriptsService scriptsService;
 
     private ComboBox<Proxy> proxyComboBox = new ComboBox<>();
     private ComboBox<RsAccountInfo> accountComboBox = new ComboBox<>();
@@ -41,11 +43,12 @@ public class LaunchClientsComponent extends VerticalLayout {
     private TextField commandField = new TextField();
     private String defaultCommand = "{RSPEER_JAVA_PATH} -Dacuity.connection={CONNECTION} -Djava.net.preferIPv4Stack=true -jar \"{RSPEER_SYSTEM_HOME}RSPeer/cache/rspeer.jar\"";
 
-    public LaunchClientsComponent(LaunchClientsView.LauncherSelectComponent launcherSelectComponent, ProxiesService proxiesService, AccountsService accountsService, LaunchersService launchersService) {
+    public LaunchClientsComponent(LaunchClientsView.LauncherSelectComponent launcherSelectComponent, ProxiesService proxiesService, AccountsService accountsService, LaunchersService launchersService, ScriptsService scriptsService) {
         this.launcherSelectComponent = launcherSelectComponent;
         this.proxiesService = proxiesService;
         this.accountsService = accountsService;
         this.launchersService = launchersService;
+        this.scriptsService = scriptsService;
     }
 
     @Override
@@ -79,6 +82,7 @@ public class LaunchClientsComponent extends VerticalLayout {
             add(new TitleSeparator("Deploy"), Components.button("Launch", event -> deploy()));
         }
 
+        scriptSelector.setItems(scriptsService.getAllRsPeerScripts());
         proxyComboBox.setItems(proxiesService.loadProxies());
         accountComboBox.setItems(accountsService.loadAccounts());
         launcherSelectComponent.load(attachEvent);

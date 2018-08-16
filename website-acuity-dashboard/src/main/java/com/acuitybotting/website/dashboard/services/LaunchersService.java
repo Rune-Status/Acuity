@@ -16,7 +16,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.vaadin.flow.spring.annotation.UIScope;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.annotation.SessionScope;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
