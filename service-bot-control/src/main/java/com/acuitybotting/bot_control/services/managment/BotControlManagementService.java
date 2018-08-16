@@ -65,7 +65,7 @@ public class BotControlManagementService {
         rabbitDbService.getArangoOperations().query(updateTimeout, Collections.singletonMap("timeout", System.currentTimeMillis() - TimeUnit.SECONDS.toMillis(11)), null, null);
     }
 
-    @Scheduled(fixedDelay = 10000)
+    @Scheduled(fixedDelay = 4000)
     public void updateConnections() {
         try {
             RabbitManagement.loadAll(username, password);
