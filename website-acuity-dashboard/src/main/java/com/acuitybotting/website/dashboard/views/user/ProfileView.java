@@ -13,6 +13,7 @@ import com.acuitybotting.website.dashboard.views.RootLayout;
 import com.google.common.base.Strings;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -98,8 +99,8 @@ public class ProfileView extends VerticalLayout implements Authed {
                     Authentication.getAcuityUser()::getLinkedPrincipals
             );
 
-            withColumn("Source", "15%", principal -> new Span(), (principal, span) -> span.setText(principal.getType()));
-            withColumn("ID", "35%", principal -> new Span(), (principal, span) -> span.setText(principal.getUid()));
+            withColumn("Source", "15%", principal -> new Div(), (principal, div) -> div.setText(principal.getType()));
+            withColumn("ID", "35%", principal -> new Div(), (principal, div) -> div.setText(principal.getUid()));
 
             TextField jwtField = new TextField();
             jwtField.setPlaceholder("JWT");

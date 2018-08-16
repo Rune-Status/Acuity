@@ -77,8 +77,8 @@ public class AcuityHub {
     private static void pullAndApplyConfiguration(){
         try {
             Document connection = rabbitHub.getDb("services.registered-connections").findByGroupAndKey("connections", rabbitHub.getConnectionId());
-            if (connection == null || connection.getDocument() == null) return;
-            JsonObject document = connection.getDocument();
+            if (connection == null || connection.getDocument() == null || connection.getDocument().get("configuration") == null) return;
+            JsonObject document = connection.getDocument().getAsJsonObject("configuration");
 
             JsonElement rsEmail = document.get("rsEmail");
             JsonElement rsEncryptedPassword = document.get("rsEncryptedPassword");

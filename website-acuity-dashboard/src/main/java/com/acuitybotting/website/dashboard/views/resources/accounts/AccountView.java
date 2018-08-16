@@ -37,19 +37,19 @@ public class AccountView extends VerticalLayout implements HasUrlParameter<Strin
     public AccountView(RabbitDbService rabbitDbService) {
         this.rabbitDbService = rabbitDbService;
 
-        levelList.withColumn("Skill", "20%", entry -> new Div(), (entry, span) -> span.setText(entry.getKey()));
-        levelList.withColumn("Level", "20%", entry -> new Div(), (entry, span) -> span.setText(String.valueOf(entry.getValue())));
+        levelList.withColumn("Skill", "20%", entry -> new Div(), (entry, div) -> div.setText(entry.getKey()));
+        levelList.withColumn("Level", "20%", entry -> new Div(), (entry, div) -> div.setText(String.valueOf(entry.getValue())));
         levelList.withLoadAction(Map.Entry::getKey, this::refresh);
         levelList.withSearchable(Map.Entry::getKey);
         add(new TitleSeparator("Skills"), levelList);
 
-        inventoryList.withColumn("Item", "20%", entry -> new Span(), (entry, span) -> span.setText(String.valueOf(entry.getKey())));
-        inventoryList.withColumn("Count", "20%", entry -> new Span(), (entry, span) -> span.setText(String.valueOf(entry.getValue())));
+        inventoryList.withColumn("Item", "20%", entry -> new Div(), (entry, div) -> div.setText(String.valueOf(entry.getKey())));
+        inventoryList.withColumn("Count", "20%", entry -> new Div(), (entry, div) -> div.setText(String.valueOf(entry.getValue())));
         inventoryList.withLoadAction(entry -> String.valueOf(entry.getKey()), this::refresh);
         add(new TitleSeparator("Inventory"), inventoryList);
 
-        bankList.withColumn("Item", "20%", entry -> new Span(), (entry, span) -> span.setText(String.valueOf(entry.getKey())));
-        bankList.withColumn("Count", "20%", entry -> new Span(), (entry, span) -> span.setText(String.valueOf(entry.getValue())));
+        bankList.withColumn("Item", "20%", entry -> new Div(), (entry, div) -> div.setText(String.valueOf(entry.getKey())));
+        bankList.withColumn("Count", "20%", entry -> new Div(), (entry, div) -> div.setText(String.valueOf(entry.getValue())));
         bankList.withLoadAction(entry -> String.valueOf(entry.getKey()), this::refresh);
         add(new TitleSeparator("Bank"), bankList);
     }

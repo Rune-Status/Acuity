@@ -32,7 +32,7 @@ public class LoginView extends HorizontalLayout {
     }
 
     @SpringComponent
-    @SessionScope
+    @UIScope
     private static class LoginComponent extends FormLayout {
 
         public LoginComponent(AcuityUsersService acuityUserService) {

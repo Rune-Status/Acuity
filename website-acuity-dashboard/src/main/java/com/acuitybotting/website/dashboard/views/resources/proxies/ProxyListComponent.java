@@ -4,6 +4,7 @@ import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.Proxy;
 import com.acuitybotting.website.dashboard.components.general.list_display.InteractiveList;
 import com.acuitybotting.website.dashboard.services.ProxiesService;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.spring.annotation.SpringComponent;
@@ -16,11 +17,11 @@ public class ProxyListComponent extends InteractiveList<Proxy> {
 
     @Autowired
     private ProxyListComponent(ProxiesService proxiesService) {
-        withColumn("Host", "20%", document -> new Span(), (document, span) -> span.setText(document.getHost()));
-        withColumn("Port", "20%", document -> new Span(), (document, span) -> span.setText(String.valueOf(document.getPort())));
-        withColumn("Username", "20%", document -> new Span(), (document, span) -> span.setText(String.valueOf(document.getUsername())));
-        withColumn("Password", "20%", document -> new Span(), (document, span) -> span.setText(document.getEncryptedPassword() != null ? "Set" : "None"));
-        withColumn("", "10%", proxy -> {
+        withColumn("Host", "10%", document -> new Div(), (document, div) -> div.setText(document.getHost()));
+        withColumn("Port", "10%", document -> new Div(), (document, div) -> div.setText(String.valueOf(document.getPort())));
+        withColumn("Username", "10%", document -> new Div(), (document, div) -> div.setText(String.valueOf(document.getUsername())));
+        withColumn("Password", "10%", document -> new Div(), (document, div) -> div.setText(document.getEncryptedPassword() != null ? "Set" : "None"));
+        withColumn("", "5", "5%", proxy -> {
             Button button = new Button(VaadinIcon.EDIT.create());
             button.addClickListener(buttonClickEvent -> getUI().ifPresent(ui -> ui.navigate(ProxyEditView.class, proxy.getSubId())));
             return button;

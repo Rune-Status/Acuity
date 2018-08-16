@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @Getter
 public class LaunchClientsComponent extends VerticalLayout {
 
-    private final LauncherListComponent launcherListComponent;
+    private final LaunchClientsView.LauncherSelectComponent launcherSelectComponent;
     private final ProxiesService proxiesService;
     private final AccountsService accountsService;
     private final LaunchersService launchersService;
@@ -37,8 +37,8 @@ public class LaunchClientsComponent extends VerticalLayout {
     private TextField commandField = new TextField();
     private String defaultCommand = "{RSPEER_JAVA_PATH} -Dacuity.connection={CONNECTION} -Djava.net.preferIPv4Stack=true -jar \"{RSPEER_SYSTEM_HOME}RSPeer/cache/rspeer.jar\"";
 
-    public LaunchClientsComponent(LauncherListComponent launcherListComponent, ProxiesService proxiesService, AccountsService accountsService, LaunchersService launchersService) {
-        this.launcherListComponent = launcherListComponent;
+    public LaunchClientsComponent(LaunchClientsView.LauncherSelectComponent launcherSelectComponent, ProxiesService proxiesService, AccountsService accountsService, LaunchersService launchersService) {
+        this.launcherSelectComponent = launcherSelectComponent;
         this.proxiesService = proxiesService;
         this.accountsService = accountsService;
         this.launchersService = launchersService;
@@ -73,11 +73,11 @@ public class LaunchClientsComponent extends VerticalLayout {
 
         proxyComboBox.setItems(proxiesService.loadProxies());
         accountComboBox.setItems(accountsService.loadAccounts());
-        launcherListComponent.load();
+        launcherSelectComponent.load(attachEvent);
     }
 
     private void deploy() {
-        Set<String> subIds = launcherListComponent.getSelectedValues().map(LauncherConnection::getSubKey).collect(Collectors.toSet());
+        Set<String> subIds = launcherSelectComponent.getSelectedValues().map(LauncherConnection::getSubKey).collect(Collectors.toSet());
         launchersService.deploy(
                 subIds,
                 commandField.getValue(),

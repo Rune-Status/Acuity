@@ -56,7 +56,7 @@ public class LauncherRabbitService implements CommandLineRunner {
         }
     }
 
-    @Scheduled(initialDelay = 5000, fixedDelay = 60000)
+    @Scheduled(initialDelay = 5000, fixedDelay = 10000)
     private void updateState(){
         try {
             if (rabbitHub.getLocalQueue() == null) return;

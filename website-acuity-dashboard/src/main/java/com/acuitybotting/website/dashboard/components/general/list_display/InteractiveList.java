@@ -6,7 +6,6 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -34,7 +33,7 @@ public class InteractiveList<T> extends VerticalLayout {
     private Checkbox selectAll = new Checkbox();
 
     private Button nextPage = new Button(VaadinIcon.ARROW_RIGHT.create());
-    private Span pagePosition = new Span();
+    private Div pagePosition = new Div();
     private Button previousPage = new Button(VaadinIcon.ARROW_LEFT.create());
 
     private Div selectionCount = new Div();
@@ -52,12 +51,16 @@ public class InteractiveList<T> extends VerticalLayout {
     private String searchText = "";
     private Function<T, String> searchableFunction;
 
+    private boolean selectionEnabled = false;
+
     public InteractiveList() {
         setMargin(false);
         setPadding(false);
 
         refreshButton.addClickListener(event -> load());
         searchField.addValueChangeListener(event -> applySearch(searchField.getValue()));
+
+        selectAll.setVisible(false);
         selectAll.addValueChangeListener(event -> {
             for (InteractiveListRow<T> row : rows.values()) {
                 if (row.isVisible() && row.isEnabled()) row.getSelectionBox().setValue(event.getValue());
@@ -87,6 +90,7 @@ public class InteractiveList<T> extends VerticalLayout {
 
         list.setPadding(false);
         list.setMargin(false);
+        list.getStyle().set("padding-top", "11px");
         list.getStyle().set("overflow", "auto");
 
         footers.setWidth("100%");
@@ -97,15 +101,14 @@ public class InteractiveList<T> extends VerticalLayout {
             currentPage--;
             updatePage();
         });
-
         nextPage.addClickListener(buttonClickEvent -> {
             currentPage++;
             updatePage();
         });
-
-
-        pagePosition.setHeight("100%");
-
+        previousPage.setHeight("26px");
+        nextPage.setHeight("26px");
+        pagePosition.setHeight("26px");
+        pagePosition.getStyle().set("margin-top", "4px");
         footers.add(previousPage, pagePosition, nextPage);
 
         add(controlBar, headers, list, footers);
@@ -199,6 +202,12 @@ public class InteractiveList<T> extends VerticalLayout {
         return this;
     }
 
+    public InteractiveList<T> withSelectionEnabled() {
+        this.selectionEnabled = true;
+        selectAll.setVisible(true);
+        return this;
+    }
+
     public InteractiveList<T> load(UI ui) {
         ui.access(() -> {
             if (loadAction != null) loadAction.run();
@@ -220,8 +229,12 @@ public class InteractiveList<T> extends VerticalLayout {
         load(attachEvent);
     }
 
-    public <R extends Component> InteractiveListColumn<T, R> withColumn(String header, String maxWidth, Function<T, R> constructMapping, BiConsumer<T, R> updateMapping) {
-        InteractiveListColumn<T, R> column = new InteractiveListColumn<>(header, maxWidth, constructMapping, updateMapping);
+    public <R extends Component> InteractiveListColumn<T, R> withColumn(String header, String minWidth, Function<T, R> constructMapping, BiConsumer<T, R> updateMapping) {
+        return withColumn(header, "100%", minWidth, constructMapping, updateMapping);
+    }
+
+    public <R extends Component> InteractiveListColumn<T, R> withColumn(String header, String width, String minWidth, Function<T, R> constructMapping, BiConsumer<T, R> updateMapping) {
+        InteractiveListColumn<T, R> column = new InteractiveListColumn<>(header, width, minWidth, constructMapping, updateMapping);
         columns.add(column);
         headers.add(column.getHeaderComponent());
         return column;

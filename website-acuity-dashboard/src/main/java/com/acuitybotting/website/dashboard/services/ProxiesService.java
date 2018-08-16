@@ -4,8 +4,8 @@ import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocume
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.Proxy;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.website.dashboard.utils.Authentication;
+import com.vaadin.flow.spring.annotation.UIScope;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.annotation.SessionScope;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 /**
  * Created by Zachary Herridge on 8/15/2018.
  */
-@SessionScope
+@UIScope
 @Service
 public class ProxiesService {
 

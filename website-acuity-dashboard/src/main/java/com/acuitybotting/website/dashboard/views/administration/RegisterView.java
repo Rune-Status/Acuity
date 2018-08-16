@@ -29,7 +29,7 @@ public class RegisterView extends VerticalLayout {
     }
 
     @SpringComponent
-    @SessionScope
+    @UIScope
     private static class RegisterComponent extends FormLayout {
 
         public RegisterComponent(AcuityUsersService acuityUserService) {

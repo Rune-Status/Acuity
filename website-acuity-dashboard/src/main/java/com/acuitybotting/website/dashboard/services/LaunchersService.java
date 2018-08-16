@@ -14,6 +14,7 @@ import com.acuitybotting.website.dashboard.utils.Authentication;
 import com.acuitybotting.website.dashboard.utils.Notifications;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.vaadin.flow.spring.annotation.UIScope;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.SessionScope;
 
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
  * Created by Zachary Herridge on 8/15/2018.
  */
 @Service
-@SessionScope
+@UIScope
 public class LaunchersService {
 
     private final RabbitDbService rabbitDbService;
@@ -55,7 +56,7 @@ public class LaunchersService {
 
         if (rsAccountInfo != null) {
             clientConfiguration.addProperty("rsEmail", rsAccountInfo.getSubKey());
-            clientConfiguration.addProperty("rsEncryptedPassword", "");
+            clientConfiguration.addProperty("rsEncryptedPassword", rsAccountInfo.getEncryptedPassword());
         }
 
         if (proxy != null) {
@@ -64,7 +65,6 @@ public class LaunchersService {
             clientConfiguration.addProperty("proxyUsername", proxy.getUsername());
             clientConfiguration.addProperty("proxyEncryptedPassword", proxy.getEncryptedPassword());
         }
-
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("connectionConfirmationTime", System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(30));

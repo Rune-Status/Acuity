@@ -24,7 +24,9 @@
 
 .acuity-interactive-list-row {
     box-shadow: inset 0 -1px 0 0 var(--lumo-contrast-10pct);
-    padding-bottom: 10px;
+    align-items: center;
+    padding-bottom: 4px;
+    margin-top: 2px;
 }
 
 .acuity-title-separator {

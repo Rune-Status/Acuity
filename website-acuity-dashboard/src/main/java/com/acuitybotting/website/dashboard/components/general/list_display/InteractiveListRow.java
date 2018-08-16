@@ -29,6 +29,7 @@ public class InteractiveListRow<T> extends HorizontalLayout {
 
         getClassNames().add("acuity-interactive-list-row");
         selectionBox.addValueChangeListener(event -> list.updateSelectionCount());
+        selectionBox.setVisible(list.isSelectionEnabled());
         add(selectionBox);
     }
 
@@ -39,7 +40,13 @@ public class InteractiveListRow<T> extends HorizontalLayout {
             try {
                 Object component = columnComponents.computeIfAbsent(column.getUid(), s -> {
                     Component apply = (Component) column.getConstructMapping().apply(value);
-                    if (apply instanceof HasSize) ((HasSize) apply).setWidth(column.getMaxWidth());
+                    if (apply instanceof HasSize) {
+                        ((HasSize) apply).setWidth(column.getWidth());
+                        apply.getElement().getStyle().set("min-width", column.getMinWidth());
+                        apply.getElement().getStyle().set("overflow", "hidden");
+                        apply.getElement().getStyle().set("margin-top", "0");
+                        apply.getElement().getStyle().set("margin-bottom", "0");
+                    }
                     add(apply);
                     return apply;
                 });
