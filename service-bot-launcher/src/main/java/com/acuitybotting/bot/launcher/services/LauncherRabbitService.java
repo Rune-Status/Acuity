@@ -98,6 +98,7 @@ public class LauncherRabbitService implements CommandLineRunner {
 
             @Override
             public void onConnect(String connectionKey, String masterPassword) {
+                LauncherRabbitService.this.masterPassword = masterPassword;
                 connect(connectionKey);
             }
 
