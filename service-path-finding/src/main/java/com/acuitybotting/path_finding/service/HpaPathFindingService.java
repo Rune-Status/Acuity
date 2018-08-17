@@ -5,7 +5,9 @@ import com.acuitybotting.data.flow.messaging.services.client.exceptions.Messagin
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitHub;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.client.RabbitClient;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
+import com.acuitybotting.data.flow.messaging.services.identity.RoutingUtil;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.RegionMap;
+import com.acuitybotting.db.influx.InfluxDbService;
 import com.acuitybotting.path_finding.algorithms.astar.AStarService;
 import com.acuitybotting.path_finding.algorithms.astar.implmentation.AStarImplementation;
 import com.acuitybotting.path_finding.algorithms.astar.implmentation.ReverseAStarImplementation;
@@ -38,11 +40,13 @@ import com.google.gson.GsonBuilder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.influxdb.dto.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -58,6 +62,8 @@ public class HpaPathFindingService {
     private final AStarService aStarService;
     private final HpaWebService hpaWebService;
 
+    private final InfluxDbService dbService;
+
     private PathResult lastResult;
 
     private HPAGraph graph;
@@ -69,10 +75,11 @@ public class HpaPathFindingService {
     private String password;
 
     @Autowired
-    public HpaPathFindingService(XteaService xteaService, AStarService aStarService, HpaWebService hpaWebService) {
+    public HpaPathFindingService(XteaService xteaService, AStarService aStarService, HpaWebService hpaWebService, InfluxDbService dbService) {
         this.xteaService = xteaService;
         this.aStarService = aStarService;
         this.hpaWebService = hpaWebService;
+        this.dbService = dbService;
     }
 
     public void loadRsMap() {
@@ -133,6 +140,15 @@ public class HpaPathFindingService {
             pathResult = findPath(pathRequest.getStart(), pathRequest.getEnd(), pathRequest.getPlayer());
             List<? extends Edge> path = pathResult.getPath();
             log.info("Found path. {}", path);
+
+/*            Point build = Point.measurement("paths-found")
+                    .addField("count", 1)
+                    .tag("principalId", RoutingUtil.routeToUserId(messageEvent.getRouting()))
+                    .tag("success", String.valueOf(path != null))
+                    .time(System.currentTimeMillis(), TimeUnit.SECONDS)
+                    .build();
+            dbService.writeAsync(build);*/
+
 
             pathResult.setSubPaths(new HashMap<>());
             if (path != null) {

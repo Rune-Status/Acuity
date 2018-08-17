@@ -169,11 +169,15 @@ public class AcuityHub {
         JsonObject clientUpdate = stateInterface.buildClientState();
         if (clientUpdate == null) return;
 
+
+        JsonObject wrapper = new JsonObject();
+        wrapper.add("state", clientUpdate);
+
         try {
             rabbitHub.getDb("services.registered-connections").update(
                     "connections",
                     rabbitHub.getConnectionId(),
-                    new Gson().toJson(clientUpdate)
+                    new Gson().toJson(wrapper)
             );
         } catch (MessagingException e) {
             e.printStackTrace();

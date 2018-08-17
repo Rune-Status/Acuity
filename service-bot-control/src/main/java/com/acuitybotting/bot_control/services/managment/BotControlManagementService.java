@@ -4,8 +4,11 @@ import com.acuitybotting.data.flow.messaging.services.client.implementation.rabb
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.management.domain.RabbitConnection;
 import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
+import com.acuitybotting.data.flow.messaging.services.identity.RoutingUtil;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
+import com.acuitybotting.db.influx.InfluxDbService;
 import lombok.extern.slf4j.Slf4j;
+import org.influxdb.dto.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
@@ -18,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+
 /**
  * Created by Zachary Herridge on 6/1/2018.
  */
@@ -25,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class BotControlManagementService {
 
+    private final InfluxDbService influxDbService;
     private final RabbitDbService rabbitDbService;
 
     @Value("${rabbit.username}")
@@ -33,12 +38,20 @@ public class BotControlManagementService {
     private String password;
 
     @Autowired
-    public BotControlManagementService(RabbitDbService rabbitDbService) {
+    public BotControlManagementService(InfluxDbService influxDbService, RabbitDbService rabbitDbService) {
+        this.influxDbService = influxDbService;
         this.rabbitDbService = rabbitDbService;
     }
 
     private void updateRegisteredConnections() {
         for (Map.Entry<String, List<RabbitConnection>> entry : RabbitManagement.getConnections().entrySet()) {
+/*            Point build = Point.measurement("connections-count")
+                    .addField("count", entry.getValue().size())
+                    .tag("principalId", entry.getKey())
+                    .time(System.currentTimeMillis(), TimeUnit.SECONDS)
+                    .build();
+            influxDbService.writeAsync(build);*/
+
             for (RabbitConnection rabbitConnection : entry.getValue()) {
                 if (rabbitConnection.getUser_provided_name() == null) continue;
 
