@@ -54,12 +54,6 @@ public class AcuityHub {
         rabbitHub.auth(username, password);
         rabbitHub.start(type, version, connectionConfiguration.getConnectionId());
 
-        rabbitHub.getLocalQueue().withListener(messageEvent -> {
-            if (messageEvent.getMessage().getAttributes().containsKey("killConnection")) {
-                System.exit(0);
-            }
-        });
-
         long start = System.currentTimeMillis();
         while ((System.currentTimeMillis() - start) < TimeUnit.SECONDS.toMillis(15) && !rabbitHub.getLocalQueue().getChannel().isConnected()) {
             try {
@@ -72,6 +66,12 @@ public class AcuityHub {
         if (!"acuity-guest".equals(username)) {
             pullAndApplyConfiguration();
             startAuthedServices();
+
+            rabbitHub.getLocalQueue().withListener(messageEvent -> {
+                if (messageEvent.getMessage().getAttributes().containsKey("killConnection")) {
+                    System.exit(0);
+                }
+            });
         }
     }
 
