@@ -45,12 +45,12 @@ public class BotControlManagementService {
 
     private void updateRegisteredConnections() {
         for (Map.Entry<String, List<RabbitConnection>> entry : RabbitManagement.getConnections().entrySet()) {
-/*            Point build = Point.measurement("connections-count")
+            Point build = Point.measurement("connections-count")
                     .addField("count", entry.getValue().size())
                     .tag("principalId", entry.getKey())
-                    .time(System.currentTimeMillis(), TimeUnit.SECONDS)
+                    .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
                     .build();
-            influxDbService.writeAsync(build);*/
+            influxDbService.writeAsync(build);
 
             for (RabbitConnection rabbitConnection : entry.getValue()) {
                 if (rabbitConnection.getUser_provided_name() == null) continue;

@@ -21,16 +21,17 @@ public class InfluxDbService {
     private String influxUsername;
     @Value("${influx.password}")
     private String influxPassword;
+
     private AtomicReference<InfluxDB> influxDB = new AtomicReference<>();
 
-    private ExecutorService executorService = ExecutorUtil.newExecutorPool(1);
+    private ExecutorService executorService = ExecutorUtil.newExecutorPool(5);
 
     private InfluxDB connect(String host) {
         return InfluxDBFactory.connect(host, influxUsername, influxPassword).setDatabase("acuitybotting-prod-1");
     }
 
     public InfluxDB getInfluxDB() {
-        influxDB.compareAndSet(null, connect("http://159.69.47.70:30390"));
+        influxDB.compareAndSet(null, connect("http://88.198.201.19:30103"));
         return influxDB.get();
     }
 

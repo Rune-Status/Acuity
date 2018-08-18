@@ -1,6 +1,5 @@
 package com.acuitybotting.security.acuity.encryption;
 
-
 import com.rockaport.alice.Alice;
 import com.rockaport.alice.AliceContext;
 import com.rockaport.alice.AliceContextBuilder;
@@ -21,7 +20,7 @@ public class AcuityEncryptionService {
 
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
-    private Alice getAlice(){
+    private Alice getAlice() {
         return new Alice(new AliceContextBuilder().setKeyLength(AliceContext.KeyLength.BITS_128).build());
     }
 

@@ -141,13 +141,13 @@ public class HpaPathFindingService {
             List<? extends Edge> path = pathResult.getPath();
             log.info("Found path. {}", path);
 
-/*            Point build = Point.measurement("paths-found")
+            Point build = Point.measurement("paths-found")
                     .addField("count", 1)
                     .tag("principalId", RoutingUtil.routeToUserId(messageEvent.getRouting()))
                     .tag("success", String.valueOf(path != null))
                     .time(System.currentTimeMillis(), TimeUnit.SECONDS)
                     .build();
-            dbService.writeAsync(build);*/
+            dbService.writeAsync(build);
 
 
             pathResult.setSubPaths(new HashMap<>());
