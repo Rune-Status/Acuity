@@ -3,7 +3,7 @@ package com.acuitybotting.discord.bot.services.rabbit;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitHub;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.management.RabbitManagement;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
-import com.acuitybotting.data.flow.messaging.services.identity.RoutingUtil;
+import com.acuitybotting.data.flow.messaging.services.identity.RabbitUtil;
 import com.acuitybotting.db.arango.acuity.identities.service.AcuityUsersService;
 import com.acuitybotting.db.arango.acuity.identities.service.PrincipalLinkTypes;
 import com.acuitybotting.discord.bot.DiscordBotService;
@@ -48,7 +48,7 @@ public class DiscordBotRabbitService implements CommandLineRunner {
     @EventListener
     public void onRabbitMessage(MessageEvent messageEvent) {
         if (messageEvent.getRouting().endsWith("services.discord-bot.sendPm")) {
-            acuityUsersService.findUserByUid(RoutingUtil.routeToUserId(messageEvent.getRouting())).ifPresent(user -> {
+            acuityUsersService.findUserByUid(RabbitUtil.routeToUserId(messageEvent.getRouting())).ifPresent(user -> {
                 user.getLinkedPrincipals().stream().filter(principal -> PrincipalLinkTypes.DISCORD.equals(principal.getType())).forEach(principal -> {
                     discordBotService.getJda().getUserById(principal.getUid()).openPrivateChannel().queue(privateChannel -> discordBotService.sendMessage(privateChannel, messageEvent.getMessage().getBody()).queue());
                 });
@@ -60,7 +60,7 @@ public class DiscordBotRabbitService implements CommandLineRunner {
         try {
             RabbitHub rabbitHub = new RabbitHub();
             rabbitHub.auth(username, password);
-            rabbitHub.start("ADB");
+            rabbitHub.start("ADB", "1.0.01");
 
             rabbitHub.createPool(2, channel -> {
                 channel.createQueue("acuitybotting.work.discord-bot", false)

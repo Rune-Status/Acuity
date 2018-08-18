@@ -4,7 +4,7 @@ import com.acuitybotting.data.flow.messaging.services.client.exceptions.Messagin
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitHub;
 import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
-import com.acuitybotting.data.flow.messaging.services.identity.RoutingUtil;
+import com.acuitybotting.data.flow.messaging.services.identity.RabbitUtil;
 import com.acuitybotting.db.arango.acuity.identities.domain.Principal;
 import com.acuitybotting.db.arango.acuity.identities.service.AcuityUsersService;
 import com.acuitybotting.db.arango.acuity.identities.service.PrincipalLinkTypes;
@@ -49,7 +49,7 @@ public class BotControlRabbitService implements CommandLineRunner {
         try {
             RabbitHub rabbitHub = new RabbitHub();
             rabbitHub.auth(username, password);
-            rabbitHub.start("ABW");
+            rabbitHub.start("ABW", "1.0.01");
 
             rabbitHub.createPool(1, channel -> {
                 try {
@@ -108,7 +108,7 @@ public class BotControlRabbitService implements CommandLineRunner {
     public void handleRequest(MessageEvent messageEvent) {
         try {
             if (messageEvent.getRouting().contains("db.handleRequest")) {
-                String userId = RoutingUtil.routeToUserId(messageEvent.getRouting());
+                String userId = RabbitUtil.routeToUserId(messageEvent.getRouting());
                 try {
                     handle(messageEvent, new Gson().fromJson(messageEvent.getMessage().getBody(), RabbitDbRequest.class), userId);
                     messageEvent.getQueue().getChannel().acknowledge(messageEvent.getMessage());
@@ -119,7 +119,7 @@ public class BotControlRabbitService implements CommandLineRunner {
             }
 
             if (messageEvent.getRouting().contains(".services.bot-control.getLinkJwt")) {
-                String userId = RoutingUtil.routeToUserId(messageEvent.getRouting());
+                String userId = RabbitUtil.routeToUserId(messageEvent.getRouting());
                 try {
                     messageEvent.getQueue().getChannel().buildResponse(messageEvent.getMessage(), acuityUsersService.createLinkJwt(Principal.of(PrincipalLinkTypes.RSPEER, userId))).send();
                 } catch (MessagingException e) {

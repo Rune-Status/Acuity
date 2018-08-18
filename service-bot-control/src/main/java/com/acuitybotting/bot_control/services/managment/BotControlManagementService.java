@@ -4,7 +4,7 @@ import com.acuitybotting.data.flow.messaging.services.client.implementation.rabb
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.management.domain.RabbitConnection;
 import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
-import com.acuitybotting.data.flow.messaging.services.identity.RoutingUtil;
+import com.acuitybotting.data.flow.messaging.services.identity.RabbitUtil;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.db.influx.InfluxDbService;
 import lombok.extern.slf4j.Slf4j;
@@ -44,30 +44,33 @@ public class BotControlManagementService {
     }
 
     private void updateRegisteredConnections() {
-        for (Map.Entry<String, List<RabbitConnection>> entry : RabbitManagement.getConnections().entrySet()) {
-            Point build = Point.measurement("connections-count")
-                    .addField("count", entry.getValue().size())
-                    .tag("principalId", entry.getKey())
-                    .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
-                    .build();
-            influxDbService.writeAsync(build);
+        for (Map.Entry<String, Map<String, List<RabbitConnection>>> byUser : RabbitManagement.getConnections().entrySet()) {
+            for (Map.Entry<String, List<RabbitConnection>> byType : byUser.getValue().entrySet()) {
+                Point build = Point.measurement("connections-count")
+                        .addField("count", byType.getValue().size())
+                        .tag("principalId", byUser.getKey())
+                        .tag("type", byType.getKey())
+                        .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                        .build();
+                influxDbService.writeAsync(build);
 
-            for (RabbitConnection rabbitConnection : entry.getValue()) {
-                if (rabbitConnection.getUser_provided_name() == null) continue;
+                for (RabbitConnection rabbitConnection : byType.getValue()) {
+                    if (rabbitConnection.getUser_provided_name() == null) continue;
 
-                Map<String, Object> headers = new HashMap<>();
-                headers.put("connected", true);
-                headers.put("connectionTime", rabbitConnection.getConnected_at());
-                headers.put("connectionConfirmationTime", System.currentTimeMillis());
-                headers.put("peerHost", rabbitConnection.getPeer_host());
-                Map<String, Object> map = RabbitDbService.buildQueryMap(entry.getKey(), "services.registered-connections", "connections", rabbitConnection.getUser_provided_name(), null);
-                rabbitDbService.save(
-                        RabbitDbRequest.SAVE_UPDATE,
-                        map,
-                        headers,
-                        null,
-                        null
-                );
+                    Map<String, Object> headers = new HashMap<>();
+                    headers.put("connected", true);
+                    headers.put("connectionTime", rabbitConnection.getConnected_at());
+                    headers.put("connectionConfirmationTime", System.currentTimeMillis());
+                    headers.put("peerHost", rabbitConnection.getPeer_host());
+                    Map<String, Object> map = RabbitDbService.buildQueryMap(byUser.getKey(), "services.registered-connections", "connections", rabbitConnection.getUser_provided_name(), null);
+                    rabbitDbService.save(
+                            RabbitDbRequest.SAVE_UPDATE,
+                            map,
+                            headers,
+                            null,
+                            null
+                    );
+                }
             }
         }
 

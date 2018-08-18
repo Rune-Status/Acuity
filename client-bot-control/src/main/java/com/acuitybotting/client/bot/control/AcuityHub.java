@@ -36,7 +36,7 @@ public class AcuityHub {
 
     private static ScheduledExecutorService scheduledExecutorService = ExecutorUtil.newScheduledExecutorPool(2);
 
-    public static void start(String prefix) {
+    public static void start(String type, String version) {
         connectionConfiguration = ConnectionConfigurationUtil.decode(ConnectionConfigurationUtil.find()).orElse(new ConnectionConfiguration());
 
         if (connectionConfiguration.getConnectionId() == null)
@@ -52,7 +52,7 @@ public class AcuityHub {
         }
 
         rabbitHub.auth(username, password);
-        rabbitHub.start(prefix, connectionConfiguration.getConnectionId());
+        rabbitHub.start(type, version, connectionConfiguration.getConnectionId());
 
         rabbitHub.getLocalQueue().withListener(messageEvent -> {
             if (messageEvent.getMessage().getAttributes().containsKey("killConnection")) {
@@ -209,30 +209,6 @@ public class AcuityHub {
     }
 
     public static void main(String[] args) {
-        setControlInterface(new ControlInterface() {
-            @Override
-            public void applyAccount(String email, String password) {
-                System.out.println("Applying account: " + email + " " + password);
-            }
-
-            @Override
-            public void applyProxy(String asString, String asString1, String proxyUsername, String decrypt) {
-                System.out.println("Applying proxy: " + asString + " " + asString1 + " " + proxyUsername + " " + decrypt);
-            }
-
-            @Override
-            public void applyScript(String scriptSelector, boolean scriptLocal, String scriptArgs) {
-                System.out.println("Applying script: " + scriptSelector + " " + scriptLocal);
-            }
-
-            @Override
-            public void applyWorld(Integer world) {
-                System.out.println("Applying world: " + world);
-            }
-        });
-        start("RPC");
-        while (true) {
-
-        }
+        start("RPC", "test");
     }
 }

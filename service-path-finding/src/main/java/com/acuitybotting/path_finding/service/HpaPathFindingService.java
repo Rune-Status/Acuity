@@ -5,7 +5,7 @@ import com.acuitybotting.data.flow.messaging.services.client.exceptions.Messagin
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitHub;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.client.RabbitClient;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
-import com.acuitybotting.data.flow.messaging.services.identity.RoutingUtil;
+import com.acuitybotting.data.flow.messaging.services.identity.RabbitUtil;
 import com.acuitybotting.db.arango.path_finding.domain.xtea.RegionMap;
 import com.acuitybotting.db.influx.InfluxDbService;
 import com.acuitybotting.path_finding.algorithms.astar.AStarService;
@@ -114,7 +114,7 @@ public class HpaPathFindingService {
 
             RabbitHub rabbitHub = new RabbitHub();
             rabbitHub.auth(username, password);
-            rabbitHub.start("APW");
+            rabbitHub.start("APW", "1.0.01");
 
             rabbitHub.createPool(5, channel ->
                     channel
@@ -143,7 +143,7 @@ public class HpaPathFindingService {
 
             Point build = Point.measurement("paths-found")
                     .addField("count", 1)
-                    .tag("principalId", RoutingUtil.routeToUserId(messageEvent.getRouting()))
+                    .tag("principalId", RabbitUtil.routeToUserId(messageEvent.getRouting()))
                     .tag("success", String.valueOf(path != null))
                     .time(System.currentTimeMillis(), TimeUnit.SECONDS)
                     .build();

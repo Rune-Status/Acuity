@@ -47,7 +47,7 @@ public class LauncherRabbitService implements CommandLineRunner {
             String password = jsonObject.get("secret").getAsString();
 
             rabbitHub.auth(username, password);
-            rabbitHub.start("ABL");
+            rabbitHub.start("ABL", "1.0.01");
             rabbitHub.getLocalQueue().withListener(this::handleMessage);
 
             updateState();

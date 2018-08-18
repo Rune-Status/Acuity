@@ -22,7 +22,7 @@ public class RabbitClient {
 
     public final Object CONFIRM_STATE_LOCK = new Object();
 
-    private String rabbitId;
+    private String connectionName;
     private String endpoint;
     private String virtualHost;
     private String username;
@@ -52,10 +52,10 @@ public class RabbitClient {
         this.port = port;
     }
 
-    public void connect(String connectionId) {
+    public void connect(String connectionName) {
         if (scheduledFuture != null) throw new IllegalStateException("Client already connected.");
 
-        rabbitId = connectionId;
+        this.connectionName = connectionName;
         factory.setHost(endpoint);
         factory.setPort(Integer.parseInt(port));
         factory.setUsername(username);
@@ -87,7 +87,7 @@ public class RabbitClient {
             if (connection == null || !connection.isOpen()){
                 try {
                     if (close()) {
-                        connection = factory.newConnection(rabbitId);
+                        connection = factory.newConnection(connectionName);
                         if (!connection.isOpen()) getLog().accept("Failed to open RabbitMQ connection, waiting 10 seconds and trying again.");
                     }
                 } catch (Throwable e) {
@@ -114,10 +114,6 @@ public class RabbitClient {
 
     public Collection<RabbitChannel> getChannels() {
         return channels;
-    }
-
-    public String getRabbitId() {
-        return rabbitId;
     }
 
     public ScheduledExecutorService getScheduledExecutorService() {
