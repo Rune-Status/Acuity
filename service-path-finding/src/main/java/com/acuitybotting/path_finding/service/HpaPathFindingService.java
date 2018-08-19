@@ -145,7 +145,7 @@ public class HpaPathFindingService {
                     .addField("count", 1)
                     .tag("principalId", RabbitUtil.routeToUserId(messageEvent.getRouting()))
                     .tag("success", String.valueOf(path != null))
-                    .time(System.currentTimeMillis(), TimeUnit.SECONDS)
+                    .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
                     .build();
             dbService.writeAsync(build);
 

@@ -8,6 +8,7 @@ import com.acuitybotting.common.utils.configurations.ConnectionConfiguration;
 import com.acuitybotting.common.utils.configurations.utils.ConnectionConfigurationUtil;
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitHub;
+import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.channel.RabbitChannel;
 import com.acuitybotting.data.flow.messaging.services.db.domain.Document;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -19,6 +20,7 @@ import java.security.GeneralSecurityException;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -34,7 +36,10 @@ public class AcuityHub {
     private static ControlInterface controlInterface;
     private static StateInterface stateInterface;
 
-    private static ScheduledExecutorService scheduledExecutorService = ExecutorUtil.newScheduledExecutorPool(2);
+    private static ExecutorService executorService = ExecutorUtil.newExecutorPool(1);
+    private static ScheduledExecutorService scheduledExecutorService = ExecutorUtil.newScheduledExecutorPool(1);
+
+    private static boolean guestAccount = true;
 
     public static void start(String type, String version) {
         connectionConfiguration = ConnectionConfigurationUtil.decode(ConnectionConfigurationUtil.find()).orElse(new ConnectionConfiguration());
@@ -49,6 +54,7 @@ public class AcuityHub {
             JsonObject jsonObject = ConnectionConfigurationUtil.decodeConnectionKey(connectionConfiguration.getConnectionKey());
             username = jsonObject.get("principalId").getAsString();
             password = jsonObject.get("secret").getAsString();
+            guestAccount =  false;
         }
 
         rabbitHub.auth(username, password);
@@ -63,7 +69,7 @@ public class AcuityHub {
             }
         }
 
-        if (!"acuity-guest".equals(username)) {
+        if (!guestAccount) {
             pullAndApplyConfiguration();
             startAuthedServices();
 
@@ -73,6 +79,24 @@ public class AcuityHub {
                 }
             });
         }
+    }
+
+    public static boolean publishEvent(String type, String body){
+        RabbitChannel channel = rabbitHub.getLocalPool().getChannel();
+        if (channel == null) return false;
+        executorService.submit(() -> {
+            try {
+                channel.createMessage()
+                        .setTargetExchange(rabbitHub.getGeneralExchange())
+                        .setTargetRouting(rabbitHub.getAllowedPrefix() + "hub-event." + type)
+                        .setAttribute("eventType",  type)
+                        .setBody(body)
+                        .send();
+            } catch (MessagingException e) {
+                e.printStackTrace();
+            }
+        });
+        return true;
     }
 
     private static void pullAndApplyConfiguration() {
@@ -131,8 +155,6 @@ public class AcuityHub {
         }
     }
 
-
-
     private static String decrypt(String key, String value) throws GeneralSecurityException {
         return new String(getAlice().decrypt(Base64.getDecoder().decode(value), key.toCharArray()));
     }
@@ -152,11 +174,14 @@ public class AcuityHub {
         JsonObject playerUpdate = stateInterface.buildPlayerState();
         if (playerUpdate == null || playerUpdate.get("email") == null) return;
 
+        JsonObject wrapper = new JsonObject();
+        wrapper.add("gameInfo", playerUpdate);
+
         try {
             rabbitHub.getDb("services.rs-accounts").update(
                     "players",
                     playerUpdate.get("email").getAsString(),
-                    new Gson().toJson(playerUpdate)
+                    new Gson().toJson(wrapper)
             );
         } catch (MessagingException e) {
             e.printStackTrace();
