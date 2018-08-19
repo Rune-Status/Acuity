@@ -22,7 +22,6 @@
         <module>common-utils</module>
         <module>security-rabbit-mq</module>
         <module>db-dropbox</module>
-        <module>service-discord-bot</module>
         <module>service-bot-launcher</module>
         <module>client-bot-control</module>
     </modules>
