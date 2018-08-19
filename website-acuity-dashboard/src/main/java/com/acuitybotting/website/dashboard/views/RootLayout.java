@@ -4,6 +4,7 @@ import com.acuitybotting.website.dashboard.components.general.nav.TopMenuCompone
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.HasElement;
+import com.vaadin.flow.component.dependency.JavaScript;
 import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -18,6 +19,8 @@ import com.vaadin.flow.theme.lumo.Lumo;
 
 @BodySize(height = "100vh", width = "100vw")
 @Theme(value = Lumo.class, variant = Lumo.DARK)
+@JavaScript("https://code.highcharts.com/highcharts.src.js")
+@JavaScript("https://code.jquery.com/jquery-3.3.1.min.js")
 @StyleSheet("/acuity.css")
 public class RootLayout extends Div implements RouterLayout {
 

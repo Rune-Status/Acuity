@@ -77,6 +77,10 @@ public class AcuityHub {
                 if (messageEvent.getMessage().getAttributes().containsKey("killConnection")) {
                     System.exit(0);
                 }
+
+                if (messageEvent.getMessage().getAttributes().containsKey("pauseScript")) {
+                    getControlInterface().ifPresent(control -> control.setScriptPaused(Boolean.parseBoolean(messageEvent.getMessage().getAttributes().get("pauseScript"))));
+                }
             });
         }
     }

@@ -12,4 +12,6 @@ public interface ControlInterface {
     void applyScript(String scriptSelector, boolean scriptLocal, String scriptArgs);
 
     void applyWorld(Integer world);
+
+    void setScriptPaused(boolean paused);
 }
