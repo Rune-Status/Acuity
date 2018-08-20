@@ -38,8 +38,8 @@ public class RabbitClient {
 
     private Map<String, MessageFuture> messageFutures = new HashMap<>();
 
-    private Consumer<Throwable> throwableConsumer = throwable -> throwable.printStackTrace();
-    private Consumer<String> logConsumer = s -> System.out.println(s);
+    private static Consumer<Throwable> throwableConsumer = throwable -> throwable.printStackTrace();
+    private static Consumer<String> logConsumer = s -> System.out.println(s);
 
     private Collection<RabbitChannel> channels = new CopyOnWriteArrayList<>();
 
@@ -149,5 +149,13 @@ public class RabbitClient {
 
     public Connection getConnection() {
         return connection;
+    }
+
+    public static void setLogConsumer(Consumer<String> logConsumer) {
+        RabbitClient.logConsumer = logConsumer;
+    }
+
+    public static void setThrowableConsumer(Consumer<Throwable> throwableConsumer) {
+        RabbitClient.throwableConsumer = throwableConsumer;
     }
 }
