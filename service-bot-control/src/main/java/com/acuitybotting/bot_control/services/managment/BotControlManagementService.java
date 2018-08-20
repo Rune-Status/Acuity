@@ -4,11 +4,9 @@ import com.acuitybotting.data.flow.messaging.services.client.implementation.rabb
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.management.domain.RabbitConnection;
 import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
-import com.acuitybotting.data.flow.messaging.services.identity.RabbitUtil;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.db.influx.InfluxDbService;
 import lombok.extern.slf4j.Slf4j;
-import org.influxdb.dto.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
@@ -46,13 +44,13 @@ public class BotControlManagementService {
     private void updateRegisteredConnections() {
         for (Map.Entry<String, Map<String, List<RabbitConnection>>> byUser : RabbitManagement.getConnections().entrySet()) {
             for (Map.Entry<String, List<RabbitConnection>> byType : byUser.getValue().entrySet()) {
-                Point build = Point.measurement("connections-count")
+    /*            Point build = Point.measurement("connections-count")
                         .addField("count", byType.getValue().size())
                         .tag("principalId", byUser.getKey())
                         .tag("type", byType.getKey())
                         .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
                         .build();
-                influxDbService.writeAsync(build);
+                influxDbService.writeAsync(build);*/
 
                 for (RabbitConnection rabbitConnection : byType.getValue()) {
                     if (rabbitConnection.getUser_provided_name() == null) continue;

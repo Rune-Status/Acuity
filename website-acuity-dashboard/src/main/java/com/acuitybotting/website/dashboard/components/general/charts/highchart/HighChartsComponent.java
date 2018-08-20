@@ -11,6 +11,7 @@ public class HighChartsComponent extends Div {
 
     public HighChartsComponent(String divId, HighChartConfiguration highChartConfiguration) {
         this.highChartConfiguration = highChartConfiguration;
+        setWidth("100%");
         setId(divId);
     }
 

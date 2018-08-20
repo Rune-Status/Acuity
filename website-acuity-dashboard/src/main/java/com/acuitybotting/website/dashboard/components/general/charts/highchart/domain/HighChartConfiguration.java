@@ -1,5 +1,6 @@
 package com.acuitybotting.website.dashboard.components.general.charts.highchart.domain;
 
+import com.acuitybotting.website.dashboard.components.general.charts.highchart.domain.chart.Axis;
 import com.acuitybotting.website.dashboard.components.general.charts.highchart.domain.chart.Chart;
 import com.acuitybotting.website.dashboard.components.general.charts.highchart.domain.chart.Series;
 import com.acuitybotting.website.dashboard.components.general.charts.highchart.domain.chart.Title;
@@ -19,6 +20,8 @@ public class HighChartConfiguration {
 
     private Title title = new Title();
     private Title subtitle = new Title();
+
+    private Axis xAxis = new Axis();
 
     private List<Series> series = new ArrayList<>();
 }

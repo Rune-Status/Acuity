@@ -40,7 +40,6 @@ import com.google.gson.GsonBuilder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.influxdb.dto.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -141,13 +140,13 @@ public class HpaPathFindingService {
             List<? extends Edge> path = pathResult.getPath();
             log.info("Found path. {}", path);
 
-            Point build = Point.measurement("paths-found")
+  /*          Point build = Point.measurement("paths-found")
                     .addField("count", 1)
                     .tag("principalId", RabbitUtil.routeToUserId(messageEvent.getRouting()))
                     .tag("success", String.valueOf(path != null))
                     .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
                     .build();
-            dbService.writeAsync(build);
+            dbService.writeAsync(build);*/
 
 
             pathResult.setSubPaths(new HashMap<>());
