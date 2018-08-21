@@ -55,10 +55,11 @@ public class RabbitAuthBackendHttpController {
     public String resource(ResourceCheck check) {
         log.info("Checking resource access with {}", check);
 
-        if (ResourceType.QUEUE.equals(check.getResource()) && check.getName().startsWith("user." + check.getUsername() + ".queue."))
-            return ACCEPTED;
-        else if (ResourceType.EXCHANGE.equals(check.getResource()) && !Permission.CONFIGURE.equals(check.getPermission()) && check.getName().equals("acuitybotting.general"))
-            return ACCEPTED;
+        if (ResourceType.QUEUE.equals(check.getResource()) && check.getName().startsWith("user." + check.getUsername() + ".queue.")) return ACCEPTED;
+
+        if (Permission.CONFIGURE.equals(check.getPermission()) || !check.getName().equals("acuitybotting.general")) return REFUSED;
+
+        if (ResourceType.EXCHANGE.equals(check.getResource())) return ACCEPTED;
 
         return REFUSED;
     }
@@ -67,17 +68,9 @@ public class RabbitAuthBackendHttpController {
     public String topic(TopicCheck check) {
         log.info("Checking topic access with {}", check);
 
-        if (Permission.CONFIGURE.equals(check.getPermission())) return REFUSED;
-
-        if (check.getUsername().equals("acuity-guest")){
-            if (ResourceType.TOPIC.equals(check.getResource()) && check.getName().equals("acuitybotting.general") && (check.getRouting_key().startsWith("user." + check.getUsername() + ".services.path-finding.find-path") || check.getRouting_key().startsWith("user." + check.getUsername() + ".hub-event")))
-                return ACCEPTED;
-            return REFUSED;
-        }
-
-        if (ResourceType.TOPIC.equals(check.getResource()) && check.getName().equals("acuitybotting.general") && check.getRouting_key().startsWith("user." + check.getUsername() + "."))
-            return ACCEPTED;
-
+        if (Permission.CONFIGURE.equals(check.getPermission()) || !check.getName().equals("acuitybotting.general")) return REFUSED;
+        if (check.getUsername().equals("acuity-guest") && Permission.READ.equals(check.getPermission())) return REFUSED;
+        if (check.getRouting_key().startsWith("user." + check.getUsername() + ".")) return ACCEPTED;
         return REFUSED;
     }
 }
