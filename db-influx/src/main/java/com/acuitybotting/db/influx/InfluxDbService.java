@@ -81,16 +81,4 @@ public class InfluxDbService {
             e.printStackTrace();
         }
     }
-
-    public void test(){
-/*        Point point = new Point();
-        point.setMeasurement("cpu");
-        point.getTags().put("user", "zach");
-        point.getTags().put("type", "rspeer");
-        point.getFields().put("usageTime", 100);
-        point.getFields().put("usageTimeTotal", 10000);
-        System.out.println(point.toLineProtocol());
-
-        write("acuitybotting-prod-1", point);*/
-    }
 }

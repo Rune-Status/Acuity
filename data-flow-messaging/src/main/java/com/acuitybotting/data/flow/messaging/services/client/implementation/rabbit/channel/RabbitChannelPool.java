@@ -37,6 +37,6 @@ public class RabbitChannelPool {
     }
 
     public RabbitChannel getChannel(){
-        return pool.stream().findAny().orElse(null);
+        return pool.stream().filter(RabbitChannel::isConnected).findAny().orElse(pool.stream().findAny().orElse(null));
     }
 }

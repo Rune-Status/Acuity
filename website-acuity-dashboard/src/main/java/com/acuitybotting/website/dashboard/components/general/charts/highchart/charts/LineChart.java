@@ -10,9 +10,6 @@ public class LineChart extends InteractiveHighChart {
 
     public LineChart(String divId) {
         super(divId);
-
-        HighChartConfiguration highChartConfiguration = new HighChartConfiguration();
-        highChartConfiguration.getXAxis().setType("datetime");
-        getChartContainer().setHighChartConfiguration(highChartConfiguration);
+        getHighChartConfiguration().getXAxis().setType("datetime");
     }
 }

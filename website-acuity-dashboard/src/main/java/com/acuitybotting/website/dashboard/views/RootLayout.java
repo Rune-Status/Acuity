@@ -10,6 +10,7 @@ import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.page.BodySize;
+import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.router.RouterLayout;
 import com.vaadin.flow.theme.Theme;
 import com.vaadin.flow.theme.lumo.Lumo;
@@ -21,14 +22,18 @@ import com.vaadin.flow.theme.lumo.Lumo;
 @BodySize(height = "100vh", width = "100vw")
 @Theme(value = Lumo.class, variant = Lumo.DARK)
 @StyleSheet("/acuity.css")
+@Push
 public class RootLayout extends Div implements RouterLayout {
 
     private VerticalLayout content = new VerticalLayout();
 
     public RootLayout() {
-        UI.getCurrent().getPage().addHtmlImport("https://code.jquery.com/jquery-3.3.1.min.js");
+        UI.getCurrent().getPage().addJavaScript("https://code.jquery.com/jquery-3.1.1.min.js");
         UI.getCurrent().getPage().addJavaScript("https://code.highcharts.com/highcharts.src.js");
+        UI.getCurrent().getPage().addJavaScript("https://code.highcharts.com/modules/exporting.js");
+
         UI.getCurrent().getPage().addJavaScript("/js/acuity-hc-theme.js");
+        UI.getCurrent().getPage().addJavaScript("/js/acuity-charts.js");
 
         setSizeFull();
         getClassNames().add("acuity-root");

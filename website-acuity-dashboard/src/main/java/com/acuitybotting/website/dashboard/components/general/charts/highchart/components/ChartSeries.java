@@ -1,29 +1,52 @@
 package com.acuitybotting.website.dashboard.components.general.charts.highchart.components;
 
+import com.acuitybotting.website.dashboard.components.general.charts.highchart.InteractiveHighChart;
+import com.acuitybotting.website.dashboard.components.general.charts.highchart.domain.chart.Series;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.function.Supplier;
 
 /**
  * Created by Zachary Herridge on 8/20/2018.
  */
+@Getter
+@Setter
 public class ChartSeries {
 
-    private ChartContainer chartContainer;
+    private InteractiveHighChart chart;
 
     private Supplier<JsonArray> loadSupplier;
-    private JsonArray data;
 
-
-    public void addPoint(JsonElement point){
-        chartContainer.getUI().ifPresent(ui -> {
-            ui.getPage().executeJavaScript("$(\"#$0\").highcharts().series[$1].addPoint(10);");
-        });
+    public ChartSeries(InteractiveHighChart chart) {
+        this.chart = chart;
     }
 
-    private void setPoint(){
-
+    public void build(String name){
+        JsonArray data = loadSupplier.get();
+        Series series = new Series();
+        series.setName(name);
+        series.setData(data);
+        chart.getHighChartConfiguration().getSeries().add(series);
     }
 
+    public void update() {
+        if (loadSupplier == null) return;
+        JsonArray data = loadSupplier.get();
+        if (data == null) return;
+
+        String chartId = chart.getChartDivId();
+        int index = chart.getSeries().indexOf(this);
+
+        JsonArray point = data.get(data.size() - 1).getAsJsonArray();
+        addOrUpdatePoint(chartId, index, point.get(0).getAsLong(), point.get(1).getAsNumber());
+    }
+
+    public void addOrUpdatePoint(String chartId, Number seriesIndex, Number timestamp, Number value) {
+        String js = "addOrUpdateChart(\"" + chartId + "\", " + seriesIndex + ", " + timestamp + ", " + value + ");";
+        chart.getChartContainer().getUI().ifPresent(ui -> ui.access(() -> ui.getPage().executeJavaScript(js)));
+        chart.getChartContainer().getUI().ifPresent(ui -> ui.access(() -> ui.getPage().executeJavaScript("console.log('hey');")));
+    }
 }

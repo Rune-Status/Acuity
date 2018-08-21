@@ -54,7 +54,7 @@ public class AcuityHub {
             JsonObject jsonObject = ConnectionConfigurationUtil.decodeConnectionKey(connectionConfiguration.getConnectionKey());
             username = jsonObject.get("principalId").getAsString();
             password = jsonObject.get("secret").getAsString();
-            guestAccount =  false;
+            guestAccount = false;
         }
 
         rabbitHub.auth(username, password);
@@ -85,17 +85,16 @@ public class AcuityHub {
         }
     }
 
-    public static boolean publishEvent(String type, String body){
+    public static boolean publishEvent(String type, String body) {
         RabbitChannel channel = rabbitHub.getLocalPool().getChannel();
         if (channel == null) return false;
         executorService.submit(() -> {
             try {
-                channel.createMessage()
-                        .setTargetExchange(rabbitHub.getGeneralExchange())
-                        .setTargetRouting(rabbitHub.getAllowedPrefix() + "hub-event." + type)
-                        .setAttribute("eventType",  type)
-                        .setBody(body)
-                        .send();
+                channel.buildMessage(
+                        rabbitHub.getGeneralExchange(),
+                        rabbitHub.getAllowedPrefix() + "hub-event." + type,
+                        body
+                ).setAttribute("eventType", type).send();
             } catch (MessagingException e) {
                 e.printStackTrace();
             }
@@ -125,7 +124,7 @@ public class AcuityHub {
                 });
             }
 
-            if (configuration.getWorld() != null){
+            if (configuration.getWorld() != null) {
                 getControlInterface().ifPresent(control -> {
                     control.applyWorld(configuration.getWorld());
                 });
