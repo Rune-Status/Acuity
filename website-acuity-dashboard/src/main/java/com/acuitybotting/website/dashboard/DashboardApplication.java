@@ -13,6 +13,7 @@ import org.springframework.context.annotation.ComponentScan;
 public class DashboardApplication extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
+        System.setProperty("productionMode", "true");
         SpringApplication.run(DashboardApplication.class, args);
     }
 }
