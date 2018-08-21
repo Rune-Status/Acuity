@@ -53,7 +53,7 @@ public class RabbitDbQueryBuilder {
     }
 
     public RabbitDbQueryBuilder withDatabase(String database){
-        return withParam("principalId", database);
+        return withParam("database", database);
     }
 
     public RabbitDbQueryBuilder withGroup(String group){
@@ -80,19 +80,19 @@ public class RabbitDbQueryBuilder {
         service.delete(queryMap);
     }
 
-    public void upsert(String document){
-        upsert(null, document, document);
+    public UpsertResult upsert(String document){
+        return upsert(null, document, document);
     }
 
-    public void upsert(String update, String insert){
-        upsert(null, update, insert);
+    public UpsertResult upsert(String update, String insert){
+        return upsert(null, update, insert);
     }
 
-    public void upsert(Map<String, Object> headers){
-        upsert(headers, null, null);
+    public UpsertResult upsert(Map<String, Object> headers){
+        return upsert(headers, null, null);
     }
 
-    public void upsert(Map<String, Object> headers, String update, String insert){
-        service.upsert(queryMap, headers, update, insert);
+    public UpsertResult upsert(Map<String, Object> headers, String update, String insert){
+        return service.upsert(queryMap, headers, update, insert);
     }
 }

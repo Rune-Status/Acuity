@@ -1,8 +1,6 @@
 package com.acuitybotting.db.arango.acuity.rabbit_db.service;
 
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.RabbitDocumentBase;
-import com.arangodb.ArangoCursor;
 import com.arangodb.springframework.core.ArangoOperations;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -40,14 +38,14 @@ public class RabbitDbService {
     }
 
     public RabbitDbQueryBuilder query(){
-        return query("");
+        return new RabbitDbQueryBuilder(this, "");
     }
 
     public RabbitDbQueryBuilder query(String query){
         return new RabbitDbQueryBuilder(this, query).withParam("@collection", COLLECTION);
     }
 
-    public void upsert(Map<String, Object> queryMap, Map<String, Object> headers, String updateDocumentJson, String insertDocumentJson) {
+    public UpsertResult upsert(Map<String, Object> queryMap, Map<String, Object> headers, String updateDocumentJson, String insertDocumentJson) {
         if (headers == null) headers = new HashMap<>();
 
         GsonRabbitDocument gsonRabbitDocument = new GsonRabbitDocument();
@@ -68,8 +66,17 @@ public class RabbitDbService {
         if (insertDocument == null) insertDocument = "{}";
         if (updateDocument == null) insertDocument = "{}";
 
-        String query = "UPSERT " + gson.toJson(queryMap) + " INSERT " + insertDocument + " UPDATE " + updateDocument + " IN @@collection";
-        arangoOperations.query(query, null, null, null);
+        String query = "UPSERT " + gson.toJson(queryMap) + " INSERT " + insertDocument + " UPDATE " + updateDocument + " IN " + COLLECTION + " RETURN {previous: OLD, current: NEW}";
+
+
+        UpsertResult result = arangoOperations.query(query, null, null, String.class)
+                .asListRemaining()
+                .stream()
+                .map(s -> gson.fromJson(s, UpsertResult.class))
+                .findAny()
+                .orElse(null);
+
+        return result;
     }
 
     public void delete(Map<String, Object> queryMap) {

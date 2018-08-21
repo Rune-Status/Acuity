@@ -12,6 +12,7 @@ import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocume
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbAccess;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbQueryBuilder;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
+import com.acuitybotting.db.arango.acuity.rabbit_db.service.UpsertResult;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,8 @@ public class BotControlRabbitService implements CommandLineRunner {
 
     private final RabbitDbService dbService;
 
+    private RabbitHub rabbitHub = new RabbitHub();
+
     @Value("${rabbit.username}")
     private String username;
     @Value("${rabbit.password}")
@@ -50,7 +53,6 @@ public class BotControlRabbitService implements CommandLineRunner {
 
     private void connect() {
         try {
-            RabbitHub rabbitHub = new RabbitHub();
             rabbitHub.auth(username, password);
             rabbitHub.start("ABW", "1.0.01");
 
@@ -75,6 +77,21 @@ public class BotControlRabbitService implements CommandLineRunner {
         }
     }
 
+    private void publishUpsert(String userId, RabbitDbRequest request, UpsertResult upsert){
+        if (upsert == null) return;
+        try {
+            Gson gson = new Gson();
+            rabbitHub.getLocalPool().getChannel()
+                    .createMessage()
+                    .setTargetExchange("acuitybotting.general")
+                    .setTargetRouting("user." + userId + ".rabbitdb.update." + request.getDatabase() + "." + request.getGroup())
+                    .setBody(gson.toJson(upsert))
+                    .send();
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void handle(MessageEvent messageEvent, RabbitDbRequest request, String userId) {
         //log.info("Handling db request {} for user {}.", request, userId);
 
@@ -83,8 +100,9 @@ public class BotControlRabbitService implements CommandLineRunner {
         Gson gson = new Gson();
 
         if (RabbitDbAccess.isWriteAccessible(userId, request.getDatabase())) {
-            if (request.getType() == RabbitDbRequest.SAVE_REPLACE || request.getType() == RabbitDbRequest.SAVE_UPDATE) {
-                builder.upsert(request.getUpdateDocument(), request.getInsertDocument());
+            if (request.getType() == RabbitDbRequest.SAVE_UPDATE) {
+                UpsertResult upsert = builder.upsert(request.getUpdateDocument(), request.getInsertDocument());
+                publishUpsert(userId, request, upsert);
             } else if (request.getType() == RabbitDbRequest.DELETE_BY_KEY && RabbitDbAccess.isDeleteAccessible(userId, request.getDatabase())) {
                 builder.delete();
             }
