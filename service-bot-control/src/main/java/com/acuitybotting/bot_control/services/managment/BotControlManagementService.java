@@ -57,10 +57,10 @@ public class BotControlManagementService {
             }
         }
 
-        String updateTimeout = "FOR r IN RabbitDocument\n" +
+        String updateTimeout = "FOR r IN @@collection\n" +
                 "FILTER r.headers.connectionConfirmationTime != NULL\n" +
                 "FILTER r.headers.connectionConfirmationTime < @timeout\n" +
-                "UPDATE { _key: r._key, headers: { connected : false}} IN RabbitDocument";
+                "UPDATE { _key: r._key, headers: { connected : false}} IN @@collection";
         rabbitDbService.getArangoOperations().query(updateTimeout, Collections.singletonMap("timeout", System.currentTimeMillis() - TimeUnit.SECONDS.toMillis(11)), null, null);
     }
 
@@ -85,7 +85,7 @@ public class BotControlManagementService {
             if (userProvidedName == null) return;
 
             String singleUpdate =
-                    "FOR r IN RabbitDocument\n" +
+                    "FOR r IN @@collection\n" +
                             "FILTER r.database == 'services.registered-connections'\n" +
                             "FILTER r.subGroup == 'connections'\n" +
                             "FILTER r.subKey == @userDefinedName\n" +

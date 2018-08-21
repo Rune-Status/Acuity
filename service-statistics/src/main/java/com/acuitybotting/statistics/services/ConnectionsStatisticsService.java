@@ -22,11 +22,11 @@ public class ConnectionsStatisticsService {
     @Scheduled(initialDelay = 3000, fixedRate = 3000)
     private void update(){
         String updateTimeout =
-                "FOR r IN RabbitDocument\n" +
+                "FOR r IN @@collection\n" +
                 "FILTER r.headers.connected == true\n" +
                 "RETURN r";
 
-        Set<GsonRabbitDocument> results = rabbitDbService.findByQuery(updateTimeout, null, GsonRabbitDocument.class);
+        Set<GsonRabbitDocument> all = rabbitDbService.query(updateTimeout).findAll(GsonRabbitDocument.class);
         System.out.println();
     }
 }

@@ -44,7 +44,7 @@ public class RabbitDbService {
     }
 
     public RabbitDbQueryBuilder query(String query){
-        return new RabbitDbQueryBuilder(this, query).withParam("@@collection", COLLECTION);
+        return new RabbitDbQueryBuilder(this, query).withParam("@collection", COLLECTION);
     }
 
     public void upsert(Map<String, Object> queryMap, Map<String, Object> headers, String updateDocumentJson, String insertDocumentJson) {
@@ -68,7 +68,7 @@ public class RabbitDbService {
         if (insertDocument == null) insertDocument = "{}";
         if (updateDocument == null) insertDocument = "{}";
 
-        String query = "UPSERT " + gson.toJson(queryMap) + " INSERT " + insertDocument + " UPDATE " + updateDocument + " IN " + COLLECTION;
+        String query = "UPSERT " + gson.toJson(queryMap) + " INSERT " + insertDocument + " UPDATE " + updateDocument + " IN @@collection";
         arangoOperations.query(query, null, null, null);
     }
 
