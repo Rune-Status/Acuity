@@ -70,7 +70,7 @@ public class RabbitAuthBackendHttpController {
         if (Permission.CONFIGURE.equals(check.getPermission())) return REFUSED;
 
         if (check.getUsername().equals("acuity-guest")){
-            if (ResourceType.TOPIC.equals(check.getResource()) && check.getName().equals("acuitybotting.general") && check.getRouting_key().startsWith("user." + check.getUsername() + ".services.path-finding.find-path"))
+            if (ResourceType.TOPIC.equals(check.getResource()) && check.getName().equals("acuitybotting.general") && (check.getRouting_key().startsWith("user." + check.getUsername() + ".services.path-finding.find-path") || check.getRouting_key().startsWith("user." + check.getUsername() + ".hub-event")))
                 return ACCEPTED;
             return REFUSED;
         }
