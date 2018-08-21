@@ -3,7 +3,6 @@ package com.acuitybotting.website.dashboard.components.general.charts.highchart.
 import com.acuitybotting.website.dashboard.components.general.charts.highchart.InteractiveHighChart;
 import com.acuitybotting.website.dashboard.components.general.charts.highchart.domain.chart.Series;
 import com.google.gson.JsonArray;
-import com.vaadin.flow.component.page.Page;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,7 +23,7 @@ public class ChartSeries {
         this.chart = chart;
     }
 
-    public void build(String name){
+    public void build(String name) {
         JsonArray data = loadSupplier.get();
         Series series = new Series();
         series.setName(name);
@@ -46,12 +45,10 @@ public class ChartSeries {
 
     private void addOrUpdatePoint(String chartId, Number seriesIndex, Number timestamp, Number value) {
         String js = "addOrUpdateChart(\"" + chartId + "\", " + seriesIndex + ", " + timestamp + ", " + value + ");";
-        chart.getChartContainer().getUI().ifPresent(ui -> {
-            if (!ui.isClosing()){
-                ui.access(() -> {
-                    ui.getPage().executeJavaScript(js);
-                });
-            }
+
+        chart.getUI().ifPresent(ui -> {
+            if (ui.isClosing() || ui.getSession() == null) return;
+            ui.access(() -> ui.getPage().executeJavaScript(js));
         });
     }
 }
