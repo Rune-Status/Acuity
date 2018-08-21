@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by Zachary Herridge on 7/19/2018.
@@ -30,60 +31,23 @@ public class RabbitDbService {
         this.arangoOperations = operations;
     }
 
-    public static <T extends RabbitDocumentBase> Map<String, Object> buildQueryMap(T document) {
-        return buildQueryMap(document.getPrincipalId(), document.getDatabase(), document.getSubGroup(), document.getSubKey(), document.get_rev());
+    public RabbitDbQueryBuilder queryByKey() {
+        return query("FOR u IN @@collection FILTER u.principalId == @principalId && u.database == @database && u.subGroup == @subGroup && u.subKey == @subKey RETURN u");
     }
 
-    public static Map<String, Object> buildQueryMap(String principalId, String database, String group, String key) {
-        return buildQueryMap(principalId, database, group, key, null);
+    public RabbitDbQueryBuilder queryByGroup() {
+        return query("FOR u IN @@collection FILTER u.principalId == @principalId && u.database == @database && u.subGroup == @subGroup RETURN u");
     }
 
-    public static Map<String, Object> buildQueryMap(String principalId, String database, String group) {
-        return buildQueryMap(principalId, database, group, null, null);
+    public RabbitDbQueryBuilder query(){
+        return query("");
     }
 
-    public static Map<String, Object> buildQueryMap(String principalId, String database, String group, String key, String rev) {
-        Map<String, Object> queryMap = new HashMap<>();
-        queryMap.put("principalId", principalId);
-        queryMap.put("database", database);
-        queryMap.put("subGroup", group);
-        if (key != null) queryMap.put("subKey", key);
-        if (rev != null) queryMap.put("_rev", rev);
-        return queryMap;
+    public RabbitDbQueryBuilder query(String query){
+        return new RabbitDbQueryBuilder(this, query).withParam("@@collection", COLLECTION);
     }
 
-    public static Map<String, Object> buildQueryMapMultiPrincipal(Collection<String> principalIds, String database, String group) {
-        Map<String, Object> queryMap = new HashMap<>();
-        queryMap.put("principalIds", principalIds);
-        queryMap.put("database", database);
-        queryMap.put("subGroup", group);
-        return queryMap;
-    }
-
-    public static Map<String, Object> buildQueryMapNoPrincipal(String database, String group) {
-        Map<String, Object> queryMap = new HashMap<>();
-        queryMap.put("database", database);
-        queryMap.put("subGroup", group);
-        return queryMap;
-    }
-
-    public boolean isDeleteAccessible(String userId, String db) {
-        if (db == null) return false;
-        if (db.equals("services.registered-connections")) return false;
-        return db.startsWith("services.") || db.startsWith("user.db.");
-    }
-
-    public boolean isWriteAccessible(String userId, String db) {
-        if (db == null) return false;
-        return db.startsWith("services.") || db.startsWith("user.db.");
-    }
-
-    public boolean isReadAccessible(String userId, String db) {
-        if (db == null) return false;
-        return db.startsWith("services.") || db.startsWith("user.db.");
-    }
-
-    public void save(int strategyType, Map<String, Object> queryMap, Map<String, Object> headers, String updateDocumentJson, String insertDocumentJson) {
+    public void upsert(Map<String, Object> queryMap, Map<String, Object> headers, String updateDocumentJson, String insertDocumentJson) {
         if (headers == null) headers = new HashMap<>();
 
         GsonRabbitDocument gsonRabbitDocument = new GsonRabbitDocument();
@@ -104,10 +68,7 @@ public class RabbitDbService {
         if (insertDocument == null) insertDocument = "{}";
         if (updateDocument == null) insertDocument = "{}";
 
-
-        String strategy = strategyType == 0 ? "REPLACE" : "UPDATE";
-        String query = "UPSERT " + gson.toJson(queryMap) + " INSERT " + insertDocument + " " + strategy + " " + updateDocument + " IN " + COLLECTION;
-
+        String query = "UPSERT " + gson.toJson(queryMap) + " INSERT " + insertDocument + " UPDATE " + updateDocument + " IN " + COLLECTION;
         arangoOperations.query(query, null, null, null);
     }
 
@@ -116,16 +77,11 @@ public class RabbitDbService {
         arangoOperations.query(query, null, null, null);
     }
 
-    public <T> Optional<T> loadByKey(Map<String, Object> queryMap, Class<T> type) {
-        String query = "FOR u IN " + COLLECTION + " FILTER u.principalId == @principalId && u.database == @database && u.subGroup == @subGroup && u.subKey == @subKey RETURN u";
-        ArangoCursor<String> result = arangoOperations.query(query, queryMap, null, String.class);
-        if (result == null || !result.hasNext()) return Optional.empty();
-        return Optional.ofNullable(gson.fromJson(result.next(), type));
-    }
-
-    public <T> Set<T> loadByGroup(Map<String, Object> queryMap, Class<T> type) {
-        String query = "FOR u IN " + COLLECTION + " FILTER u.principalId == @principalId && u.database == @database && u.subGroup == @subGroup RETURN u";
+    @SuppressWarnings("unchecked")
+    public <T> Set<T> findByQuery(String query, Map<String, Object> queryMap, Class<T> type) {
         List<String> json = arangoOperations.query(query, queryMap, null, String.class).asListRemaining();
-        return json.stream().map(s -> gson.fromJson(s, type)).collect(Collectors.toSet());
+        Stream<GsonRabbitDocument> stream = json.stream().map(s -> gson.fromJson(s, GsonRabbitDocument.class));
+        if (!type.equals(GsonRabbitDocument.class)) stream.map(gsonRabbitDocument -> gsonRabbitDocument.getSubDocumentAs(type));
+        return (Set<T>) stream.collect(Collectors.toSet());
     }
 }

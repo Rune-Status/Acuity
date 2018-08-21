@@ -24,15 +24,9 @@ public class ProxiesService {
     }
 
     public Set<Proxy> loadProxies() {
-        return rabbitDbService
-                .loadByGroup(
-                        RabbitDbService.buildQueryMap(
-                                Authentication.getAcuityPrincipalId(),
-                                "services.bot-control-data.proxies",
-                                "proxy"
-                        ),
-                        GsonRabbitDocument.class
-                ).stream().map(document -> document.getSubDocumentAs(Proxy.class)).collect(Collectors.toSet());
+        return rabbitDbService.queryByGroup()
+                .withMatch(Authentication.getAcuityPrincipalId(), "services.bot-control-data.proxies", "proxy")
+                .findAll(Proxy.class);
     }
 
 }

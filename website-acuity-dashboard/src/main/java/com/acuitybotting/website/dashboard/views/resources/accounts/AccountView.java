@@ -54,14 +54,17 @@ public class AccountView extends VerticalLayout implements HasUrlParameter<Strin
         add(new TitleSeparator("Bank"), bankList);
     }
     private void refresh(){
-        GsonRabbitDocument gsonAccount = rabbitDbService.loadByKey(getQueryMap(accountId), GsonRabbitDocument.class).orElse(null);
-        if (gsonAccount == null) {
+        RsAccountInfo account = rabbitDbService.queryByKey()
+                .withMatch(Authentication.getAcuityPrincipalId(), "services.rs-accounts", "players", accountId)
+                .findOne(RsAccountInfo.class).orElse(null);
+
+        if (account == null) {
             getUI().ifPresent(ui -> ui.navigate(AccountsListView.class));
             Notifications.error("Failed to find account.");
             return;
         }
 
-        this.account = gsonAccount.getSubDocumentAs(RsAccountInfo.class);
+        this.account = account;
         levelList.update(this.account.getLevels().entrySet());
         inventoryList.update(this.account.getInventory().entrySet());
         bankList.update(this.account.getBank().entrySet());
@@ -70,15 +73,6 @@ public class AccountView extends VerticalLayout implements HasUrlParameter<Strin
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         refresh();
-    }
-
-    private Map<String, Object> getQueryMap(String accountId){
-        return RabbitDbService.buildQueryMap(
-                Authentication.getAcuityPrincipalId(),
-                "services.rs-accounts",
-                "players",
-                accountId
-        );
     }
 
     @Override

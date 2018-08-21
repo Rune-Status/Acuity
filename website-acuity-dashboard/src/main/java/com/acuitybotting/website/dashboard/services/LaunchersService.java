@@ -41,8 +41,9 @@ public class LaunchersService {
     }
 
     public Set<LauncherConnection> loadLaunchers() {
-        return rabbitDbService
-                .loadByGroup(RabbitDbService.buildQueryMap(Authentication.getAcuityPrincipalId(), "services.registered-connections", "connections"), GsonRabbitDocument.class)
+        return rabbitDbService.queryByGroup()
+                .withMatch(Authentication.getAcuityPrincipalId(), "services.registered-connections", "connections")
+                .findAll(GsonRabbitDocument.class)
                 .stream()
                 .filter(connection -> connection.getSubKey().startsWith("ABL_") && (boolean) connection.getHeaders().getOrDefault("connected", false))
                 .map(gsonRabbitDocument -> gsonRabbitDocument.getSubDocumentAs(LauncherConnection.class))
@@ -87,13 +88,10 @@ public class LaunchersService {
         headers.put("connectionConfirmationTime", System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(30));
 
         String configurationDoc = new Gson().toJson(Collections.singletonMap("configuration", clientConfiguration));
-        rabbitDbService.save(
-                RabbitDb.STRATEGY_UPDATE,
-                RabbitDbService.buildQueryMap(Authentication.getAcuityPrincipalId(), "services.registered-connections", "connections", "RPC_" + connectionConfiguration.getConnectionId()),
-                headers,
-                configurationDoc,
-                configurationDoc
-        );
+
+        rabbitDbService.query()
+                .withMatch(Authentication.getAcuityPrincipalId(), "services.registered-connections", "connections", "RPC_" + connectionConfiguration.getConnectionId())
+                .upsert(headers, configurationDoc, configurationDoc);
 
         Map<String, Object> launchConfig = new HashMap<>();
         launchConfig.put("command", command);

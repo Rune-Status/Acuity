@@ -28,8 +28,9 @@ public class ClientsService {
     }
 
     public Set<GsonRabbitDocument> loadClients() {
-        return rabbitDbService
-                .loadByGroup(RabbitDbService.buildQueryMap(Authentication.getAcuityPrincipalId(), "services.registered-connections", "connections"), GsonRabbitDocument.class)
+        return rabbitDbService.queryByGroup()
+                .withMatch(Authentication.getAcuityPrincipalId(), "services.registered-connections", "connections")
+                .findAll(GsonRabbitDocument.class)
                 .stream()
                 .filter(connection -> connection.getSubKey().startsWith("RPC_") && (boolean) connection.getHeaders().getOrDefault("connected", false))
                 .collect(Collectors.toSet());

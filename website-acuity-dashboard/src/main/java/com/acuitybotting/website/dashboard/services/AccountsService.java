@@ -31,29 +31,15 @@ public class AccountsService {
 
     public Set<RsAccountInfo> loadAccounts() {
         return rabbitDbService
-                .loadByGroup(
-                        RabbitDbService.buildQueryMap(
-                                Authentication.getAcuityPrincipalId(),
-                                "services.rs-accounts",
-                                "players"
-                        ),
-                        GsonRabbitDocument.class
-                )
-                .stream()
-                .map(gsonRabbitDocument -> gsonRabbitDocument.getSubDocumentAs(RsAccountInfo.class))
-                .collect(Collectors.toSet());
+                .queryByGroup()
+                .withMatch(Authentication.getAcuityPrincipalId(), "services.rs-accounts", "players")
+                .findAll(RsAccountInfo.class);
     }
 
     public Optional<RsAccountInfo> findAccount(String accountEmail) {
-        return rabbitDbService.loadByKey(
-                RabbitDbService.buildQueryMap(
-                        Authentication.getAcuityPrincipalId(),
-                        "services.rs-accounts",
-                        "players",
-                        accountEmail
-                ),
-                GsonRabbitDocument.class
-        ).map(gsonRabbitDocument -> gsonRabbitDocument.getSubDocumentAs(RsAccountInfo.class));
+        return rabbitDbService.queryByKey()
+                .withMatch(Authentication.getAcuityPrincipalId(), "services.rs-accounts", "players", accountEmail)
+                .findOne(RsAccountInfo.class);
     }
 
     public boolean save(String accountEmail, String encryptedPassword) {
@@ -63,18 +49,9 @@ public class AccountsService {
         jsonObject.addProperty("encryptedPassword", encryptedPassword);
         String json = jsonObject.toString();
 
-        rabbitDbService.save(
-                RabbitDb.STRATEGY_UPDATE,
-                RabbitDbService.buildQueryMap(
-                        Authentication.getAcuityPrincipalId(),
-                        "services.rs-accounts",
-                        "players",
-                        accountEmail
-                ),
-                null,
-                json,
-                json
-        );
+        rabbitDbService.query()
+                .withMatch(Authentication.getAcuityPrincipalId(), "services.rs-accounts", "players", accountEmail)
+                .upsert(json);
 
         return true;
     }

@@ -1,9 +1,7 @@
 package com.acuitybotting.website.dashboard.views.resources.proxies;
 
-import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
-import com.acuitybotting.db.arango.acuity.identities.service.AcuityUsersService;
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.Proxy;
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.Proxy;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.website.dashboard.components.general.fields.UserMasterPasswordField;
 import com.acuitybotting.website.dashboard.components.general.separator.TitleSeparator;
@@ -23,7 +21,6 @@ import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.Route;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Map;
 import java.util.UUID;
 
 @Route(value = "resources/proxies/edit", layout = RootLayout.class)
@@ -51,8 +48,11 @@ public class ProxyEditView extends VerticalLayout implements HasUrlParameter<Str
 
         if (proxyId == null) proxy = new Proxy();
         else {
-            GsonRabbitDocument proxy = rabbitDbService.loadByKey(getQueryMap(proxyId), GsonRabbitDocument.class).orElse(null);
-            if (proxy != null){
+            GsonRabbitDocument proxy = rabbitDbService.queryByKey()
+                    .withMatch(Authentication.getAcuityPrincipalId(), "services.bot-control-data.proxies", "proxy", proxyId)
+                    .findOne(GsonRabbitDocument.class).orElse(null);
+
+            if (proxy != null) {
                 this.proxy = proxy.getSubDocumentAs(Proxy.class);
                 hostField.setValue(this.proxy.getHost());
                 portField.setValue(this.proxy.getPort());
@@ -69,26 +69,19 @@ public class ProxyEditView extends VerticalLayout implements HasUrlParameter<Str
             proxy.setUsername(usernameField.getValue());
 
             String password = passwordField.getOptionalValue().orElse(null);
-            if (password != null){
+            if (password != null) {
                 String encrypt = masterPasswordField.encrypt(password);
                 if (encrypt == null) return;
                 proxy.setEncryptedPassword(encrypt);
             }
 
             String document = new Gson().toJson(proxy);
-            rabbitDbService.save(RabbitDbRequest.SAVE_UPDATE, getQueryMap(proxyId == null ? UUID.randomUUID().toString() : proxyId), null, document, document);
+            rabbitDbService.query()
+                    .withMatch(Authentication.getAcuityPrincipalId(), "services.bot-control-data.proxies", "proxy", proxyId == null ? UUID.randomUUID().toString() : proxyId)
+                    .upsert(document);
             getUI().ifPresent(ui -> ui.navigate(ProxiesListView.class));
         });
         add(save);
-    }
-
-    private Map<String, Object> getQueryMap(String proxyId){
-        return RabbitDbService.buildQueryMap(
-                Authentication.getAcuityPrincipalId(),
-                "services.bot-control-data.proxies",
-                "proxy",
-                proxyId
-        );
     }
 
     @Override

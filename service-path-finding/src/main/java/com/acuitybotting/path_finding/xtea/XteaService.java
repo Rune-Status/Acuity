@@ -111,7 +111,9 @@ public class XteaService {
         synchronized (crushLock){
             log.info("Starting xtea crush.");
 
-            Set<GsonRabbitDocument> result = rabbitDbService.loadByGroup(RabbitDbService.buildQueryMapNoPrincipal("services.xteas", "region-xteas"), GsonRabbitDocument.class);
+            Set<GsonRabbitDocument> result = rabbitDbService.queryByGroup()
+                    .withMatch("services.xteas", "region-xteas")
+                    .findAll(GsonRabbitDocument.class);
 
             Map<Long, Set<Xtea>> collect = result
                     .stream()
@@ -137,9 +139,10 @@ public class XteaService {
             Gson gson = new Gson();
 
             collect.entrySet().parallelStream().forEach(longSetEntry -> {
-                Map<String, Object> map = RabbitDbService.buildQueryMap("server", "services.xteas", "server-xteas", String.valueOf(longSetEntry.getKey()), null);
                 String doc = gson.toJson(longSetEntry.getValue());
-                rabbitDbService.save(4, map, null, doc, doc);
+                rabbitDbService.query()
+                        .withMatch("services.xteas", "server-xteas", String.valueOf(longSetEntry.getKey()))
+                        .upsert(doc);
             });
 
             log.info("Finished saving xteas. Starting delete.");
@@ -148,7 +151,7 @@ public class XteaService {
                 for (GsonRabbitDocument mapRabbitDocument : result) {
                     executorService.submit(() -> {
                         try {
-                            rabbitDbService.delete(RabbitDbService.buildQueryMap(mapRabbitDocument));
+                            rabbitDbService.query().withMatch(mapRabbitDocument).delete();
                         }
                         catch (Throwable e){
                             log.warn("Exception during xtea delete.");

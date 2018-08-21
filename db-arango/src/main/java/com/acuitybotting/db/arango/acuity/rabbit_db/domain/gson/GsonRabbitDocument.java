@@ -18,8 +18,9 @@ public class GsonRabbitDocument extends RabbitDocumentBase {
     private JsonElement subDocument;
 
     public <T> T getSubDocumentAs(Class<T> type) {
+        if (subDocument == null) return null;
         T result = new Gson().fromJson(subDocument, type);
-        if (result != null && result instanceof InheritSubId) ((InheritSubId) result).setParentSubId(getSubKey());
+        if (result instanceof InheritSubId) ((InheritSubId) result).setParentSubId(getSubKey());
         return result;
     }
 }

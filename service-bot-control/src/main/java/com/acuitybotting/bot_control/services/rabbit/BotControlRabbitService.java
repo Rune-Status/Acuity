@@ -9,6 +9,8 @@ import com.acuitybotting.db.arango.acuity.identities.domain.Principal;
 import com.acuitybotting.db.arango.acuity.identities.service.AcuityUsersService;
 import com.acuitybotting.db.arango.acuity.identities.service.PrincipalLinkTypes;
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
+import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbAccess;
+import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbQueryBuilder;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +21,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -75,29 +78,30 @@ public class BotControlRabbitService implements CommandLineRunner {
     public void handle(MessageEvent messageEvent, RabbitDbRequest request, String userId) {
         //log.info("Handling db request {} for user {}.", request, userId);
 
-        Map<String, Object> queryMap = RabbitDbService.buildQueryMap(userId, request.getDatabase(), request.getGroup(), request.getKey(), request.getRev());
+        RabbitDbQueryBuilder builder = dbService.query().withMatch(userId, request.getDatabase(), request.getGroup(), request.getKey(), request.getRev());
 
         Gson gson = new Gson();
 
-        if (dbService.isWriteAccessible(userId, request.getDatabase())) {
+        if (RabbitDbAccess.isWriteAccessible(userId, request.getDatabase())) {
             if (request.getType() == RabbitDbRequest.SAVE_REPLACE || request.getType() == RabbitDbRequest.SAVE_UPDATE) {
-                dbService.save(request.getType(), queryMap, null, request.getUpdateDocument(), request.getInsertDocument());
-            } else if (request.getType() == RabbitDbRequest.DELETE_BY_KEY && dbService.isDeleteAccessible(userId, request.getDatabase())) {
-                dbService.delete(queryMap);
+                builder.upsert(request.getUpdateDocument(), request.getInsertDocument());
+            } else if (request.getType() == RabbitDbRequest.DELETE_BY_KEY && RabbitDbAccess.isDeleteAccessible(userId, request.getDatabase())) {
+                builder.delete();
             }
         }
 
         try {
-            if (dbService.isReadAccessible(userId, request.getDatabase())) {
+            if (RabbitDbAccess.isReadAccessible(userId, request.getDatabase())) {
                 if (request.getType() == RabbitDbRequest.FIND_BY_KEY) {
-                    GsonRabbitDocument gsonRabbitDocument = dbService.loadByKey(queryMap, GsonRabbitDocument.class).orElse(null);
+                    GsonRabbitDocument gsonRabbitDocument = builder.findOne(GsonRabbitDocument.class).orElse(null);
                     try {
                         messageEvent.getQueue().getChannel().buildResponse(messageEvent.getMessage(), gsonRabbitDocument == null ? "" : gson.toJson(gsonRabbitDocument)).send();
                     } catch (MessagingException e) {
                         e.printStackTrace();
                     }
                 } else if (request.getType() == RabbitDbRequest.FIND_BY_GROUP) {
-                    messageEvent.getQueue().getChannel().buildResponse(messageEvent.getMessage(), gson.toJson(dbService.loadByGroup(queryMap, GsonRabbitDocument.class))).send();
+                    Set<GsonRabbitDocument> all = builder.findAll(GsonRabbitDocument.class);
+                    messageEvent.getQueue().getChannel().buildResponse(messageEvent.getMessage(), gson.toJson(all)).send();
                 }
             }
         } catch (MessagingException e) {
