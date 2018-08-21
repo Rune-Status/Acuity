@@ -12,8 +12,10 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.page.BodySize;
 import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.router.RouterLayout;
+import com.vaadin.flow.shared.ui.Transport;
 import com.vaadin.flow.theme.Theme;
 import com.vaadin.flow.theme.lumo.Lumo;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by Zachary Herridge on 6/27/2018.
@@ -22,7 +24,8 @@ import com.vaadin.flow.theme.lumo.Lumo;
 @BodySize(height = "100vh", width = "100vw")
 @Theme(value = Lumo.class, variant = Lumo.DARK)
 @StyleSheet("/acuity.css")
-@Push
+@Push(transport = Transport.LONG_POLLING)
+@Slf4j
 public class RootLayout extends Div implements RouterLayout {
 
     private VerticalLayout content = new VerticalLayout();
@@ -30,7 +33,6 @@ public class RootLayout extends Div implements RouterLayout {
     public RootLayout() {
         UI.getCurrent().getPage().addJavaScript("https://code.jquery.com/jquery-3.1.1.min.js");
         UI.getCurrent().getPage().addJavaScript("https://code.highcharts.com/highcharts.src.js");
-        UI.getCurrent().getPage().addJavaScript("https://code.highcharts.com/modules/exporting.js");
 
         UI.getCurrent().getPage().addJavaScript("/js/acuity-hc-theme.js");
         UI.getCurrent().getPage().addJavaScript("/js/acuity-charts.js");
@@ -67,13 +69,11 @@ public class RootLayout extends Div implements RouterLayout {
 
     @Override
     protected void onAttach(AttachEvent attachEvent) {
-        super.onAttach(attachEvent);
-        System.out.println("Root attached");
+        log.info("Root attached.");
     }
 
     @Override
     protected void onDetach(DetachEvent detachEvent) {
-        super.onDetach(detachEvent);
-        System.out.println("Root detached");
+        log.info("Root detached.");
     }
 }

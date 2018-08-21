@@ -4,30 +4,29 @@ import com.acuitybotting.common.utils.ExecutorUtil;
 import com.acuitybotting.website.dashboard.components.general.charts.highchart.components.ChartContainer;
 import com.acuitybotting.website.dashboard.components.general.charts.highchart.components.ChartSeries;
 import com.acuitybotting.website.dashboard.components.general.charts.highchart.domain.HighChartConfiguration;
-import com.acuitybotting.website.dashboard.components.general.charts.highchart.domain.chart.Series;
-import com.google.gson.JsonArray;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
 /**
  * Created by Zachary Herridge on 8/20/2018.
  */
 @Getter
 @Setter
+@Slf4j
 public class InteractiveHighChart extends VerticalLayout {
 
-    private static ScheduledExecutorService scheduledExecutorService = ExecutorUtil.newScheduledExecutorPool(3);
+    private static ScheduledExecutorService chartUpdateExecutor = ExecutorUtil.newScheduledExecutorPool(3);
 
     private HighChartConfiguration highChartConfiguration = new HighChartConfiguration();
     private String chartDivId;
@@ -49,6 +48,22 @@ public class InteractiveHighChart extends VerticalLayout {
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         chartContainer.attachConfiguration();
-        scheduledExecutorService.scheduleAtFixedRate(() -> series.forEach(ChartSeries::update), 3, 1, TimeUnit.SECONDS);
+        scheduleUpdates(5);
+    }
+
+    private void scheduleUpdates(int delaySeconds){
+        scheduledFuture = chartUpdateExecutor.scheduleAtFixedRate(() -> series.forEach(chartSeries -> {
+            try {
+                chartSeries.update();
+            }
+            catch (Throwable e){
+                log.error("Error during series update.", e);
+            }
+        }), delaySeconds, delaySeconds, TimeUnit.SECONDS);
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        scheduledFuture.cancel(true);
     }
 }
