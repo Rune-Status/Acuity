@@ -69,9 +69,10 @@ public class AcuityHub {
             }
         }
 
+        startAuthedServices();
+
         if (!guestAccount) {
             pullAndApplyConfiguration();
-            startAuthedServices();
 
             rabbitHub.getLocalQueue().withListener(messageEvent -> {
                 if (messageEvent.getMessage().getAttributes().containsKey("killConnection")) {
