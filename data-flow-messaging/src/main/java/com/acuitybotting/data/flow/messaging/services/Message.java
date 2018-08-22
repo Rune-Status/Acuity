@@ -69,4 +69,8 @@ public class Message {
         sb.append('}');
         return sb.toString();
     }
+
+    public boolean attributeEquals(String key, String value) {
+        return value.equals(attributes.get(key));
+    }
 }

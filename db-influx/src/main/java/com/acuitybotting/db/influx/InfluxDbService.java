@@ -75,8 +75,7 @@ public class InfluxDbService {
         try {
             Call call = client.newCall(request);
             Response response = call.execute();
-
-            System.out.println(response.body().string());
+            response.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
