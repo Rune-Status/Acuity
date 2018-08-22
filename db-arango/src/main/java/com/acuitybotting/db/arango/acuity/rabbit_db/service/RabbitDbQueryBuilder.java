@@ -95,4 +95,8 @@ public class RabbitDbQueryBuilder {
     public UpsertResult upsert(Map<String, Object> headers, String update, String insert){
         return service.upsert(queryMap, headers, update, insert);
     }
+
+    public void execute() {
+        service.getArangoOperations().query(query, queryMap, null, null);
+    }
 }

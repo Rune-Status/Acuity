@@ -56,16 +56,9 @@ public class BotControlRabbitService implements CommandLineRunner {
             rabbitHub.auth(username, password);
             rabbitHub.start("ABW", "1.0.01");
 
-            rabbitHub.createPool(1, channel -> {
-                try {
-                    channel.createQueue("bot-control-worker-" + UUID.randomUUID().toString(), true)
-                            .bind("amq.rabbitmq.event", "connection.#")
-                            .withListener(publisher::publishEvent)
-                            .open(true);
-                } catch (MessagingException e) {
-                    e.printStackTrace();
-                }
-            });
+            rabbitHub.getLocalQueue()
+                    .bind("amq.rabbitmq.event", "connection.#")
+                    .withListener(publisher::publishEvent);
 
             rabbitHub.createPool(10, channel -> {
                 channel.createQueue("acuitybotting.work.bot-control", false)
@@ -137,15 +130,6 @@ public class BotControlRabbitService implements CommandLineRunner {
                 }
                 catch (Throwable e ){
                     e.printStackTrace();
-                }
-            }
-
-            if (messageEvent.getRouting().contains(".services.bot-control.getLinkJwt")) {
-                String userId = RabbitUtil.routeToUserId(messageEvent.getRouting());
-                try {
-                    messageEvent.getQueue().getChannel().buildResponse(messageEvent.getMessage(), acuityUsersService.createLinkJwt(Principal.of(PrincipalLinkTypes.RSPEER, userId))).send();
-                } catch (MessagingException e) {
-                    log.error("Error in services.bot-control.getLinkJwt", e);
                 }
             }
         }

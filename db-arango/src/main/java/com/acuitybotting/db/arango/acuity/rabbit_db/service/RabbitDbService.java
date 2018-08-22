@@ -45,21 +45,21 @@ public class RabbitDbService {
         return new RabbitDbQueryBuilder(this, query).withParam("@collection", COLLECTION);
     }
 
-    public UpsertResult upsert(Map<String, Object> queryMap, Map<String, Object> headers, String updateDocumentJson, String insertDocumentJson) {
-        if (headers == null) headers = new HashMap<>();
+    public UpsertResult upsert(Map<String, Object> queryMap, Map<String, Object> meta, String updateDocumentJson, String insertDocumentJson) {
+        if (meta == null) meta = new HashMap<>();
 
         GsonRabbitDocument gsonRabbitDocument = new GsonRabbitDocument();
         gsonRabbitDocument.setPrincipalId((String) queryMap.get("principalId"));
         gsonRabbitDocument.setDatabase((String) queryMap.get("database"));
         gsonRabbitDocument.setSubGroup((String) queryMap.get("subGroup"));
         gsonRabbitDocument.setSubKey((String) queryMap.get("subKey"));
-        gsonRabbitDocument.setHeaders(headers);
-        headers.put("_lastUpdateTime", System.currentTimeMillis());
+        gsonRabbitDocument.setMeta(meta);
+        meta.put("_lastUpdateTime", System.currentTimeMillis());
 
         gsonRabbitDocument.setSubDocument(gson.fromJson(updateDocumentJson, JsonElement.class));
         String updateDocument = gson.toJson(gsonRabbitDocument);
 
-        headers.put("_insertTime", System.currentTimeMillis());
+        meta.put("_insertTime", System.currentTimeMillis());
         gsonRabbitDocument.setSubDocument(gson.fromJson(insertDocumentJson, JsonElement.class));
         String insertDocument = gson.toJson(gsonRabbitDocument);
 

@@ -25,6 +25,6 @@ public class RabbitDocumentBase {
     protected String subGroup;
     protected String subKey;
 
-    protected Map<String, Object> headers;
+    protected Map<String, Object> meta;
 
 }

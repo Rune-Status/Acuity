@@ -55,5 +55,11 @@ public class AccountStatisticsService {
             point.getFields().put("count", 1);
             influxDbService.write("rs-account-stats", point);
         }
+
+
+        if (messageEvent.getRouting().contains("services.rs-accounts")){
+            System.out.println();
+        }
+
     }
 }
