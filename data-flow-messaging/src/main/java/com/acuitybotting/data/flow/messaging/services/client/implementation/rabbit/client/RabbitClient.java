@@ -82,6 +82,10 @@ public class RabbitClient {
         }
     }
 
+    public void requestConfirmState(){
+        scheduledExecutorService.schedule(this::confirmState, 0, TimeUnit.SECONDS);
+    }
+
     private void confirmState() {
         synchronized (CONFIRM_STATE_LOCK){
             if (connection == null || !connection.isOpen()){

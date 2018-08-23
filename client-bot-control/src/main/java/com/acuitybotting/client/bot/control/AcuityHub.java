@@ -15,6 +15,7 @@ import com.google.gson.JsonObject;
 import com.rockaport.alice.Alice;
 import com.rockaport.alice.AliceContext;
 import com.rockaport.alice.AliceContextBuilder;
+import lombok.extern.slf4j.Slf4j;
 
 import java.security.GeneralSecurityException;
 import java.util.Base64;
@@ -27,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by Zachary Herridge on 8/14/2018.
  */
+@Slf4j
 public class AcuityHub {
 
     private static ConnectionConfiguration connectionConfiguration;
@@ -58,7 +60,7 @@ public class AcuityHub {
         }
 
         rabbitHub.auth(username, password);
-        rabbitHub.start(type, version, connectionConfiguration.getConnectionId());
+        rabbitHub.start(connectionConfiguration.getConnectionId());
 
         long start = System.currentTimeMillis();
         while ((System.currentTimeMillis() - start) < TimeUnit.SECONDS.toMillis(15) && !rabbitHub.getLocalQueue().getChannel().isConnected()) {
@@ -84,6 +86,21 @@ public class AcuityHub {
                 }
             });
         }
+
+        addShutdownHook();
+    }
+
+    private static void addShutdownHook(){
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+
+                JsonObject update = new JsonObject();
+                update.addProperty("connected", false);
+                rabbitHub.updateConnectionDocument(update.toString());
+            } catch (MessagingException e) {
+                log.error("Error disconnecting.");
+            }
+        }));
     }
 
     public static boolean publishEvent(String type, String body) {
@@ -106,10 +123,10 @@ public class AcuityHub {
     private static void pullAndApplyConfiguration() {
         try {
             Document connection = rabbitHub.getDb("services.registered-connections").findByGroupAndKey("connections", rabbitHub.getConnectionId());
-            if (connection == null || connection.getDocument() == null || connection.getDocument().get("configuration") == null)
+            if (connection == null || connection.getSubDocument() == null || connection.getSubDocument().get("configuration") == null)
                 return;
 
-            ClientConfiguration configuration = new Gson().fromJson(connection.getDocument().getAsJsonObject("configuration"), ClientConfiguration.class);
+            ClientConfiguration configuration = new Gson().fromJson(connection.getSubDocument().getAsJsonObject("configuration"), ClientConfiguration.class);
 
             if (configuration.getAccountLogin() != null && configuration.getAccountEncryptedPassword() != null) {
                 getControlInterface().ifPresent(control -> {
@@ -173,43 +190,39 @@ public class AcuityHub {
     }
 
     private static void sendPlayer() {
-        if (stateInterface == null) return;
-
-        JsonObject playerUpdate = stateInterface.buildPlayerState();
-        if (playerUpdate == null || playerUpdate.get("email") == null) return;
-
-        JsonObject wrapper = new JsonObject();
-        wrapper.add("gameInfo", playerUpdate);
-
         try {
+            if (stateInterface == null) return;
+
+            JsonObject playerUpdate = stateInterface.buildPlayerState();
+            if (playerUpdate == null || playerUpdate.get("email") == null) return;
+
+            JsonObject wrapper = new JsonObject();
+            wrapper.add("state", playerUpdate);
+
             rabbitHub.getDb("services.rs-accounts").update(
                     "players",
                     playerUpdate.get("email").getAsString(),
                     new Gson().toJson(wrapper)
             );
-        } catch (MessagingException e) {
-            e.printStackTrace();
+        }
+        catch (Throwable e){
+            log.error("Error sending state 2.");
         }
     }
 
     private static void sendClient() {
-        if (stateInterface == null) return;
-
-        JsonObject clientUpdate = stateInterface.buildClientState();
-        if (clientUpdate == null) return;
-
-
-        JsonObject wrapper = new JsonObject();
-        wrapper.add("state", clientUpdate);
-
         try {
-            rabbitHub.getDb("services.registered-connections").update(
-                    "connections",
-                    rabbitHub.getConnectionId(),
-                    new Gson().toJson(wrapper)
-            );
-        } catch (MessagingException e) {
-            e.printStackTrace();
+            if (stateInterface == null) return;
+
+            JsonObject clientUpdate = stateInterface.buildClientState();
+            if (clientUpdate == null) return;
+
+
+            JsonObject wrapper = new JsonObject();
+            wrapper.add("state", clientUpdate);
+            rabbitHub.updateConnectionDocument(wrapper.toString());
+        } catch (Throwable e) {
+            log.error("Error sending state 1.");
         }
     }
 

@@ -54,7 +54,7 @@ public class BotControlRabbitService implements CommandLineRunner {
     private void connect() {
         try {
             rabbitHub.auth(username, password);
-            rabbitHub.start("ABW", "1.0.01");
+            rabbitHub.start();
 
             rabbitHub.getLocalQueue()
                     .bind("amq.rabbitmq.event", "connection.#")

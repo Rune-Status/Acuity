@@ -32,7 +32,7 @@ public class ClientsService {
                 .withMatch(Authentication.getAcuityPrincipalId(), "services.registered-connections", "connections")
                 .findAll(GsonRabbitDocument.class)
                 .stream()
-                .filter(connection -> connection.getSubKey().startsWith("RPC_") && (boolean) connection.getHeaders().getOrDefault("connected", false))
+                .filter(connection -> connection.getSubKey().startsWith("RPC_") && (boolean) connection.getMeta().getOrDefault("connected", false))
                 .collect(Collectors.toSet());
     }
 

@@ -45,7 +45,7 @@ public class LaunchersService {
                 .withMatch(Authentication.getAcuityPrincipalId(), "services.registered-connections", "connections")
                 .findAll(GsonRabbitDocument.class)
                 .stream()
-                .filter(connection -> connection.getSubKey().startsWith("ABL_") && (boolean) connection.getHeaders().getOrDefault("connected", false))
+                .filter(connection -> connection.getSubKey().startsWith("ABL_") && (boolean) connection.getMeta().getOrDefault("connected", false))
                 .map(gsonRabbitDocument -> gsonRabbitDocument.getSubDocumentAs(LauncherConnection.class))
                 .collect(Collectors.toSet());
     }

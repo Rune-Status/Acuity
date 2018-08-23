@@ -34,10 +34,10 @@ public class RegisteredConnectionsService {
         String updateConnected = "FOR r IN @@collection\n" +
                 "FILTER r.database == 'services.registered-connections'" +
                 "LET connected = r.meta._lastUpdateTime > @timeout\n" +
-                "UPDATE { _key: r._key, meta: { connected : connected}} IN @@collection";
+                "UPDATE { _key: r._key, subDocument : { connected : connected}} IN @@collection";
 
         rabbitDbService.query(updateConnected)
-                .withParam("timeout", System.currentTimeMillis() - TimeUnit.SECONDS.toMillis(11))
+                .withParam("timeout", System.currentTimeMillis() - TimeUnit.SECONDS.toMillis(20))
                 .execute();
     }
 }

@@ -113,6 +113,7 @@ public class RabbitQueue {
         binding.setExchange(exchange);
         binding.setRouting(routing);
         bindings.add(binding);
+        client.requestConfirmState();
         return this;
     }
 

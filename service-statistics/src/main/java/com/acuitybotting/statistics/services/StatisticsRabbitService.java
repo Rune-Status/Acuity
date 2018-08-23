@@ -30,7 +30,7 @@ public class StatisticsRabbitService implements CommandLineRunner {
     private void start(){
         RabbitHub rabbitHub = new RabbitHub();
         rabbitHub.auth(username, password);
-        rabbitHub.start("ADS", "1.0.01");
+        rabbitHub.start();
 
         try {
             rabbitHub.getLocalQueue().bind("acuitybotting.general", "user.*.rabbitdb.update.#");

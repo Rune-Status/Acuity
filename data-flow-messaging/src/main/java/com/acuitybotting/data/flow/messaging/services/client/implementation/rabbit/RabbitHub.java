@@ -32,17 +32,17 @@ public class RabbitHub {
         this.password = password;
     }
 
-    public void start(String type, String version) {
-        start(type, version, UUID.randomUUID().toString().replaceAll("-", ""));
+    public void start() {
+        start(UUID.randomUUID().toString().replaceAll("-", ""));
     }
 
-    public void start(String connectionPrefix, String version, String connectionId) {
+    public void start(String connectionId) {
         allowedPrefix = "user." + username + ".";
-        this.connectionId = connectionPrefix + "_" + connectionId;
+        this.connectionId = connectionId;
 
         rabbitClient = new RabbitClient();
         rabbitClient.auth("nodes-1.admin-acuitybotting.com", "31457", username, password);
-        rabbitClient.connect(this.connectionId + "_" + version);
+        rabbitClient.connect(this.connectionId );
 
         localPool = createPool(2, null);
         localQueue = localPool

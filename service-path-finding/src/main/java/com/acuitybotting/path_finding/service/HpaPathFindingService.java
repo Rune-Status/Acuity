@@ -113,7 +113,7 @@ public class HpaPathFindingService {
 
             RabbitHub rabbitHub = new RabbitHub();
             rabbitHub.auth(username, password);
-            rabbitHub.start("APW", "1.0.01");
+            rabbitHub.start();
 
             rabbitHub.createPool(5, channel ->
                     channel

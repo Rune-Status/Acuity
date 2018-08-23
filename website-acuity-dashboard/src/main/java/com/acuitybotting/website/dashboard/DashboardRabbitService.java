@@ -40,7 +40,7 @@ public class DashboardRabbitService implements CommandLineRunner {
 
             RabbitHub rabbitHub = new RabbitHub();
             rabbitHub.auth(username, password);
-            rabbitHub.start("AWD", "1.0.01");
+            rabbitHub.start();
             pool = rabbitHub.createPool(5, null);
         }
         catch (Throwable e){
