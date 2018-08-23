@@ -3,6 +3,7 @@ package com.acuitybotting.website.dashboard.components.general.charts.highchart;
 import com.acuitybotting.common.utils.ExecutorUtil;
 import com.acuitybotting.website.dashboard.components.general.charts.highchart.components.ChartContainer;
 import com.acuitybotting.website.dashboard.components.general.charts.highchart.components.ChartSeries;
+import com.acuitybotting.website.dashboard.components.general.charts.highchart.data.ChartDataSource;
 import com.acuitybotting.website.dashboard.components.general.charts.highchart.domain.HighChartConfiguration;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
@@ -13,7 +14,9 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +35,8 @@ public class InteractiveHighChart extends VerticalLayout {
     private String chartDivId;
 
     private ChartContainer chartContainer;
+
+    private Set<ChartDataSource> dataSources = new HashSet<>();
 
     private List<ChartSeries> series = new ArrayList<>();
 
@@ -52,9 +57,9 @@ public class InteractiveHighChart extends VerticalLayout {
     }
 
     private void scheduleUpdates(int delaySeconds){
-        scheduledFuture = chartUpdateExecutor.scheduleAtFixedRate(() -> series.forEach(chartSeries -> {
+        scheduledFuture = chartUpdateExecutor.scheduleAtFixedRate(() -> dataSources.forEach(dataSource -> {
             try {
-                chartSeries.update();
+                dataSource.update();
             }
             catch (Throwable e){
                 log.error("Error during series update.", e);

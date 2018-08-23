@@ -1,6 +1,7 @@
 package com.acuitybotting.db.influx.domain.query;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import lombok.Getter;
 import lombok.ToString;
 

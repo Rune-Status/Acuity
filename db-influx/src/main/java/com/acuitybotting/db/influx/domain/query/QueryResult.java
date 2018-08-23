@@ -15,6 +15,10 @@ public class QueryResult {
 
     private List<Result> results;
 
+    public Series getFirstSeries(){
+        return getResults().get(0).getSeries().get(0);
+    }
+
     public JsonArray getFirstValues(){
         return getResults().get(0).getSeries().get(0).getValues();
     }

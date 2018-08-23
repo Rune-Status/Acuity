@@ -2,6 +2,7 @@ package com.acuitybotting.website.dashboard.components.general.charts.highchart.
 
 import com.acuitybotting.website.dashboard.components.general.charts.highchart.InteractiveHighChart;
 import com.acuitybotting.website.dashboard.components.general.charts.highchart.components.ChartSeries;
+import com.acuitybotting.website.dashboard.components.general.charts.highchart.data.ChartDataSource;
 import com.google.gson.JsonArray;
 
 import java.util.function.Supplier;
@@ -16,11 +17,15 @@ public class LineChart extends InteractiveHighChart {
         getHighChartConfiguration().getXAxis().setType("datetime");
     }
 
-    public ChartSeries addSeries(String title, Supplier<JsonArray> loadSupplier) {
-        ChartSeries series = new ChartSeries(this);
-        series.setLoadSupplier(loadSupplier);
-        series.build(title);
+    public ChartSeries addSeries(String title, ChartDataSource dataSource, int... columns) {
+        getDataSources().add(dataSource);
+
+        ChartSeries series = new ChartSeries(this, columns);
+
+        series.build(title, ChartDataSource.getColumns(dataSource.getOrLoad(), columns));
         getSeries().add(series);
+
+        dataSource.getListeners().add(series);
         return series;
     }
 }
