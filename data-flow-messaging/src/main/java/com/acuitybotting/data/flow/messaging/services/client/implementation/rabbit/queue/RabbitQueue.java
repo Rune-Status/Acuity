@@ -71,7 +71,7 @@ public class RabbitQueue {
 
                 if (consumeId.get() == null) {
                     if (createQueue) {
-                        queueName = channel.getChannel().queueDeclare(queueName, false, true, true, null).getQueue();
+                        queueName = channel.getChannel().queueDeclare(queueName, false, false, true, null).getQueue();
                         client.getLog().accept("Queue declared named '" + queueName + "'.");
                     }
 

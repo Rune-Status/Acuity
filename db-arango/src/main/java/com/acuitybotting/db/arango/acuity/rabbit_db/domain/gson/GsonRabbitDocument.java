@@ -1,6 +1,7 @@
 package com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson;
 
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.RabbitDocumentBase;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.RabbitSubDocument;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import lombok.Getter;
@@ -20,7 +21,7 @@ public class GsonRabbitDocument extends RabbitDocumentBase {
     public <T> T getSubDocumentAs(Class<T> type) {
         if (subDocument == null) return null;
         T result = new Gson().fromJson(subDocument, type);
-        if (result instanceof InheritSubId) ((InheritSubId) result).setParentSubId(getSubKey());
+        if (result instanceof RabbitSubDocument) ((RabbitSubDocument) result).setParent(this);
         return result;
     }
 }

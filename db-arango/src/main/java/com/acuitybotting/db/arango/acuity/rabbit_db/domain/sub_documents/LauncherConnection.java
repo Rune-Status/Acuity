@@ -1,12 +1,11 @@
 package com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents;
 
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.InheritSubId;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.RabbitSubDocument;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 import java.text.DecimalFormat;
-import java.util.Map;
 
 /**
  * Created by Zachary Herridge on 8/14/2018.
@@ -14,16 +13,9 @@ import java.util.Map;
 @Setter
 @Getter
 @ToString
-public class LauncherConnection implements InheritSubId {
-
-    private String subKey;
+public class LauncherConnection extends RabbitSubDocument {
 
     private MachineState state;
-
-    @Override
-    public void setParentSubId(String id) {
-        setSubKey(id);
-    }
 
     @Getter
     public static class MachineState {

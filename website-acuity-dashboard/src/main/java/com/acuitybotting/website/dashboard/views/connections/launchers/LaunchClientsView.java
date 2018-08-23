@@ -45,10 +45,10 @@ public class LaunchClientsView extends VerticalLayout implements Authed {
 
         public LauncherSelectComponent(LaunchersService launchersService) {
             withSelectionEnabled();
-            withColumn("ID", "33%", document -> new Div(), (document, div) -> div.setText(document.getSubKey()));
+            withColumn("ID", "33%", document -> new Div(), (document, div) -> div.setText(document.getParent().getSubKey()));
             withColumn("Username", "25%", document -> new Div(), (document, div) -> div.setText(document.getState().getUserName()));
-            withSearchable(launcherConnection -> launcherConnection.getSubKey() + " " + launcherConnection.getState().getUserName());
-            withLoad(LauncherConnection::getSubKey, launchersService::loadLaunchers);
+            withSearchable(launcherConnection -> launcherConnection.getParent().getSubKey() + " " + launcherConnection.getState().getUserName());
+            withLoad(launcherConnection -> launcherConnection.getParent().getSubKey(), launchersService::loadLaunchers);
         }
     }
 }

@@ -75,7 +75,7 @@ public class LaunchClientsComponent extends VerticalLayout {
             add(new TitleSeparator("Proxy"), proxyComboBox);
 
             accountComboBox.setWidth("65%");
-            accountComboBox.setItemLabelGenerator(RsAccountInfo::getSubKey);
+            accountComboBox.setItemLabelGenerator(rsAccountInfo -> rsAccountInfo.getParent().getSubKey());
             add(new TitleSeparator("Account"), accountComboBox);
 
             scriptSelector.setWidth("100%");
@@ -97,7 +97,7 @@ public class LaunchClientsComponent extends VerticalLayout {
     }
 
     private void deploy() {
-        Set<String> subIds = launcherSelectComponent.getSelectedValues().map(LauncherConnection::getSubKey).collect(Collectors.toSet());
+        Set<String> subIds = launcherSelectComponent.getSelectedValues().map(launcherConnection -> launcherConnection.getParent().getSubKey()).collect(Collectors.toSet());
         launchersService.deploy(
                 subIds,
                 commandField.getValue(),

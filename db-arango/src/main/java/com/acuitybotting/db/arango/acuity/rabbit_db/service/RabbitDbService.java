@@ -68,7 +68,6 @@ public class RabbitDbService {
 
         String query = "UPSERT " + gson.toJson(queryMap) + " INSERT " + insertDocument + " UPDATE " + updateDocument + " IN " + COLLECTION + " RETURN {previous: OLD, current: NEW}";
 
-
         UpsertResult result = arangoOperations.query(query, null, null, String.class)
                 .asListRemaining()
                 .stream()
@@ -88,7 +87,9 @@ public class RabbitDbService {
     public <T> Set<T> findByQuery(String query, Map<String, Object> queryMap, Class<T> type) {
         List<String> json = arangoOperations.query(query, queryMap, null, String.class).asListRemaining();
         Stream<GsonRabbitDocument> stream = json.stream().map(s -> gson.fromJson(s, GsonRabbitDocument.class));
-        if (!type.equals(GsonRabbitDocument.class)) stream.map(gsonRabbitDocument -> gsonRabbitDocument.getSubDocumentAs(type));
+        if (!type.equals(GsonRabbitDocument.class)) {
+            return stream.map(gsonRabbitDocument -> gsonRabbitDocument.getSubDocumentAs(type)).collect(Collectors.toSet());
+        }
         return (Set<T>) stream.collect(Collectors.toSet());
     }
 }

@@ -23,11 +23,11 @@ public class ProxyListComponent extends InteractiveList<Proxy> {
         withColumn("Password", "10%", document -> new Div(), (document, div) -> div.setText(document.getEncryptedPassword() != null ? "Set" : "None"));
         withColumn("", "5", "5%", proxy -> {
             Button button = new Button(VaadinIcon.EDIT.create());
-            button.addClickListener(buttonClickEvent -> getUI().ifPresent(ui -> ui.navigate(ProxyEditView.class, proxy.getSubId())));
+            button.addClickListener(buttonClickEvent -> getUI().ifPresent(ui -> ui.navigate(ProxyEditView.class, proxy.getParent().getSubKey())));
             return button;
         }, (proxy, button) -> {
         });
-        withLoad(Proxy::getSubId, proxiesService::loadProxies);
+        withLoad(proxy -> proxy.getParent().getSubKey(), proxiesService::loadProxies);
 
         Button add = new Button(VaadinIcon.PLUS_CIRCLE.create());
         getControls().add(add);

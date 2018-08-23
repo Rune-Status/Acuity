@@ -63,7 +63,7 @@ public class LaunchersService {
         clientConfiguration.addProperty("masterSecret", acuityBottingUser.getMasterKey());
 
         if (rsAccountInfo != null) {
-            clientConfiguration.addProperty("accountLogin", rsAccountInfo.getSubKey());
+            clientConfiguration.addProperty("accountLogin", rsAccountInfo.getParent().getSubKey());
             clientConfiguration.addProperty("accountEncryptedPassword", rsAccountInfo.getEncryptedPassword());
         }
 

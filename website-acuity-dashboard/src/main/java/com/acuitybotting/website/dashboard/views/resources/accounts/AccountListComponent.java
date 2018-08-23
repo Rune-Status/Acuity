@@ -23,14 +23,14 @@ public class AccountListComponent extends InteractiveList<RsAccountInfo> {
 
         withColumn("Email", "30%", document -> {
             Div div = new Div();
-            div.getElement().addEventListener("click", domEvent -> getUI().ifPresent(ui -> ui.navigate(AccountView.class, document.getSubKey())));
+            div.getElement().addEventListener("click", domEvent -> getUI().ifPresent(ui -> ui.navigate(AccountView.class, document.getParent().getSubKey())));
             return div;
-        }, (document, div) -> div.setText(document.getSubKey()));
+        }, (document, div) -> div.setText(document.getParent().getSubKey()));
         withColumn("Last World", "10%", document -> new Div(), (document, div) -> div.setText(String.valueOf(document.getWorld())));
         withColumn("Password", "10%", document -> new Div(), (document, div) -> div.setText(document.getEncryptedPassword() != null ? "Set" : "None"));
-        withColumn("", "5%", "5%", rsAccountInfo -> Components.button(VaadinIcon.EDIT, event -> getUI().ifPresent(ui -> ui.navigate(AccountEditView.class, rsAccountInfo.getSubKey()))), (rsAccountInfo, button) -> {});
+        withColumn("", "5%", "5%", rsAccountInfo -> Components.button(VaadinIcon.EDIT, event -> getUI().ifPresent(ui -> ui.navigate(AccountEditView.class, rsAccountInfo.getParent().getSubKey()))), (rsAccountInfo, button) -> {});
 
-        withSearchable(RsAccountInfo::getSubKey);
-        withLoad(RsAccountInfo::getSubKey, accountsService::loadAccounts);
+        withSearchable(rsAccountInfo -> rsAccountInfo.getParent().getSubKey());
+        withLoad(rsAccountInfo -> rsAccountInfo.getParent().getSubKey(), accountsService::loadAccounts);
     }
 }

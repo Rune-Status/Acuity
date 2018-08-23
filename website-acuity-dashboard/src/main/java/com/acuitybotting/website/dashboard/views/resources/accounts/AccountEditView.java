@@ -51,7 +51,7 @@ public class AccountEditView extends VerticalLayout implements Authed, HasUrlPar
         if (attachEvent.isInitialAttach()) {
             add(new TitleSeparator((accountEmail == null ? "Add" : "Edit") + " Account"));
 
-            TextField emailField = Components.textField("Email", "Email", () -> accountInfo.getSubKey());
+            TextField emailField = Components.textField("Email", "Email", () -> accountInfo.getParent().getSubKey());
             PasswordField passwordField = new PasswordField("Password");
             add(emailField, passwordField, masterPasswordField);
 
