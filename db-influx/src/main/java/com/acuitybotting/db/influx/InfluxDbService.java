@@ -49,10 +49,17 @@ public class InfluxDbService {
                 .build();
 
         try {
+            System.out.println(request);
             Call call = client.newCall(request);
             Response response = call.execute();
 
-            return new Gson().fromJson(Objects.requireNonNull(response.body()).string(), QueryResult.class);
+            ResponseBody body = response.body();
+            System.out.println(body);
+            if (body != null){
+                String string = body.string();
+                System.out.println(string);
+                return new Gson().fromJson(string, QueryResult.class);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -12,8 +12,6 @@ public class HighChartsTest extends VerticalLayout {
 
     private final InfluxDbService influxDbService;
 
-    private static final String QUERY = "SELECT max(\"count\") AS \"max_count\", max(\"loggedIn\") AS \"max_loggedIn\" FROM \"client-state\".\"autogen\".\"clients-state\" WHERE time > now() - 3h GROUP BY time(10m) FILL(null)";
-
     public HighChartsTest(InfluxDbService influxDbService) {
         this.influxDbService = influxDbService;
     }
@@ -23,7 +21,9 @@ public class HighChartsTest extends VerticalLayout {
         LineChart chart = new LineChart("connections-chart");
 
         ChartDataSource dataSource = new ChartDataSource();
-        dataSource.setSeriesSupplier(() -> influxDbService.query("client-state", "SELECT max(\"count\") AS \"max_count\", max(\"loggedIn\") AS \"max_loggedIn\" FROM \"client-state\".\"autogen\".\"clients-state\" WHERE time > now() - 2h GROUP BY time(5m) FILL(null)").getFirstSeries());
+        dataSource.setSeriesSupplier(() -> {
+            return influxDbService.query("client-state", "SELECT max(\"count\") AS \"max_count\", max(\"loggedIn\") AS \"max_loggedIn\" FROM \"client-state\".\"autogen\".\"clients-state\" WHERE time > now() - 20m GROUP BY time(5s) FILL(null)").getFirstSeries();
+        });
         chart.addSeries("connected", dataSource, 0, 1);
         chart.addSeries("logged in", dataSource, 0, 2);
         add(chart);

@@ -34,21 +34,16 @@ public class ChartSeries implements ChartDataListener {
     public void onUpdate(com.acuitybotting.db.influx.domain.query.Series series) {
         if (!chart.getChartContainer().isAttached()) return;
 
-
-        String chartId = chart.getChartDivId();
         int index = chart.getSeries().indexOf(this);
-
         JsonArray data = ChartDataSource.getColumns(series, this.columns);
         JsonArray point = data.get(data.size() - 1).getAsJsonArray();
-        addOrUpdatePoint(chartId, index, point.get(0).getAsLong(), point.get(1).getAsNumber());
+        if (point.isJsonNull() || point.get(0).isJsonNull() || point.get(1).isJsonNull()) return;
+        addOrUpdatePoint(index, point.get(0).getAsLong(), point.get(1).getAsNumber());
     }
 
-    private void addOrUpdatePoint(String chartId, Number seriesIndex, Number timestamp, Number value) {
-        String js = "addOrUpdateChart(\"" + chartId + "\", " + seriesIndex + ", " + timestamp + ", " + value + ");";
-
-        chart.getUI().ifPresent(ui -> {
-            if (ui.isClosing() || ui.getSession() == null) return;
-            ui.access(() -> ui.getPage().executeJavaScript(js));
-        });
+    private void addOrUpdatePoint(Number seriesIndex, Number timestamp, Number value) {
+        chart.getUI().ifPresent(ui -> ui.access(() -> {
+            chart.getChartContainer().getElement().callFunction("addOrUpdate", seriesIndex.intValue(), String.valueOf(timestamp), value.intValue());
+        }));
     }
 }

@@ -44,6 +44,5 @@ public class StatisticsRabbitService implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         start();
-        rsBuddyService.getItemPrices();
     }
 }

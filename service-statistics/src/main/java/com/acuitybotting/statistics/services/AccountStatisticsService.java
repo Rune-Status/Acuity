@@ -6,17 +6,21 @@ import com.acuitybotting.data.flow.messaging.services.identity.RabbitUtil;
 import com.acuitybotting.db.arango.acuity.statistic.event.domain.StatisticEvent;
 import com.acuitybotting.db.arango.acuity.statistic.event.repository.StatisticEventRepository;
 import com.acuitybotting.db.influx.InfluxDbService;
+import com.acuitybotting.db.influx.domain.query.QueryResult;
 import com.acuitybotting.db.influx.domain.write.Point;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 /**
  * Created by Zachary Herridge on 8/22/2018.
  */
 @Service
-public class AccountStatisticsService {
+public class AccountStatisticsService  implements CommandLineRunner {
 
     private final StatisticEventRepository eventRepository;
     private final InfluxDbService influxDbService;
@@ -46,5 +50,23 @@ public class AccountStatisticsService {
             point.getFields().put("count", 1);
             influxDbService.write("rs-account-stats", point);
         }
+    }
+
+
+    @Scheduled(initialDelay = 0, fixedDelay = 3000)
+    public void test(){
+        try {
+            QueryResult query = influxDbService.query("client-state", "SELECT max(\"count\") AS \"max_count\", max(\"loggedIn\") AS \"max_loggedIn\" FROM \"client-state\".\"autogen\".\"clients-state\" WHERE time > now() - 2h GROUP BY time(5m) FILL(null)");
+            JsonArray v1 = query.getFirstValues();
+            System.out.println(v1.get(v1.size() - 1));
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void run(String... args) throws Exception {
+
     }
 }
