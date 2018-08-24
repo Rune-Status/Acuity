@@ -26,7 +26,7 @@ public class ConnectionsStatisticsService {
         this.rabbitDbService = rabbitDbService;
     }
 
-    @Scheduled(initialDelay = 3000, fixedRate = 3000)
+    @Scheduled(initialDelay = 3000, fixedRate = 10000)
     private void update() {
         String updateTimeout =
                 "FOR r IN @@collection\n" +

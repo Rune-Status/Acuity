@@ -48,6 +48,26 @@ public class RsBuddyService {
         return itemPrices;
     }
 
+
+    public long value(Map<Integer, Integer> items) {
+        if (items == null) return 0;
+
+        long totalValue = 0;
+
+        for (Map.Entry<Integer, Integer> entry : items.entrySet()) {
+            if (entry.getKey() == 995) {
+                totalValue += entry.getValue();
+                continue;
+            }
+
+            ItemPrice itemPrice = itemPrices.getPrices().get(String.valueOf(entry.getKey()));
+            if (itemPrice == null) continue;
+            totalValue += (itemPrice.getSell_average() * entry.getValue());
+        }
+
+        return totalValue;
+    }
+
     @Getter
     @Setter
     public static class ItemPrices {

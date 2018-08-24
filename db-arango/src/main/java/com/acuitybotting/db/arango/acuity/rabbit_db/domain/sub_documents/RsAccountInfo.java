@@ -17,7 +17,9 @@ public class RsAccountInfo extends RabbitSubDocument {
 
     private int world;
     private Map<String, Long> levels = new HashMap<>();
+    private Map<String, Long> experience = new HashMap<>();
 
     private Map<Integer, Integer> inventory = new HashMap<>();
     private Map<Integer, Integer> bank = new HashMap<>();
+    private Map<Integer, Integer> equipment = new HashMap<>();
 }
