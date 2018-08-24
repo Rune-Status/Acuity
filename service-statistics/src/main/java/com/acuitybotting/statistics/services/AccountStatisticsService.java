@@ -3,6 +3,9 @@ package com.acuitybotting.statistics.services;
 import com.acuitybotting.common.utils.GsonUtil;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.data.flow.messaging.services.identity.RabbitUtil;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.RabbitDocumentBase;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.RabbitSubDocument;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.RsAccountInfo;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.db.arango.acuity.statistic.event.domain.StatisticEvent;
@@ -40,6 +43,35 @@ public class AccountStatisticsService implements CommandLineRunner {
 
     @EventListener
     public void onMessage(MessageEvent messageEvent) {
+
+        if (messageEvent.getRouting().endsWith("rabbitdb.update.services.rs-accounts.players")){
+            Gson gson = new Gson();
+
+            DbUpdate update = gson.fromJson(messageEvent.getMessage().getBody(), DbUpdate.class);
+            if (update.getPrevious() == null || update.getCurrent() == null) return;
+
+
+            RsAccountDocument previous = update.getPrevious().getSubDocumentAs(RsAccountDocument.class);
+            RsAccountDocument current = update.getCurrent().getSubDocumentAs(RsAccountDocument.class);
+
+            if (previous.getState().getBank() == null) return;
+
+            long previousValue = value(previous);
+            long currentValue = value(current);
+
+            long difference = currentValue - previousValue;
+
+
+            if (difference == 0) return;
+
+            Point point = new Point();
+            point.setMeasurement("value-change");
+            point.getFields().put("change", difference);
+            point.getTags().put("email", previous.getParent().getSubKey());
+            point.getTags().put("principalId", previous.getParent().getPrincipalId());
+            influxDbService.write("rs-account-stats", point);
+        }
+
         String eventType = messageEvent.getMessage().getAttributes().get("eventType");
         if ("account.banned".equals(eventType) || "account.locked".equals(eventType)) {
             JsonObject body = new Gson().fromJson(messageEvent.getMessage().getBody(), JsonObject.class);
@@ -61,6 +93,14 @@ public class AccountStatisticsService implements CommandLineRunner {
     }
 
 
+    private long value(RsAccountDocument document){
+        long accountValue = 0;
+        accountValue += rsBuddyService.value(document.getState().getBank());
+        accountValue += rsBuddyService.value(document.getState().getInventory());
+        accountValue += rsBuddyService.value(document.getState().getEquipment());
+        return accountValue;
+    }
+
     @Scheduled(initialDelay = 0, fixedRate = 15000)
     public void test() {
         String query = "FOR r in @@collection\n" +
@@ -73,14 +113,9 @@ public class AccountStatisticsService implements CommandLineRunner {
 
         for (RsAccountDocument document : all) {
             if (document.getState() == null) continue;
-            long accountValue = 0;
-            accountValue += rsBuddyService.value(document.getState().getBank());
-            accountValue += rsBuddyService.value(document.getState().getInventory());
-            accountValue += rsBuddyService.value(document.getState().getEquipment());
-
-
-            if (document.isBanned()) bannedValue += accountValue;
-            else activeValue += accountValue;
+            long value = value(document);
+            if (document.isBanned()) bannedValue += value;
+            else activeValue += value;
         }
 
         Point point = new Point();
@@ -96,7 +131,15 @@ public class AccountStatisticsService implements CommandLineRunner {
     }
 
     @Getter
-    public static class RsAccountDocument {
+    public static class DbUpdate{
+
+        private GsonRabbitDocument previous;
+        private GsonRabbitDocument current;
+
+    }
+
+    @Getter
+    public static class RsAccountDocument extends RabbitSubDocument {
 
         private boolean banned;
         private RsAccountInfo state;
