@@ -74,7 +74,6 @@ public class RabbitDbService {
             query += " OPTIONS " + gson.toJson(options);
         }
 
-
         return arangoOperations.query(query, null, null, String.class)
                 .asListRemaining()
                 .stream()
