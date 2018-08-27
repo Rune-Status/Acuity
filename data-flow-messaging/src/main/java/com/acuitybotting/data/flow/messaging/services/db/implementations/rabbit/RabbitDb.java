@@ -20,9 +20,6 @@ import java.util.function.Supplier;
  */
 public class RabbitDb implements MessagingDb {
 
-    public static final int STRATEGY_REPLACE = RabbitDbRequest.SAVE_REPLACE;
-    public static final int STRATEGY_UPDATE = RabbitDbRequest.SAVE_UPDATE;
-
     private Supplier<RabbitQueue> queueSupplier;
     private String exchange;
     private String route;
@@ -54,30 +51,14 @@ public class RabbitDb implements MessagingDb {
         send(delete);
     }
 
-    public void update(String documentGroup, String key, String document) throws MessagingException {
-        update(documentGroup, key, null, document);
+    public void upsert(String documentGroup, String key, String insertDocument, String updateDocument) throws MessagingException {
+        upsert(documentGroup, key, null, insertDocument, updateDocument);
     }
 
-    public void update(String documentGroup, String key, String rev, String document) throws MessagingException {
-        upsert(documentGroup, key, rev, STRATEGY_UPDATE, document, document);
-    }
-
-    public void save(String documentGroup, String key, String document) throws MessagingException {
-        save(documentGroup, key, null, document);
-    }
-
-    public void save(String documentGroup, String key, String rev, String document) throws MessagingException {
-        upsert(documentGroup, key, rev, STRATEGY_REPLACE, document, document);
-    }
-
-    public void upsert(String documentGroup, String key, int strategy, String insertDocument, String updateDocument) throws MessagingException {
-        upsert(documentGroup, key, null, strategy, insertDocument, updateDocument);
-    }
-
-    public void upsert(String documentGroup, String key, String rev, int strategy, String insertDocument, String updateDocument) throws MessagingException {
+    public void upsert(String documentGroup, String key, String rev, String insertDocument, String updateDocument) throws MessagingException {
         RabbitDbRequest upsert =
                 new RabbitDbRequest()
-                        .setType(strategy)
+                        .setType(RabbitDbRequest.UPSERT)
                         .setGroup(documentGroup)
                         .setKey(key)
                         .setRev(rev)

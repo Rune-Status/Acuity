@@ -1,6 +1,8 @@
 package com.acuitybotting.db.arango.acuity.rabbit_db.service;
 
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
+import com.arangodb.model.AqlQueryOptions;
+import com.arangodb.model.DocumentUpdateOptions;
 import com.arangodb.springframework.core.ArangoOperations;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -45,7 +47,7 @@ public class RabbitDbService {
         return new RabbitDbQueryBuilder(this, query).withParam("@collection", COLLECTION);
     }
 
-    public UpsertResult upsert(Map<String, Object> queryMap, Map<String, Object> meta, String updateDocumentJson, String insertDocumentJson) {
+    public UpsertResult upsert(Map<String, Object> queryMap, Map<String, Object> meta, Map<String, Boolean> options, String updateDocumentJson, String insertDocumentJson) {
         if (meta == null) meta = new HashMap<>();
 
         GsonRabbitDocument gsonRabbitDocument = new GsonRabbitDocument();
@@ -68,14 +70,16 @@ public class RabbitDbService {
 
         String query = "UPSERT " + gson.toJson(queryMap) + " INSERT " + insertDocument + " UPDATE " + updateDocument + " IN " + COLLECTION + " RETURN {previous: OLD, current: NEW}";
 
-        UpsertResult result = arangoOperations.query(query, null, null, String.class)
+        if (options != null && options.size() > 0){
+            query += " OPTIONS " + gson.toJson(options);
+        }
+
+        return arangoOperations.query(query, null, null, String.class)
                 .asListRemaining()
                 .stream()
                 .map(s -> gson.fromJson(s, UpsertResult.class))
                 .findAny()
                 .orElse(null);
-
-        return result;
     }
 
     public void delete(Map<String, Object> queryMap) {

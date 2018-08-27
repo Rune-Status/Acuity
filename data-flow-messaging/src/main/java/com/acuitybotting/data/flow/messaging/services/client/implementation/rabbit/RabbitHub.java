@@ -6,6 +6,7 @@ import com.acuitybotting.data.flow.messaging.services.client.implementation.rabb
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.channel.RabbitChannelPool;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.client.RabbitClient;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.queue.RabbitQueue;
+import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
 import com.acuitybotting.data.flow.messaging.services.db.implementations.rabbit.RabbitDb;
 
 import java.util.UUID;
@@ -54,8 +55,6 @@ public class RabbitHub {
         getDb("services.registered-connections").upsert(
                 "connections",
                 getConnectionId(),
-                RabbitDb.STRATEGY_UPDATE,
-                body,
                 body
         );
     }

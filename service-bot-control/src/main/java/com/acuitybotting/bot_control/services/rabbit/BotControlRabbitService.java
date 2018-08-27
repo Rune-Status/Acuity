@@ -32,7 +32,6 @@ import java.util.UUID;
 @Slf4j
 public class BotControlRabbitService implements CommandLineRunner {
 
-    private final AcuityUsersService acuityUsersService;
     private final ApplicationEventPublisher publisher;
 
     private final RabbitDbService dbService;
@@ -45,8 +44,7 @@ public class BotControlRabbitService implements CommandLineRunner {
     private String password;
 
     @Autowired
-    public BotControlRabbitService(AcuityUsersService acuityUsersService, ApplicationEventPublisher publisher, RabbitDbService dbService) {
-        this.acuityUsersService = acuityUsersService;
+    public BotControlRabbitService(ApplicationEventPublisher publisher, RabbitDbService dbService) {
         this.publisher = publisher;
         this.dbService = dbService;
     }
@@ -88,12 +86,15 @@ public class BotControlRabbitService implements CommandLineRunner {
     public void handle(MessageEvent messageEvent, RabbitDbRequest request, String userId) {
         //log.info("Handling db request {} for user {}.", request, userId);
 
-        RabbitDbQueryBuilder builder = dbService.query().withMatch(userId, request.getDatabase(), request.getGroup(), request.getKey(), request.getRev());
+        RabbitDbQueryBuilder builder = dbService.query()
+                .withMatch(userId, request.getDatabase(), request.getGroup(), request.getKey(), request.getRev());
+
+        request.getOptions().forEach(builder::withOption);
 
         Gson gson = new Gson();
 
         if (RabbitDbAccess.isWriteAccessible(userId, request.getDatabase())) {
-            if (request.getType() == RabbitDbRequest.SAVE_UPDATE) {
+            if (request.getType() == RabbitDbRequest.UPSERT) {
                 UpsertResult upsert = builder.upsert(request.getUpdateDocument(), request.getInsertDocument());
                 publishUpsert(userId, request, upsert);
             } else if (request.getType() == RabbitDbRequest.DELETE_BY_KEY && RabbitDbAccess.isDeleteAccessible(userId, request.getDatabase())) {
@@ -139,7 +140,7 @@ public class BotControlRabbitService implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... strings) throws Exception {
+    public void run(String... strings) {
         connect();
     }
 }

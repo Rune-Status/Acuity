@@ -1,5 +1,6 @@
 package com.acuitybotting.client.bot.control;
 
+import com.acuitybotting.client.bot.control.db.RabbitDBHub;
 import com.acuitybotting.client.bot.control.domain.ClientConfiguration;
 import com.acuitybotting.client.bot.control.interfaces.ControlInterface;
 import com.acuitybotting.client.bot.control.interfaces.StateInterface;
@@ -10,6 +11,7 @@ import com.acuitybotting.data.flow.messaging.services.client.exceptions.Messagin
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitHub;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.channel.RabbitChannel;
 import com.acuitybotting.data.flow.messaging.services.db.domain.Document;
+import com.acuitybotting.data.flow.messaging.services.db.implementations.rabbit.RabbitDb;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.rockaport.alice.Alice;
@@ -44,6 +46,7 @@ public class AcuityHub {
     private static boolean guestAccount = true;
 
     public static void start(String type, String version) {
+
         connectionConfiguration = ConnectionConfigurationUtil.decode(ConnectionConfigurationUtil.find()).orElse(new ConnectionConfiguration());
 
         if (connectionConfiguration.getConnectionId() == null)
@@ -93,7 +96,6 @@ public class AcuityHub {
     private static void addShutdownHook(){
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
-
                 JsonObject update = new JsonObject();
                 update.addProperty("connected", false);
                 rabbitHub.updateConnectionDocument(update.toString());
@@ -199,7 +201,7 @@ public class AcuityHub {
             JsonObject wrapper = new JsonObject();
             wrapper.add("state", playerUpdate);
 
-            rabbitHub.getDb("services.rs-accounts").update(
+            rabbitHub.getDb("services.rs-accounts").upsert(
                     "players",
                     playerUpdate.get("email").getAsString(),
                     new Gson().toJson(wrapper)

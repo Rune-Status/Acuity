@@ -8,17 +8,13 @@ import com.acuitybotting.data.flow.messaging.services.db.domain.Document;
  */
 public interface MessagingDb {
 
-    void update(String documentGroup, String key, String document) throws MessagingException;
+    default void upsert(String documentGroup, String key, String document) throws MessagingException {
+        upsert(documentGroup, key, document, document);
+    }
 
-    void update(String documentGroup, String key, String rev, String document) throws MessagingException;
+    void upsert(String documentGroup, String key, String insertDocument, String updateDocument) throws MessagingException;
 
-    void save(String documentGroup, String key, String document) throws MessagingException;
-
-    void save(String documentGroup, String key, String rev, String document) throws MessagingException;
-
-    void upsert(String documentGroup, String key, int strategy, String insertDocument, String updateDocument) throws MessagingException;
-
-    void upsert(String documentGroup, String key, String rev, int strategy, String insertDocument, String updateDocument) throws MessagingException;
+    void upsert(String documentGroup, String key, String rev, String insertDocument, String updateDocument) throws MessagingException;
 
     Document[] findAllByGroup(String documentGroup) throws MessagingException;
 

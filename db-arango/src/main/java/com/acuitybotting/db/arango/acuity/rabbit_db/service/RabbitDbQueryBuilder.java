@@ -16,6 +16,7 @@ public class RabbitDbQueryBuilder {
 
     private String query;
     private Map<String, Object> queryMap = new HashMap<>();
+    private Map<String, Boolean> options = new HashMap<>();
 
     public RabbitDbQueryBuilder(RabbitDbService service, String query) {
         this.service = service;
@@ -25,6 +26,11 @@ public class RabbitDbQueryBuilder {
     public RabbitDbQueryBuilder withParam(String key, Object value){
         if (key == null || value == null) return this;
         queryMap.put(key, value);
+        return this;
+    }
+
+    public RabbitDbQueryBuilder withOption(String key, boolean state){
+        options.put(key, state);
         return this;
     }
 
@@ -93,7 +99,7 @@ public class RabbitDbQueryBuilder {
     }
 
     public UpsertResult upsert(Map<String, Object> headers, String update, String insert){
-        return service.upsert(queryMap, headers, update, insert);
+        return service.upsert(queryMap, headers, options, update, insert);
     }
 
     public void execute() {
