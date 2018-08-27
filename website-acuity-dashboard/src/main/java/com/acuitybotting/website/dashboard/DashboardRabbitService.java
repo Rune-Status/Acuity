@@ -3,6 +3,9 @@ package com.acuitybotting.website.dashboard;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.channel.RabbitChannel;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.channel.RabbitChannelPool;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitHub;
+import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.RsAccountInfo;
+import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
+import com.arangodb.model.DocumentUpdateOptions;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,6 +13,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
 
 /**
  * Created by Zachary Herridge on 7/18/2018.
@@ -27,12 +32,15 @@ public class DashboardRabbitService implements CommandLineRunner {
     private final ApplicationEventPublisher publisher;
     private final ConfigurableApplicationContext applicationContext;
 
+    private final RabbitDbService rabbitDbService;
+
     private RabbitChannelPool pool;
 
     @Autowired
-    public DashboardRabbitService(ApplicationEventPublisher publisher, ConfigurableApplicationContext applicationContext) {
+    public DashboardRabbitService(ApplicationEventPublisher publisher, ConfigurableApplicationContext applicationContext, RabbitDbService rabbitDbService) {
         this.publisher = publisher;
         this.applicationContext = applicationContext;
+        this.rabbitDbService = rabbitDbService;
     }
 
     private void connect(){
@@ -54,6 +62,21 @@ public class DashboardRabbitService implements CommandLineRunner {
 
     @Override
     public void run(String... strings) throws Exception {
-        connect();
+        RsAccountInfo rsAccountInfo = new RsAccountInfo();
+
+        rsAccountInfo.setInventory(new HashMap<>());
+        rsAccountInfo.setBank(new HashMap<>());
+
+        rsAccountInfo.getInventory().put(543, 9888);
+
+        rabbitDbService.query()
+                .withOption("mergeObjects", false)
+                .withMatch("testdb", "testdoc", "testkey")
+                .upsertAsJson(rsAccountInfo);
+
+
+        System.out.println("Done");
+
+        //connect();
     }
 }

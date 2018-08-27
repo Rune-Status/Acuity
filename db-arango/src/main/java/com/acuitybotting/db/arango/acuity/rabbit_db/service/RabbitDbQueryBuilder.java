@@ -1,6 +1,7 @@
 package com.acuitybotting.db.arango.acuity.rabbit_db.service;
 
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.RabbitDocumentBase;
+import com.google.gson.Gson;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -84,6 +85,11 @@ public class RabbitDbQueryBuilder {
 
     public void delete(){
         service.delete(queryMap);
+    }
+
+    public UpsertResult upsertAsJson(Object document){
+        String json = new Gson().toJson(document);
+        return upsert(null, json, json);
     }
 
     public UpsertResult upsert(String document){

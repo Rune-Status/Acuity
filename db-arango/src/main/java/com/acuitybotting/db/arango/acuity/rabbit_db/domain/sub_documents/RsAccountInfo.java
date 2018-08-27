@@ -16,10 +16,10 @@ public class RsAccountInfo extends RabbitSubDocument {
     private String encryptedPassword;
 
     private int world;
-    private Map<String, Long> levels = new HashMap<>();
-    private Map<String, Long> experience = new HashMap<>();
+    private Map<String, Long> levels;
+    private Map<String, Long> experience;
 
-    private Map<Integer, Integer> inventory = new HashMap<>();
-    private Map<Integer, Integer> bank = new HashMap<>();
-    private Map<Integer, Integer> equipment = new HashMap<>();
+    private Map<Integer, Integer> inventory;
+    private Map<Integer, Integer> bank;
+    private Map<Integer, Integer> equipment;
 }

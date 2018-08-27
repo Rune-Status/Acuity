@@ -68,11 +68,12 @@ public class RabbitDbService {
         if (insertDocument == null) insertDocument = "{}";
         if (updateDocument == null) insertDocument = "{}";
 
-        String query = "UPSERT " + gson.toJson(queryMap) + " INSERT " + insertDocument + " UPDATE " + updateDocument + " IN " + COLLECTION + " RETURN {previous: OLD, current: NEW}";
+        String query = "UPSERT " + gson.toJson(queryMap) + " INSERT " + insertDocument + " UPDATE " + updateDocument + " IN " + COLLECTION + " OPTIONS {mergeObjects: false} RETURN {previous: OLD, current: NEW}";
 
-        if (options != null && options.size() > 0){
+  /*      if (options != null && options.size() > 0){
             query += " OPTIONS " + gson.toJson(options);
-        }
+        }*/
+
 
         return arangoOperations.query(query, null, null, String.class)
                 .asListRemaining()
