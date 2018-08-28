@@ -1,12 +1,8 @@
 package com.acuitybotting.db.arangodb.repositories.acuity.principal.service;
 
-import com.acuitybotting.db.arangodb.repositories.acuity.principal.domain.AcuityBottingUser;
+import com.acuitybotting.common.utils.EncryptionUtil;
 import com.acuitybotting.db.arangodb.repositories.acuity.principal.AcuityBottingUserRepository;
-import com.acuitybotting.security.acuity.encryption.AcuityEncryptionService;
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.JWTVerifier;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.interfaces.DecodedJWT;
+import com.acuitybotting.db.arangodb.repositories.acuity.principal.domain.AcuityBottingUser;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,12 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.security.GeneralSecurityException;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Zachary Herridge on 8/9/2018.
@@ -32,12 +24,10 @@ public class AcuityUsersService {
     private String jwtSecret;
 
     private final AcuityBottingUserRepository userRepository;
-    private final AcuityEncryptionService encryptionService;
 
     @Autowired
-    public AcuityUsersService(AcuityBottingUserRepository userRepository, AcuityEncryptionService encryptionService) {
+    public AcuityUsersService(AcuityBottingUserRepository userRepository) {
         this.userRepository = userRepository;
-        this.encryptionService = encryptionService;
     }
 
     public Optional<AcuityBottingUser> findUserByUid(String uid) {
@@ -45,7 +35,7 @@ public class AcuityUsersService {
     }
 
     public Optional<AcuityBottingUser> login(String email, String password) {
-        return userRepository.findByEmail(email).filter(acuityBottingUser -> encryptionService.comparePassword(acuityBottingUser.getPasswordHash(), password));
+        return userRepository.findByEmail(email).filter(acuityBottingUser -> EncryptionUtil.comparePassword(acuityBottingUser.getPasswordHash(), password));
     }
 
     public boolean register(String email, String displayName, String password) {
@@ -56,7 +46,7 @@ public class AcuityUsersService {
         AcuityBottingUser user = new AcuityBottingUser();
         user.set_key(UUID.randomUUID().toString());
         user.setEmail(email.toLowerCase());
-        user.setPasswordHash(encryptionService.encodePassword(password));
+        user.setPasswordHash(EncryptionUtil.encodePassword(password));
         user.setDisplayName(displayName);
         user.setConnectionKey(generateKey());
 
@@ -77,10 +67,10 @@ public class AcuityUsersService {
         try {
             String encrypted = acuityBottingUser.getMasterKey();
             if (encrypted == null){
-                acuityBottingUser.setMasterKey(encryptionService.encrypt(updatedPassword, generateKey()));
+                acuityBottingUser.setMasterKey(EncryptionUtil.encrypt(updatedPassword, generateKey()));
             }
             else {
-                acuityBottingUser.setMasterKey(encryptionService.encrypt(updatedPassword, encryptionService.decrypt(oldPassword, encrypted)));
+                acuityBottingUser.setMasterKey(EncryptionUtil.encrypt(updatedPassword, EncryptionUtil.decrypt(oldPassword, encrypted)));
             }
 
             userRepository.insert(acuityBottingUser);
@@ -104,8 +94,8 @@ public class AcuityUsersService {
         if (encryptedMasterKey == null) return null;
 
         try {
-            String masterKey = encryptionService.decrypt(userKey, encryptedMasterKey);
-            return encryptionService.encrypt(masterKey, password);
+            String masterKey = EncryptionUtil.decrypt(userKey, encryptedMasterKey);
+            return EncryptionUtil.encrypt(masterKey, password);
         } catch (GeneralSecurityException e) {
             log.warn("Failed to decrypt.");
         }

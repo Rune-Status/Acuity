@@ -51,11 +51,6 @@
             <artifactId>spring-boot-starter-security</artifactId>
             <version>RELEASE</version>
         </dependency>
-        <dependency>
-            <groupId>com.acuitybotting</groupId>
-            <artifactId>service-acuity-identities</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
     </dependencies>
 
     <build>
