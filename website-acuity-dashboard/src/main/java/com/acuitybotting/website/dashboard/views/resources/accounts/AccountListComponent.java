@@ -1,8 +1,8 @@
 package com.acuitybotting.website.dashboard.views.resources.accounts;
 
-import com.acuitybotting.db.arangodb.repositories.resources.accounts.RsAccountInfo;
+import com.acuitybotting.db.arangodb.repositories.resources.accounts.domain.RsAccount;
 import com.acuitybotting.website.dashboard.components.general.list_display.InteractiveList;
-import com.acuitybotting.website.dashboard.services.AccountsService;
+import com.acuitybotting.db.arangodb.repositories.resources.accounts.service.AccountsService;
 import com.acuitybotting.website.dashboard.utils.Components;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @SpringComponent
 @UIScope
-public class AccountListComponent extends InteractiveList<RsAccountInfo> {
+public class AccountListComponent extends InteractiveList<RsAccount> {
 
     @Autowired
     public AccountListComponent(AccountsService accountsService) {

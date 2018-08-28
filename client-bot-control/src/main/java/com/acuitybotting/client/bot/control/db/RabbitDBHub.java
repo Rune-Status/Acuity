@@ -14,8 +14,8 @@ public class RabbitDBHub {
         return AcuityHub.getRabbitHub().getDb(db);
     }
 
-    public static void updateAccountDocument(String email, JsonObject body) throws MessagingException {
-        getDb("resources-accounts").publish(ArangoDbRequest.upsert(email, body, body));
+    public static void updateAccountDocument(String key, JsonObject body) throws MessagingException {
+        getDb("resources-accounts").publish(ArangoDbRequest.upsert(key, body, body));
     }
 
     public static String saveTimelineEvent(JsonObject body) throws MessagingException {

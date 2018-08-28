@@ -190,10 +190,7 @@ public class AcuityHub {
 
             JsonObject playerUpdate = stateInterface.buildPlayerState();
             if (playerUpdate == null || playerUpdate.get("email") == null) return;
-
-            JsonObject wrapper = new JsonObject();
-            wrapper.add("state", playerUpdate);
-            RabbitDBHub.updateAccountDocument(playerUpdate.get("email").getAsString(), wrapper);
+            RabbitDBHub.updateAccountDocument(playerUpdate.get("email").getAsString() + "_state", playerUpdate);
         }
         catch (Throwable e){
             log.error("Error sending state 2.");
@@ -206,11 +203,7 @@ public class AcuityHub {
 
             JsonObject clientUpdate = stateInterface.buildClientState();
             if (clientUpdate == null) return;
-
-
-            JsonObject wrapper = new JsonObject();
-            wrapper.add("state", clientUpdate);
-            rabbitHub.updateConnectionDocument(wrapper);
+            rabbitHub.updateConnectionDocument("state", clientUpdate);
         } catch (Throwable e) {
             log.error("Error sending state 1.");
         }

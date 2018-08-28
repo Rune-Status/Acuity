@@ -1,10 +1,10 @@
 package com.acuitybotting.website.dashboard.views.resources.accounts;
 
-import com.acuitybotting.db.arangodb.repositories.resources.accounts.RsAccountInfo;
+import com.acuitybotting.db.arangodb.repositories.resources.accounts.domain.RsAccount;
 import com.acuitybotting.website.dashboard.components.general.fields.UserMasterPasswordField;
 import com.acuitybotting.website.dashboard.components.general.separator.TitleSeparator;
 import com.acuitybotting.website.dashboard.security.view.interfaces.Authed;
-import com.acuitybotting.website.dashboard.services.AccountsService;
+import com.acuitybotting.db.arangodb.repositories.resources.accounts.service.AccountsService;
 import com.acuitybotting.website.dashboard.utils.Components;
 import com.acuitybotting.website.dashboard.utils.Notifications;
 import com.acuitybotting.website.dashboard.views.RootLayout;
@@ -27,7 +27,7 @@ public class AccountEditView extends VerticalLayout implements Authed, HasUrlPar
     private final AccountsService accountsService;
     private final UserMasterPasswordField masterPasswordField;
 
-    private RsAccountInfo accountInfo;
+    private RsAccount accountInfo;
     private String accountEmail;
 
     public AccountEditView(AccountsService accountsService, UserMasterPasswordField masterPasswordField) {
@@ -45,7 +45,7 @@ public class AccountEditView extends VerticalLayout implements Authed, HasUrlPar
                 return;
             }
         } else {
-            accountInfo = new RsAccountInfo();
+            accountInfo = new RsAccount();
         }
 
         if (attachEvent.isInitialAttach()) {
@@ -56,10 +56,10 @@ public class AccountEditView extends VerticalLayout implements Authed, HasUrlPar
             add(emailField, passwordField, masterPasswordField);
 
             add(Components.button(VaadinIcon.PLUS_CIRCLE, event -> {
-                boolean save = accountsService.save(emailField.getValue(), masterPasswordField.encrypt(passwordField.getValue()));
+                boolean save = accountsService.updatePassword(emailField.getValue(), masterPasswordField.encrypt(passwordField.getValue()));
 
                 if (save) getUI().ifPresent(ui -> ui.navigate(AccountsListView.class));
-                else Notifications.error("Failed to save account.");
+                else Notifications.error("Failed to updatePassword account.");
             }));
         }
     }

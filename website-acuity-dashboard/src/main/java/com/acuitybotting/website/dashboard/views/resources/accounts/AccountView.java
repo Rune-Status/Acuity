@@ -1,7 +1,7 @@
 package com.acuitybotting.website.dashboard.views.resources.accounts;
 
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
-import com.acuitybotting.db.arangodb.repositories.resources.accounts.RsAccountInfo;
+import com.acuitybotting.db.arangodb.repositories.resources.accounts.domain.RsAccount;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.website.dashboard.components.general.list_display.InteractiveList;
 import com.acuitybotting.website.dashboard.components.general.separator.TitleSeparator;
@@ -25,7 +25,7 @@ public class AccountView extends VerticalLayout implements HasUrlParameter<Strin
     private final RabbitDbService rabbitDbService;
 
     private String accountId;
-    private RsAccountInfo account;
+    private RsAccount account;
 
     private InteractiveList<Map.Entry<String, Long>> levelList = new InteractiveList<>();
 
@@ -53,9 +53,9 @@ public class AccountView extends VerticalLayout implements HasUrlParameter<Strin
         add(new TitleSeparator("Bank"), bankList);
     }
     private void refresh(){
-        RsAccountInfo account = rabbitDbService.queryByKey()
+        RsAccount account = rabbitDbService.queryByKey()
                 .withMatch(Authentication.getAcuityPrincipalId(), "services.rs-accounts", "players", accountId)
-                .findOne(RsAccountInfo.class).orElse(null);
+                .findOne(RsAccount.class).orElse(null);
 
         if (account == null) {
             getUI().ifPresent(ui -> ui.navigate(AccountsListView.class));

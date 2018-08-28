@@ -55,7 +55,11 @@ public class RabbitHub {
     }
 
     public void updateConnectionDocument(JsonObject body) throws MessagingException {
-        getDb("registered-connections").publish(ArangoDbRequest.upsert(getConnectionId(), body, body));
+        updateConnectionDocument(null, body);
+    }
+
+    public void updateConnectionDocument(String sub, JsonObject body) throws MessagingException {
+        getDb("registered-connections").publish(ArangoDbRequest.upsert(getConnectionId() + (sub == null ? "" : "_" + sub), body, body));
     }
 
     public Optional<JsonObject> getConnectionDocument() {

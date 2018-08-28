@@ -1,9 +1,9 @@
 package com.acuitybotting.website.dashboard.views.connections.launchers;
 
 import com.acuitybotting.db.arangodb.repositories.resources.proxies.Proxy;
-import com.acuitybotting.db.arangodb.repositories.resources.accounts.RsAccountInfo;
+import com.acuitybotting.db.arangodb.repositories.resources.accounts.domain.RsAccount;
 import com.acuitybotting.website.dashboard.components.general.separator.TitleSeparator;
-import com.acuitybotting.website.dashboard.services.AccountsService;
+import com.acuitybotting.db.arangodb.repositories.resources.accounts.service.AccountsService;
 import com.acuitybotting.website.dashboard.services.LaunchersService;
 import com.acuitybotting.website.dashboard.services.ProxiesService;
 import com.acuitybotting.website.dashboard.services.ScriptsService;
@@ -34,7 +34,7 @@ public class LaunchClientsComponent extends VerticalLayout {
     private final ScriptsService scriptsService;
 
     private ComboBox<Proxy> proxyComboBox = new ComboBox<>();
-    private ComboBox<RsAccountInfo> accountComboBox = new ComboBox<>();
+    private ComboBox<RsAccount> accountComboBox = new ComboBox<>();
 
     private Checkbox localScript = new Checkbox("Local Script");
     private ComboBox<String> scriptSelector = new ComboBox<>();

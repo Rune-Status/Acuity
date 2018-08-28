@@ -134,7 +134,7 @@ public class XteaService {
                     .filter(Objects::nonNull)
                     .collect(Collectors.groupingBy(Xtea::getRegion, Collectors.toSet()));
 
-            log.info("Found {} xteas covering {} regions. Starting save.", result.size(), collect.size());
+            log.info("Found {} xteas covering {} regions. Starting updatePassword.", result.size(), collect.size());
 
             Gson gson = new Gson();
 

@@ -34,6 +34,10 @@ public class Aql {
                 );
     }
 
+    public static AqlQuery update(String key, String update) {
+        return query("UPDATE DOCUMENT(@@collection, key) WITH $update IN @@collection").withParameters("key", key, "$update", update);
+    }
+
     public static AqlQuery insert(Object document) {
         return query("INSERT $document IN @@collection").withParameter("$document", document);
     }

@@ -8,7 +8,7 @@ import com.acuitybotting.db.arangodb.repositories.acuity.principal.service.Acuit
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
 import com.acuitybotting.db.arangodb.repositories.connections.domain.LauncherConnection;
 import com.acuitybotting.db.arangodb.repositories.resources.proxies.Proxy;
-import com.acuitybotting.db.arangodb.repositories.resources.accounts.RsAccountInfo;
+import com.acuitybotting.db.arangodb.repositories.resources.accounts.domain.RsAccount;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.website.dashboard.DashboardRabbitService;
 import com.acuitybotting.website.dashboard.utils.Authentication;
@@ -49,7 +49,7 @@ public class LaunchersService {
                 .collect(Collectors.toSet());
     }
 
-    public void deploy(Set<String> subIds, String command, RsAccountInfo rsAccountInfo, Proxy proxy, boolean localScript, String scriptArgs, String scriptSelector, String world) {
+    public void deploy(Set<String> subIds, String command, RsAccount rsAccount, Proxy proxy, boolean localScript, String scriptArgs, String scriptSelector, String world) {
         Notifications.display("Deploying to {} launchers.", subIds.size());
 
         ConnectionConfiguration connectionConfiguration = new ConnectionConfiguration();
@@ -61,9 +61,9 @@ public class LaunchersService {
         if (acuityBottingUser == null) return;
         clientConfiguration.addProperty("masterSecret", acuityBottingUser.getMasterKey());
 
-        if (rsAccountInfo != null) {
-            clientConfiguration.addProperty("accountLogin", rsAccountInfo.getParent().getSubKey());
-            clientConfiguration.addProperty("accountEncryptedPassword", rsAccountInfo.getEncryptedPassword());
+        if (rsAccount != null) {
+            clientConfiguration.addProperty("accountLogin", rsAccount.getParent().getSubKey());
+            clientConfiguration.addProperty("accountEncryptedPassword", rsAccount.getEncryptedPassword());
         }
 
         if (proxy != null) {
