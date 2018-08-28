@@ -1,6 +1,6 @@
-package com.acuitybotting.db.arango.acuity.identities.repositories;
+package com.acuitybotting.db.arangodb.repositories.acuity.principal;
 
-import com.acuitybotting.db.arango.acuity.identities.domain.AcuityBottingUser;
+import com.acuitybotting.db.arangodb.repositories.acuity.principal.domain.AcuityBottingUser;
 import com.acuitybotting.db.arangodb.api.repository.ArangoRepository;
 import com.acuitybotting.db.arangodb.api.services.ArangoDbService;
 import org.springframework.stereotype.Service;

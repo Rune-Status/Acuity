@@ -1,19 +1,16 @@
 package com.acuitybotting.website.dashboard.services;
 
-import com.acuitybotting.data.flow.messaging.services.db.implementations.rabbit.RabbitDb;
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.RsAccountInfo;
+import com.acuitybotting.db.arangodb.repositories.resources.accounts.RsAccountInfo;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.website.dashboard.utils.Authentication;
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import com.vaadin.flow.spring.annotation.UIScope;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.annotation.SessionScope;
 
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Created by Zachary Herridge on 8/15/2018.

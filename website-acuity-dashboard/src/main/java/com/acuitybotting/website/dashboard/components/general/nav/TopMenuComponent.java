@@ -1,6 +1,6 @@
 package com.acuitybotting.website.dashboard.components.general.nav;
 
-import com.acuitybotting.db.arango.acuity.identities.domain.AcuityBottingUser;
+import com.acuitybotting.db.arangodb.repositories.acuity.principal.domain.AcuityBottingUser;
 import com.acuitybotting.website.dashboard.utils.Authentication;
 import com.acuitybotting.website.dashboard.views.connections.clients.ClientsListView;
 import com.acuitybotting.website.dashboard.views.resources.accounts.AccountsListView;

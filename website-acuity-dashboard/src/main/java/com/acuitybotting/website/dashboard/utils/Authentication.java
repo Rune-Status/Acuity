@@ -1,7 +1,7 @@
 package com.acuitybotting.website.dashboard.utils;
 
-import com.acuitybotting.db.arango.acuity.identities.domain.AcuityBottingUser;
-import com.acuitybotting.db.arango.acuity.identities.service.AcuityUsersService;
+import com.acuitybotting.db.arangodb.repositories.acuity.principal.domain.AcuityBottingUser;
+import com.acuitybotting.db.arangodb.repositories.acuity.principal.service.AcuityUsersService;
 import com.vaadin.flow.component.UI;
 
 import java.util.Optional;

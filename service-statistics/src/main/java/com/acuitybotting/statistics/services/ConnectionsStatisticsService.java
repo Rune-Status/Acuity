@@ -1,6 +1,6 @@
 package com.acuitybotting.statistics.services;
 
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.ClientConnection;
+import com.acuitybotting.db.arangodb.repositories.connections.domain.ClientConnection;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.db.influx.InfluxDbService;
 import com.acuitybotting.db.influx.domain.write.Point;

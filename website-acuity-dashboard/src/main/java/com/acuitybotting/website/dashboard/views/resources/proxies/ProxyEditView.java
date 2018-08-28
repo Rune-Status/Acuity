@@ -1,7 +1,7 @@
 package com.acuitybotting.website.dashboard.views.resources.proxies;
 
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.Proxy;
+import com.acuitybotting.db.arangodb.repositories.resources.proxies.Proxy;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.website.dashboard.components.general.fields.UserMasterPasswordField;
 import com.acuitybotting.website.dashboard.components.general.separator.TitleSeparator;

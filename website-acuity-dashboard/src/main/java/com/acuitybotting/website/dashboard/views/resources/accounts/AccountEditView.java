@@ -1,6 +1,6 @@
 package com.acuitybotting.website.dashboard.views.resources.accounts;
 
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.RsAccountInfo;
+import com.acuitybotting.db.arangodb.repositories.resources.accounts.RsAccountInfo;
 import com.acuitybotting.website.dashboard.components.general.fields.UserMasterPasswordField;
 import com.acuitybotting.website.dashboard.components.general.separator.TitleSeparator;
 import com.acuitybotting.website.dashboard.security.view.interfaces.Authed;

@@ -6,7 +6,7 @@ import com.acuitybotting.data.flow.messaging.services.identity.RabbitUtil;
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.RabbitDocumentBase;
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.RabbitSubDocument;
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.RsAccountInfo;
+import com.acuitybotting.db.arangodb.repositories.resources.accounts.RsAccountInfo;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.db.arango.acuity.statistic.event.domain.StatisticEvent;
 import com.acuitybotting.db.arango.acuity.statistic.event.repository.StatisticEventRepository;
@@ -20,7 +20,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
 import java.util.Set;
 
 /**

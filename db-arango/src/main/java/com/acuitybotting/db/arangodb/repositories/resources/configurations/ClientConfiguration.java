@@ -1,4 +1,4 @@
-package com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents;
+package com.acuitybotting.db.arangodb.repositories.resources.configurations;
 
 import com.google.gson.JsonObject;
 import lombok.Getter;

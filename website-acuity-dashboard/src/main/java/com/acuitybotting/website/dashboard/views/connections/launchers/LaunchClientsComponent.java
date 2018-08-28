@@ -1,8 +1,7 @@
 package com.acuitybotting.website.dashboard.views.connections.launchers;
 
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.LauncherConnection;
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.Proxy;
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.RsAccountInfo;
+import com.acuitybotting.db.arangodb.repositories.resources.proxies.Proxy;
+import com.acuitybotting.db.arangodb.repositories.resources.accounts.RsAccountInfo;
 import com.acuitybotting.website.dashboard.components.general.separator.TitleSeparator;
 import com.acuitybotting.website.dashboard.services.AccountsService;
 import com.acuitybotting.website.dashboard.services.LaunchersService;

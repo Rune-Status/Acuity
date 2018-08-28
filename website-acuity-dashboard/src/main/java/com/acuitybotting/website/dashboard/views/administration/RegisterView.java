@@ -1,6 +1,6 @@
 package com.acuitybotting.website.dashboard.views.administration;
 
-import com.acuitybotting.db.arango.acuity.identities.service.AcuityUsersService;
+import com.acuitybotting.db.arangodb.repositories.acuity.principal.service.AcuityUsersService;
 import com.acuitybotting.website.dashboard.utils.Components;
 import com.acuitybotting.website.dashboard.utils.Notifications;
 import com.acuitybotting.website.dashboard.views.RootLayout;
@@ -13,7 +13,6 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
-import org.springframework.web.context.annotation.SessionScope;
 
 /**
  * Created by Zachary Herridge on 8/9/2018.

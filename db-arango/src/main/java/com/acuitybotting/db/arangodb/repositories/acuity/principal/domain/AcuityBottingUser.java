@@ -1,4 +1,4 @@
-package com.acuitybotting.db.arango.acuity.identities.domain;
+package com.acuitybotting.db.arangodb.repositories.acuity.principal.domain;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -26,6 +26,4 @@ public class AcuityBottingUser {
     private String masterKey;
 
     private String connectionKey;
-
-    private Set<Principal> linkedPrincipals;
 }

@@ -1,7 +1,6 @@
 package com.acuitybotting.security.rabbitmq.api;
 
-import com.acuitybotting.db.arango.acuity.identities.service.AcuityUsersService;
-import com.acuitybotting.security.jwt.domain.JwtPrincipal;
+import com.acuitybotting.db.arangodb.repositories.acuity.principal.service.AcuityUsersService;
 import com.acuitybotting.security.rabbitmq.domain.Permission;
 import com.acuitybotting.security.rabbitmq.domain.ResourceType;
 import com.acuitybotting.security.rabbitmq.domain.api.ResourceCheck;

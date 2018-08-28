@@ -1,7 +1,7 @@
 package com.acuitybotting.website.dashboard.views.resources.accounts;
 
 import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.RsAccountInfo;
+import com.acuitybotting.db.arangodb.repositories.resources.accounts.RsAccountInfo;
 import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
 import com.acuitybotting.website.dashboard.components.general.list_display.InteractiveList;
 import com.acuitybotting.website.dashboard.components.general.separator.TitleSeparator;
@@ -11,7 +11,6 @@ import com.acuitybotting.website.dashboard.utils.Notifications;
 import com.acuitybotting.website.dashboard.views.RootLayout;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;

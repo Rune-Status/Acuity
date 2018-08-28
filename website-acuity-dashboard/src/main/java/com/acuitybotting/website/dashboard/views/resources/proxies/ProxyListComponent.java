@@ -1,11 +1,10 @@
 package com.acuitybotting.website.dashboard.views.resources.proxies;
 
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.Proxy;
+import com.acuitybotting.db.arangodb.repositories.resources.proxies.Proxy;
 import com.acuitybotting.website.dashboard.components.general.list_display.InteractiveList;
 import com.acuitybotting.website.dashboard.services.ProxiesService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;

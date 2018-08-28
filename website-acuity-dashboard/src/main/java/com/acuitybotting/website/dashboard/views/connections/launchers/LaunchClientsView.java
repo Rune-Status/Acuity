@@ -1,11 +1,10 @@
 package com.acuitybotting.website.dashboard.views.connections.launchers;
 
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents.LauncherConnection;
+import com.acuitybotting.db.arangodb.repositories.connections.domain.LauncherConnection;
 import com.acuitybotting.website.dashboard.components.general.list_display.InteractiveList;
 import com.acuitybotting.website.dashboard.components.general.separator.TitleSeparator;
 import com.acuitybotting.website.dashboard.security.view.interfaces.Authed;
 import com.acuitybotting.website.dashboard.services.LaunchersService;
-import com.acuitybotting.website.dashboard.utils.Components;
 import com.acuitybotting.website.dashboard.views.RootLayout;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.html.Div;
