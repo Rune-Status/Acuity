@@ -1,11 +1,8 @@
 package com.acuitybotting.db.arango.acuity.identities.domain;
 
-import com.arangodb.springframework.annotation.Document;
-import com.arangodb.springframework.annotation.Rev;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.springframework.data.annotation.Id;
 
 import java.util.Set;
 
@@ -15,16 +12,11 @@ import java.util.Set;
 @Getter
 @Setter
 @ToString
-@Document("AcuityBottingUser")
 public class AcuityBottingUser {
 
-    @Id
-    private String id;
+    private String _key;
 
-    @Rev
     private String revision;
-
-    private String principalId;
 
     private String email;
     private String displayName;
@@ -36,5 +28,4 @@ public class AcuityBottingUser {
     private String connectionKey;
 
     private Set<Principal> linkedPrincipals;
-
 }

@@ -1,6 +1,5 @@
 package com.acuitybotting.db.arango.acuity.rabbit_db.domain.sub_documents;
 
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.RabbitSubDocument;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -13,7 +12,7 @@ import java.text.DecimalFormat;
 @Setter
 @Getter
 @ToString
-public class LauncherConnection extends RabbitSubDocument {
+public class LauncherConnection {
 
     private MachineState state;
 

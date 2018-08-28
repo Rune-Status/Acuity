@@ -43,12 +43,8 @@ public class AcuityUsersService {
         this.encryptionService = encryptionService;
     }
 
-    public Optional<AcuityBottingUser> findUserByEmail(String email){
-        return userRepository.findByEmail(email);
-    }
-
     public Optional<AcuityBottingUser> findUserByUid(String uid) {
-        return userRepository.findByPrincipalId(uid);
+        return userRepository.findByKey(uid);
     }
 
     public Optional<AcuityBottingUser> login(String email, String password) {
@@ -84,13 +80,13 @@ public class AcuityUsersService {
 
         Principal principal = Principal.of(sourceType, sourceUid);
 
-        AcuityBottingUser user = userRepository.findByPrincipalId(uid).orElse(null);
+        AcuityBottingUser user = findUserByUid(uid).orElse(null);
         if (user == null) return false;
 
         try {
             if (user.getLinkedPrincipals() == null) user.setLinkedPrincipals(new HashSet<>());
             user.getLinkedPrincipals().add(principal);
-            userRepository.save(user);
+            userRepository.insert(user);
             return true;
         }
         catch (Throwable e){
@@ -106,7 +102,7 @@ public class AcuityUsersService {
         Objects.requireNonNull(password);
 
         AcuityBottingUser user = new AcuityBottingUser();
-        user.setPrincipalId(UUID.randomUUID().toString());
+        user.set_key(UUID.randomUUID().toString());
         user.setEmail(email.toLowerCase());
         user.setPasswordHash(encryptionService.encodePassword(password));
         user.setDisplayName(displayName);
@@ -114,7 +110,7 @@ public class AcuityUsersService {
         user.setLinkedPrincipals(new HashSet<>());
 
         try {
-            userRepository.save(user);
+            userRepository.insert(user);
             return true;
         } catch (Throwable e) {
             log.error("Error during registration.", e);
@@ -124,7 +120,7 @@ public class AcuityUsersService {
     }
 
     public boolean createOrUpdateMasterKey(String acuityPrincipalId, String oldPassword, String updatedPassword) {
-        AcuityBottingUser acuityBottingUser = userRepository.findByPrincipalId(acuityPrincipalId).orElse(null);
+        AcuityBottingUser acuityBottingUser = findUserByUid(acuityPrincipalId).orElse(null);
         if (acuityBottingUser == null) return false;
 
         try {
@@ -136,7 +132,7 @@ public class AcuityUsersService {
                 acuityBottingUser.setMasterKey(encryptionService.encrypt(updatedPassword, encryptionService.decrypt(oldPassword, encrypted)));
             }
 
-            userRepository.save(acuityBottingUser);
+            userRepository.insert(acuityBottingUser);
             return true;
         }
         catch (Throwable e){
@@ -153,7 +149,7 @@ public class AcuityUsersService {
     }
 
     public String encrypt(String acuityPrincipalId, String userKey, String password) {
-        String encryptedMasterKey = userRepository.findByPrincipalId(acuityPrincipalId).map(AcuityBottingUser::getMasterKey).orElse(null);
+        String encryptedMasterKey = findUserByUid(acuityPrincipalId).map(AcuityBottingUser::getMasterKey).orElse(null);
         if (encryptedMasterKey == null) return null;
 
         try {
@@ -177,7 +173,7 @@ public class AcuityUsersService {
 
         try {
             acuityBottingUser.setConnectionKey(generateKey());
-            userRepository.save(acuityBottingUser);
+            userRepository.insert(acuityBottingUser);
             return true;
         }
 
@@ -201,7 +197,7 @@ public class AcuityUsersService {
     public void setProfileImage(String acuityPrincipalId, String url) {
         findUserByUid(acuityPrincipalId).ifPresent(user -> {
             user.setProfileImgUrl(url);
-            userRepository.save(user);
+            userRepository.insert(user);
         });
     }
 }

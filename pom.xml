@@ -25,5 +25,6 @@
         <module>service-bot-launcher</module>
         <module>client-bot-control</module>
         <module>service-statistics</module>
+        <module>db-test</module>
     </modules>
 </project>
