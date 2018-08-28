@@ -51,8 +51,18 @@ public class AqlQuery {
         return this;
     }
 
-    public AqlQuery withReferences(String... values) {
-        Collections.addAll(references, values);
+    public AqlQuery withInternalReference(String field) {
+        references.add(field + ": DOCUMENT({RETURN_VAR}." + field + ")");
+        return this;
+    }
+
+    public AqlQuery withReference(String variable, String collection, String key) {
+        references.add(variable + ": DOCUMENT('" + collection + "', '" + key + "')");
+        return this;
+    }
+
+    public AqlQuery withRelativeReference(String variable, String suffix) {
+        references.add(variable + ": DOCUMENT(@@collection, CONCAT({RETURN_VAR}._key, '" + suffix + "'))");
         return this;
     }
 
@@ -62,9 +72,9 @@ public class AqlQuery {
     }
 
     public String build() {
-        if (returnVarible != null){
+        if (returnVarible != null) {
             if (references.size() > 0) {
-                String collect = references.stream().map(s -> s + ": DOCUMENT(" + returnVarible + "." + s + ")").collect(Collectors.joining(", ", "{", "}"));
+                String collect = references.stream().collect(Collectors.joining(", ", "{", "}")).replaceAll("\\{RETURN_VAR}", returnVarible);
                 queryBuilder.add("RETURN MERGE_RECURSIVE(" + returnVarible + ", " + collect + ")");
             } else {
                 queryBuilder.add("RETURN " + returnVarible);
@@ -84,8 +94,12 @@ public class AqlQuery {
     }
 
     public static void main(String[] args) {
-        System.out.println(Aql.findByKey("user1").withReferences("inventory", "bank").build());
-        System.out.println("\n" + Aql.upsertByKey("user1", "{_key: @key, displayName: 'Zach', searches: 0}", "{searches: OLD.searches + 1}").build());
-        System.out.println("\n" + Aql.insert(Collections.singletonMap("username", "Zach")).build());
+        System.out.println(
+                Aql.findByKey("user1")
+                        .withRelativeReference("bank", "_bank")
+                        .withInternalReference("bank")
+                        .withReference("bank", "itemtables", "bank")
+                        .build()
+        );
     }
 }

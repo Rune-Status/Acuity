@@ -18,15 +18,13 @@ public abstract class ArangoRepository<T> {
     private final Class<T> type;
     private final ArangoDbService arangoDbService;
 
-    private String[] references;
-
     protected ArangoRepository(Class<T> type, ArangoDbService arangoDbService) {
         this.type = type;
         this.arangoDbService = arangoDbService;
     }
 
     public Stream<T> findByFields(Object... filters) {
-        return execute(Aql.findByFields(filters).withReferences(references)).stream();
+        return execute(Aql.findByFields(filters)).stream();
     }
 
     public Optional<T> findByKey(String key) {
@@ -44,11 +42,7 @@ public abstract class ArangoRepository<T> {
     public AqlResults<T> execute(AqlQuery query) {
         return new AqlResults<>(
                 type,
-                arangoDbService.getDefaultDb().query(
-                        query.withParameter("@collection", getCollectionName()).build(),
-                        query.getQueryParameters(),
-                        String.class
-                )
+                arangoDbService.execute(query.withParameter("@collection", getCollectionName()))
         );
     }
 

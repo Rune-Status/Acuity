@@ -1,5 +1,6 @@
 package com.acuitybotting.common.utils;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -8,8 +9,16 @@ import com.google.gson.JsonObject;
  */
 public class GsonUtil {
 
-    public static  <T extends JsonElement> String getOrDefault(T object, String defaultValue){
+    private static final Gson gson = new Gson();
+
+    public static <T extends JsonElement> String getOrDefault(T object, String defaultValue){
         if (object == null || object.isJsonNull()) return defaultValue;
-        return object.getAsString();
+        String asString = object.getAsString();
+        if (asString.isEmpty()) return defaultValue;
+        return asString;
+    }
+
+    public static Gson getGson() {
+        return gson;
     }
 }

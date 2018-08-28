@@ -1,5 +1,7 @@
 package com.acuitybotting.db.arangodb.api.services;
 
+import com.acuitybotting.db.arangodb.api.query.AqlQuery;
+import com.arangodb.ArangoCursor;
 import com.arangodb.ArangoDB;
 import com.arangodb.ArangoDatabase;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,5 +45,18 @@ public class ArangoDbService {
 
     public ArangoDatabase getDefaultDb(){
         return getDriver().db("AcuityBotting-1");
+    }
+
+
+    public ArangoCursor<String> execute(AqlQuery query) {
+        return execute(getDefaultDb(), query);
+    }
+
+    public ArangoCursor<String> execute(ArangoDatabase defaultDb, AqlQuery query) {
+        return defaultDb.query(
+                query.build(),
+                query.getQueryParameters(),
+                String.class
+        );
     }
 }

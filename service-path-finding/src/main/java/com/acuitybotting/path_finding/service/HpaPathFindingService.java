@@ -117,7 +117,7 @@ public class HpaPathFindingService {
 
             rabbitHub.createPool(5, channel ->
                     channel
-                            .createQueue("acuitybotting.work.find-path-1", false)
+                            .createQueue("acuitybotting.work.find-path-2", false)
                             .withListener(this::handleRequest)
                             .open(false));
 
