@@ -44,7 +44,7 @@ public class LoginView extends HorizontalLayout {
 
                 getUI().ifPresent(ui -> {
                     if (user != null) {
-                        Authentication.setAcuityPrincipalId(user.getPrincipalId());
+                      /*  Authentication.setAcuityPrincipalId(user.getPrincipalId());*/
                         Authentication.updateSession(acuityUserService, false);
 
                         ui.navigate(ProfileView.class);

@@ -16,7 +16,7 @@ public class AccountListComponent extends InteractiveList<RsAccount> {
 
     @Autowired
     public AccountListComponent(AccountsService accountsService) {
-        getControls().add(Components.button(VaadinIcon.PLUS_CIRCLE,  event -> getUI().ifPresent(ui -> ui.navigate(AccountEditView.class))));
+/*        getControls().add(Components.button(VaadinIcon.PLUS_CIRCLE,  event -> getUI().ifPresent(ui -> ui.navigate(AccountEditView.class))));
 
         withColumn("Email", "30%", document -> {
             Div div = new Div();
@@ -28,6 +28,6 @@ public class AccountListComponent extends InteractiveList<RsAccount> {
         withColumn("", "5%", "5%", rsAccountInfo -> Components.button(VaadinIcon.EDIT, event -> getUI().ifPresent(ui -> ui.navigate(AccountEditView.class, rsAccountInfo.getParent().getSubKey()))), (rsAccountInfo, button) -> {});
 
         withSearchable(rsAccountInfo -> rsAccountInfo.getParent().getSubKey());
-        withLoad(rsAccountInfo -> rsAccountInfo.getParent().getSubKey(), accountsService::loadAccounts);
+        withLoad(rsAccountInfo -> rsAccountInfo.getParent().getSubKey(), accountsService::loadAccounts);*/
     }
 }

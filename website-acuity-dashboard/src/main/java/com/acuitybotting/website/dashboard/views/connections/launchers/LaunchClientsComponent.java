@@ -1,12 +1,14 @@
 package com.acuitybotting.website.dashboard.views.connections.launchers;
 
-import com.acuitybotting.db.arangodb.repositories.resources.proxies.Proxy;
+import com.acuitybotting.db.arangodb.repositories.connections.domain.LauncherConnection;
+import com.acuitybotting.db.arangodb.repositories.resources.proxies.domain.Proxy;
 import com.acuitybotting.db.arangodb.repositories.resources.accounts.domain.RsAccount;
+import com.acuitybotting.db.arangodb.repositories.resources.proxies.service.ProxyService;
 import com.acuitybotting.website.dashboard.components.general.separator.TitleSeparator;
 import com.acuitybotting.db.arangodb.repositories.resources.accounts.service.AccountsService;
 import com.acuitybotting.website.dashboard.services.LaunchersService;
-import com.acuitybotting.website.dashboard.services.ProxiesService;
 import com.acuitybotting.website.dashboard.services.ScriptsService;
+import com.acuitybotting.website.dashboard.utils.Authentication;
 import com.acuitybotting.website.dashboard.utils.Components;
 import com.acuitybotting.website.dashboard.utils.Layouts;
 import com.vaadin.flow.component.AttachEvent;
@@ -28,7 +30,7 @@ import java.util.stream.Collectors;
 public class LaunchClientsComponent extends VerticalLayout {
 
     private final LaunchClientsView.LauncherSelectComponent launcherSelectComponent;
-    private final ProxiesService proxiesService;
+    private final ProxyService proxiesService;
     private final AccountsService accountsService;
     private final LaunchersService launchersService;
     private final ScriptsService scriptsService;
@@ -45,7 +47,7 @@ public class LaunchClientsComponent extends VerticalLayout {
     private TextField commandField = new TextField();
     private String defaultCommand = "{RSPEER_JAVA_PATH} -Dacuity.connection={CONNECTION} -Djava.net.preferIPv4Stack=true -jar \"{RSPEER_SYSTEM_HOME}RSPeer/cache/rspeer.jar\"";
 
-    public LaunchClientsComponent(LaunchClientsView.LauncherSelectComponent launcherSelectComponent, ProxiesService proxiesService, AccountsService accountsService, LaunchersService launchersService, ScriptsService scriptsService) {
+    public LaunchClientsComponent(LaunchClientsView.LauncherSelectComponent launcherSelectComponent, ProxyService proxiesService, AccountsService accountsService, LaunchersService launchersService, ScriptsService scriptsService) {
         this.launcherSelectComponent = launcherSelectComponent;
         this.proxiesService = proxiesService;
         this.accountsService = accountsService;
@@ -74,7 +76,7 @@ public class LaunchClientsComponent extends VerticalLayout {
             add(new TitleSeparator("Proxy"), proxyComboBox);
 
             accountComboBox.setWidth("65%");
-            accountComboBox.setItemLabelGenerator(rsAccountInfo -> rsAccountInfo.getParent().getSubKey());
+            accountComboBox.setItemLabelGenerator(RsAccount::get_key);
             add(new TitleSeparator("Account"), accountComboBox);
 
             scriptSelector.setWidth("100%");
@@ -90,13 +92,13 @@ public class LaunchClientsComponent extends VerticalLayout {
         }
 
         scriptSelector.setItems(scriptsService.getAllRsPeerScripts());
-        proxyComboBox.setItems(proxiesService.loadProxies());
-        accountComboBox.setItems(accountsService.loadAccounts());
+        proxyComboBox.setItems(proxiesService.loadProxies(Authentication.getAcuityPrincipalId()));
+        accountComboBox.setItems(accountsService.loadAccounts(Authentication.getAcuityPrincipalId()));
         launcherSelectComponent.load(attachEvent);
     }
 
     private void deploy() {
-        Set<String> subIds = launcherSelectComponent.getSelectedValues().map(launcherConnection -> launcherConnection.getParent().getSubKey()).collect(Collectors.toSet());
+        Set<String> subIds = launcherSelectComponent.getSelectedValues().map(LauncherConnection::get_key).collect(Collectors.toSet());
         launchersService.deploy(
                 subIds,
                 commandField.getValue(),

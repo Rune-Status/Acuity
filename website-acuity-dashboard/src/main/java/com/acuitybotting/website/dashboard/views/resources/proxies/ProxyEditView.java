@@ -1,8 +1,6 @@
 package com.acuitybotting.website.dashboard.views.resources.proxies;
 
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
-import com.acuitybotting.db.arangodb.repositories.resources.proxies.Proxy;
-import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
+import com.acuitybotting.db.arangodb.repositories.resources.proxies.domain.Proxy;
 import com.acuitybotting.website.dashboard.components.general.fields.UserMasterPasswordField;
 import com.acuitybotting.website.dashboard.components.general.separator.TitleSeparator;
 import com.acuitybotting.website.dashboard.security.view.interfaces.Authed;
@@ -26,14 +24,12 @@ import java.util.UUID;
 @Route(value = "resources/proxies/edit", layout = RootLayout.class)
 public class ProxyEditView extends VerticalLayout implements HasUrlParameter<String>, Authed {
 
-    private final RabbitDbService rabbitDbService;
     private UserMasterPasswordField masterPasswordField;
     private String proxyId;
     private Proxy proxy;
 
     @Autowired
-    public ProxyEditView(RabbitDbService rabbitDbService, UserMasterPasswordField masterPasswordField) {
-        this.rabbitDbService = rabbitDbService;
+    public ProxyEditView(UserMasterPasswordField masterPasswordField) {
         this.masterPasswordField = masterPasswordField;
     }
 
@@ -48,7 +44,7 @@ public class ProxyEditView extends VerticalLayout implements HasUrlParameter<Str
 
         if (proxyId == null) proxy = new Proxy();
         else {
-            GsonRabbitDocument proxy = rabbitDbService.queryByKey()
+            /*GsonRabbitDocument proxy = rabbitDbService.queryByKey()
                     .withMatch(Authentication.getAcuityPrincipalId(), "services.bot-control-data.proxies", "proxy", proxyId)
                     .findOne(GsonRabbitDocument.class).orElse(null);
 
@@ -57,7 +53,7 @@ public class ProxyEditView extends VerticalLayout implements HasUrlParameter<Str
                 hostField.setValue(this.proxy.getHost());
                 portField.setValue(this.proxy.getPort());
                 usernameField.setValue(this.proxy.getUsername());
-            }
+            }*/
         }
 
         add(hostField, portField, usernameField, passwordField, masterPasswordField);
@@ -76,9 +72,9 @@ public class ProxyEditView extends VerticalLayout implements HasUrlParameter<Str
             }
 
             String document = new Gson().toJson(proxy);
-            rabbitDbService.query()
+/*            rabbitDbService.query()
                     .withMatch(Authentication.getAcuityPrincipalId(), "services.bot-control-data.proxies", "proxy", proxyId == null ? UUID.randomUUID().toString() : proxyId)
-                    .upsert(document);
+                    .upsert(document);*/
             getUI().ifPresent(ui -> ui.navigate(ProxiesListView.class));
         });
         add(save);

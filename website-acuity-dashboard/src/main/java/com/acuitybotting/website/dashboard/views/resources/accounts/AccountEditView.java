@@ -5,6 +5,7 @@ import com.acuitybotting.website.dashboard.components.general.fields.UserMasterP
 import com.acuitybotting.website.dashboard.components.general.separator.TitleSeparator;
 import com.acuitybotting.website.dashboard.security.view.interfaces.Authed;
 import com.acuitybotting.db.arangodb.repositories.resources.accounts.service.AccountsService;
+import com.acuitybotting.website.dashboard.utils.Authentication;
 import com.acuitybotting.website.dashboard.utils.Components;
 import com.acuitybotting.website.dashboard.utils.Notifications;
 import com.acuitybotting.website.dashboard.views.RootLayout;
@@ -38,7 +39,7 @@ public class AccountEditView extends VerticalLayout implements Authed, HasUrlPar
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         if (accountEmail != null) {
-            accountInfo = accountsService.findAccount(accountEmail).orElse(null);
+            accountInfo = accountsService.findAccount(Authentication.getAcuityPrincipalId(), accountEmail).orElse(null);
             if (accountInfo == null) {
                 getUI().ifPresent(ui -> ui.navigate(AccountsListView.class));
                 Notifications.error("Failed to find account.");
@@ -51,12 +52,12 @@ public class AccountEditView extends VerticalLayout implements Authed, HasUrlPar
         if (attachEvent.isInitialAttach()) {
             add(new TitleSeparator((accountEmail == null ? "Add" : "Edit") + " Account"));
 
-            TextField emailField = Components.textField("Email", "Email", () -> accountInfo.getParent().getSubKey());
+            TextField emailField = Components.textField("Email", "Email", () -> accountInfo.get_key());
             PasswordField passwordField = new PasswordField("Password");
             add(emailField, passwordField, masterPasswordField);
 
             add(Components.button(VaadinIcon.PLUS_CIRCLE, event -> {
-                boolean save = accountsService.updatePassword(emailField.getValue(), masterPasswordField.encrypt(passwordField.getValue()));
+                boolean save = accountsService.updatePassword(Authentication.getAcuityPrincipalId(), emailField.getValue(), masterPasswordField.encrypt(passwordField.getValue()));
 
                 if (save) getUI().ifPresent(ui -> ui.navigate(AccountsListView.class));
                 else Notifications.error("Failed to updatePassword account.");

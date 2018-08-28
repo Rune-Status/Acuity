@@ -12,6 +12,8 @@ import lombok.ToString;
 @ToString
 public class ClientConnection {
 
+    private String _key;
+
     private boolean connected;
     private ClientConnectionState state;
 

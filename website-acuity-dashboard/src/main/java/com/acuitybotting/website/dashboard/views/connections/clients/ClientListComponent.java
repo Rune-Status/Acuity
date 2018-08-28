@@ -1,29 +1,27 @@
 package com.acuitybotting.website.dashboard.views.connections.clients;
 
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
-import com.acuitybotting.website.dashboard.DashboardRabbitService;
+import com.acuitybotting.db.arangodb.repositories.connections.domain.ClientConnection;
+import com.acuitybotting.db.arangodb.repositories.connections.service.RegisteredConnectionsService;
 import com.acuitybotting.website.dashboard.components.general.list_display.InteractiveList;
 import com.acuitybotting.website.dashboard.services.ClientsService;
+import com.acuitybotting.website.dashboard.utils.Authentication;
 import com.acuitybotting.website.dashboard.utils.Components;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
-import org.springframework.web.context.annotation.SessionScope;
 
 @SpringComponent
 @UIScope
-public class ClientListComponent extends InteractiveList<GsonRabbitDocument> {
+public class ClientListComponent extends InteractiveList<ClientConnection> {
 
-    private final DashboardRabbitService rabbitService;
+    private final RegisteredConnectionsService connectionsService;
 
-    public ClientListComponent(ClientsService clientsService, DashboardRabbitService rabbitService) {
-        this.rabbitService = rabbitService;
+    public ClientListComponent(ClientsService clientsService, RegisteredConnectionsService connectionsService) {
+        this.connectionsService = connectionsService;
 
-        withColumn("ID", "33%", document -> new Div(), (document, div) -> div.setText(document.getSubKey()));
-        withColumn("", "33%", document -> Components.button(VaadinIcon.CLOSE, event -> clientsService.kill(document.getSubKey())), (document, button) -> {
-        });
-        withLoad(GsonRabbitDocument::getSubKey, clientsService::loadClients);
+        withColumn("ID", "33%", document -> new Div(), (document, div) -> div.setText(document.get_key()));
+        withColumn("", "33%", document -> Components.button(VaadinIcon.CLOSE, event -> clientsService.kill(document.get_key())), (document, button) -> { });
+        withLoad(ClientConnection::get_key, () -> connectionsService.findClientsByType(Authentication.getAcuityPrincipalId(), "bot-client", ClientConnection.class));
     }
 }

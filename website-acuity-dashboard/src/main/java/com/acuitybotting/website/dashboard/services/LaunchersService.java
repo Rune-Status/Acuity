@@ -3,7 +3,7 @@ package com.acuitybotting.website.dashboard.services;
 import com.acuitybotting.db.arangodb.repositories.acuity.principal.service.AcuityUsersService;
 import com.acuitybotting.db.arangodb.repositories.connections.RegisteredConnectionRepository;
 import com.acuitybotting.db.arangodb.repositories.resources.accounts.domain.RsAccount;
-import com.acuitybotting.db.arangodb.repositories.resources.proxies.Proxy;
+import com.acuitybotting.db.arangodb.repositories.resources.proxies.domain.Proxy;
 import com.acuitybotting.website.dashboard.DashboardRabbitService;
 import com.vaadin.flow.spring.annotation.UIScope;
 import org.springframework.stereotype.Service;

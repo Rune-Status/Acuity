@@ -14,6 +14,9 @@ import java.text.DecimalFormat;
 @ToString
 public class LauncherConnection {
 
+    private String _key;
+    private String principalId;
+
     private MachineState state;
 
     @Getter

@@ -60,7 +60,7 @@ public class LauncherRabbitService implements CommandLineRunner {
     private void updateState(){
         try {
             if (rabbitHub.getLocalQueue() == null) return;
-            rabbitHub.updateConnectionDocument(new Gson().toJson(Collections.singletonMap("state", stateService.buildState())));
+            rabbitHub.updateConnectionDocument("state", new Gson().toJsonTree(stateService.buildState()).getAsJsonObject());
             log.info("Updated state.");
         } catch (MessagingException e) {
             log.error("Error updating state.", e);
