@@ -54,12 +54,6 @@ public class ProfileView extends VerticalLayout implements Authed {
                 new Span("This key is used to store your RS-account, proxies, and other sensitive information. It is not stored anywhere in our databases so if you forget it we will not be able to help you recover it and you will need to delete and re-enter any information you have previously added."),
                 new MasterKeyComponent()
         );
-
-        add(
-                new TitleSeparator("Linked Accounts"),
-                new Span("These are the current links to your Acuity-Account, by adding more links you will be able to view more information on your dashboards."),
-                new LinkAccountComponent()
-        );
     }
 
     private class AcuityUserSettingsComponent extends VerticalLayout {
@@ -86,30 +80,6 @@ public class ProfileView extends VerticalLayout implements Authed {
                 Notifications.display("Updated profile image.");
             });
             add(Layouts.wrapHorizontal("100%", profileImage, setProfileImage));
-        }
-    }
-
-    private class LinkAccountComponent extends InteractiveList<Principal> {
-
-        public LinkAccountComponent() {
-            withLoad(
-                    principal -> principal.getType() + ":" + principal.getUid(),
-                    Authentication.getAcuityUser()::getLinkedPrincipals
-            );
-
-            withColumn("Source", "15%", principal -> new Div(), (principal, div) -> div.setText(principal.getType()));
-            withColumn("ID", "35%", principal -> new Div(), (principal, div) -> div.setText(principal.getUid()));
-
-            TextField jwtField = new TextField();
-            jwtField.setPlaceholder("JWT");
-            Button addLink = new Button(VaadinIcon.PLUS_CIRCLE.create());
-
-            addLink.addClickListener(event -> {
-                acuityUsersService.linkToPrincipal(Authentication.getAcuityPrincipalId(), jwtField.getValue());
-                Authentication.updateSession(acuityUsersService);
-                Notifications.display("Added token.");
-            });
-            getControls().add(jwtField, addLink);
         }
     }
 

@@ -1,26 +1,14 @@
 package com.acuitybotting.website.dashboard.services;
 
-import com.acuitybotting.common.utils.configurations.ConnectionConfiguration;
-import com.acuitybotting.common.utils.configurations.utils.ConnectionConfigurationUtil;
-import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
-import com.acuitybotting.db.arangodb.repositories.acuity.principal.domain.AcuityBottingUser;
 import com.acuitybotting.db.arangodb.repositories.acuity.principal.service.AcuityUsersService;
-import com.acuitybotting.db.arango.acuity.rabbit_db.domain.gson.GsonRabbitDocument;
-import com.acuitybotting.db.arangodb.repositories.connections.domain.LauncherConnection;
-import com.acuitybotting.db.arangodb.repositories.resources.proxies.Proxy;
+import com.acuitybotting.db.arangodb.repositories.connections.RegisteredConnectionRepository;
 import com.acuitybotting.db.arangodb.repositories.resources.accounts.domain.RsAccount;
-import com.acuitybotting.db.arango.acuity.rabbit_db.service.RabbitDbService;
+import com.acuitybotting.db.arangodb.repositories.resources.proxies.Proxy;
 import com.acuitybotting.website.dashboard.DashboardRabbitService;
-import com.acuitybotting.website.dashboard.utils.Authentication;
-import com.acuitybotting.website.dashboard.utils.Notifications;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.vaadin.flow.spring.annotation.UIScope;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 /**
  * Created by Zachary Herridge on 8/15/2018.
@@ -29,28 +17,18 @@ import java.util.stream.Collectors;
 @UIScope
 public class LaunchersService {
 
-    private final RabbitDbService rabbitDbService;
+    private final RegisteredConnectionRepository connectionRepository;
     private final AcuityUsersService acuityUsersService;
     private final DashboardRabbitService rabbitService;
 
-    public LaunchersService(RabbitDbService rabbitDbService, AcuityUsersService acuityUsersService, DashboardRabbitService rabbitService) {
-        this.rabbitDbService = rabbitDbService;
+    public LaunchersService(RegisteredConnectionRepository connectionRepository, AcuityUsersService acuityUsersService, DashboardRabbitService rabbitService) {
+        this.connectionRepository = connectionRepository;
         this.acuityUsersService = acuityUsersService;
         this.rabbitService = rabbitService;
     }
 
-    public Set<LauncherConnection> loadLaunchers() {
-        return rabbitDbService.queryByGroup()
-                .withMatch(Authentication.getAcuityPrincipalId(), "services.registered-connections", "connections")
-                .findAll(GsonRabbitDocument.class)
-                .stream()
-                .filter(connection -> connection.getSubKey().startsWith("ABL_") && (boolean) connection.getMeta().getOrDefault("connected", false))
-                .map(gsonRabbitDocument -> gsonRabbitDocument.getSubDocumentAs(LauncherConnection.class))
-                .collect(Collectors.toSet());
-    }
-
     public void deploy(Set<String> subIds, String command, RsAccount rsAccount, Proxy proxy, boolean localScript, String scriptArgs, String scriptSelector, String world) {
-        Notifications.display("Deploying to {} launchers.", subIds.size());
+        /*Notifications.display("Deploying to {} launchers.", subIds.size());
 
         ConnectionConfiguration connectionConfiguration = new ConnectionConfiguration();
         connectionConfiguration.setConnectionId(UUID.randomUUID().toString());
@@ -110,6 +88,6 @@ public class LaunchersService {
             }
         }
 
-        Notifications.display("Deployment complete.");
+        Notifications.display("Deployment complete.");*/
     }
 }

@@ -3,11 +3,15 @@ package com.acuitybotting.db.arangodb.repositories.connections.service;
 import com.acuitybotting.db.arangodb.api.query.Aql;
 import com.acuitybotting.db.arangodb.api.query.AqlQuery;
 import com.acuitybotting.db.arangodb.repositories.connections.RegisteredConnectionRepository;
+import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 
 /**
@@ -27,6 +31,10 @@ public class RegisteredConnectionsService {
     @Autowired
     public RegisteredConnectionsService(RegisteredConnectionRepository repository) {
         this.repository = repository;
+    }
+
+    public <T> Set<T> findClientsByType(String principalId, String type, Class<T> returnType){
+        return repository.findByFields("principalId", principalId, "type", type).map(s -> new Gson().fromJson(s, returnType)).collect(Collectors.toSet());
     }
 
     public void updateTimeedoutConnections() {
