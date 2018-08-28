@@ -29,9 +29,10 @@ public class RegisteredConnectionsService {
         this.repository = repository;
     }
 
-    public void updateConnections() {
+    public void updateTimeedoutConnections() {
         AqlQuery query = Aql.query("FOR d IN @@collection")
-                .append("LET connected = r._lastUpdateTime > @timeout")
+                .append("LET connected = d._lastUpdateTime > @timeout")
+                .withFilter("d.connected != connected")
                 .append("UPDATE { _key: d._key, connected : connected} IN @@collection")
                 .withParameter("timeout", System.currentTimeMillis() - TimeUnit.SECONDS.toMillis(20));
         repository.execute(query);

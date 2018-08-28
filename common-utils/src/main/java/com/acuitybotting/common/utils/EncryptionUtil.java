@@ -1,24 +1,14 @@
-package com.acuitybotting.security.acuity.encryption;
+package com.acuitybotting.common.utils;
 
 import com.rockaport.alice.Alice;
 import com.rockaport.alice.AliceContext;
 import com.rockaport.alice.AliceContextBuilder;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Service;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.security.GeneralSecurityException;
 import java.util.Base64;
 
-
-/**
- * Created by Zachary Herridge on 8/9/2018.
- */
-@Service
-@Slf4j
-public class AcuityEncryptionService {
-
-    private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+public class EncryptionUtil {
 
     private Alice getAlice() {
         return new Alice(new AliceContextBuilder().setKeyLength(AliceContext.KeyLength.BITS_128).build());
@@ -33,10 +23,11 @@ public class AcuityEncryptionService {
     }
 
     public String encodePassword(String password) {
-        return bCryptPasswordEncoder.encode(password);
+        return BCrypt.hashpw(password, BCrypt.gensalt());
     }
 
     public boolean comparePassword(String hash, String password) {
-        return bCryptPasswordEncoder.matches(password, hash);
+        return BCrypt.checkpw(password, hash);
     }
+
 }

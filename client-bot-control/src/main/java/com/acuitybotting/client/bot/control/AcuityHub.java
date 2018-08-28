@@ -10,8 +10,6 @@ import com.acuitybotting.common.utils.configurations.utils.ConnectionConfigurati
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitHub;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.channel.RabbitChannel;
-import com.acuitybotting.data.flow.messaging.services.db.domain.Document;
-import com.acuitybotting.data.flow.messaging.services.db.implementations.rabbit.RabbitDb;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.rockaport.alice.Alice;
@@ -98,7 +96,7 @@ public class AcuityHub {
             try {
                 JsonObject update = new JsonObject();
                 update.addProperty("connected", false);
-                rabbitHub.updateConnectionDocument(update.toString());
+                rabbitHub.updateConnectionDocument(update);
             } catch (MessagingException e) {
                 log.error("Error disconnecting.");
             }
@@ -123,58 +121,53 @@ public class AcuityHub {
     }
 
     private static void pullAndApplyConfiguration() {
-        try {
-            Document connection = rabbitHub.getDb("services.registered-connections").findByGroupAndKey("connections", rabbitHub.getConnectionId());
-            if (connection == null || connection.getSubDocument() == null || connection.getSubDocument().get("configuration") == null)
-                return;
+        JsonObject connectionDocument = rabbitHub.getConnectionDocument().orElse(null);
+        if (connectionDocument == null) return;
 
-            ClientConfiguration configuration = new Gson().fromJson(connection.getSubDocument().getAsJsonObject("configuration"), ClientConfiguration.class);
+        ClientConfiguration configuration = new Gson().fromJson(connectionDocument, ClientConfiguration.class);
 
-            if (configuration.getAccountLogin() != null && configuration.getAccountEncryptedPassword() != null) {
-                getControlInterface().ifPresent(control -> {
-                    try {
-                        String password = decrypt(decrypt(connectionConfiguration.getMasterKey(), configuration.getMasterSecret()), configuration.getAccountEncryptedPassword());
-                        control.applyAccount(
-                                configuration.getAccountLogin(),
-                                password
-                        );
-                    } catch (GeneralSecurityException e) {
-                        e.printStackTrace();
-                    }
-                });
-            }
+        if (configuration.getAccountLogin() != null && configuration.getAccountEncryptedPassword() != null) {
+            getControlInterface().ifPresent(control -> {
+                try {
+                    String password = decrypt(decrypt(connectionConfiguration.getMasterKey(), configuration.getMasterSecret()), configuration.getAccountEncryptedPassword());
+                    control.applyAccount(
+                            configuration.getAccountLogin(),
+                            password
+                    );
+                } catch (GeneralSecurityException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
 
-            if (configuration.getWorld() != null) {
-                getControlInterface().ifPresent(control -> {
-                    control.applyWorld(configuration.getWorld());
-                });
-            }
+        if (configuration.getWorld() != null) {
+            getControlInterface().ifPresent(control -> {
+                control.applyWorld(configuration.getWorld());
+            });
+        }
 
-            if (configuration.getScriptSelector() != null) {
-                getControlInterface().ifPresent(control -> control.applyScript(
-                        configuration.getScriptSelector(),
-                        configuration.isScriptLocal(),
-                        configuration.getScriptArgs()
-                ));
-            }
+        if (configuration.getScriptSelector() != null) {
+            getControlInterface().ifPresent(control -> control.applyScript(
+                    configuration.getScriptSelector(),
+                    configuration.isScriptLocal(),
+                    configuration.getScriptArgs()
+            ));
+        }
 
-            if (configuration.getProxyHost() != null && configuration.getProxyPort() != null) {
-                getControlInterface().ifPresent(control -> {
-                    try {
-                        String password = decrypt(decrypt(connectionConfiguration.getMasterKey(), configuration.getMasterSecret()), configuration.getProxyEncryptedPassword());
-                        control.applyProxy(
-                                configuration.getProxyHost(),
-                                configuration.getProxyPort(),
-                                configuration.getProxyUsername(),
-                                password
-                        );
-                    } catch (GeneralSecurityException e) {
-                        e.printStackTrace();
-                    }
-                });
-            }
-        } catch (MessagingException e) {
-            e.printStackTrace();
+        if (configuration.getProxyHost() != null && configuration.getProxyPort() != null) {
+            getControlInterface().ifPresent(control -> {
+                try {
+                    String password = decrypt(decrypt(connectionConfiguration.getMasterKey(), configuration.getMasterSecret()), configuration.getProxyEncryptedPassword());
+                    control.applyProxy(
+                            configuration.getProxyHost(),
+                            configuration.getProxyPort(),
+                            configuration.getProxyUsername(),
+                            password
+                    );
+                } catch (GeneralSecurityException e) {
+                    e.printStackTrace();
+                }
+            });
         }
     }
 
@@ -200,12 +193,7 @@ public class AcuityHub {
 
             JsonObject wrapper = new JsonObject();
             wrapper.add("state", playerUpdate);
-
-            rabbitHub.getDb("services.rs-accounts").upsert(
-                    "players",
-                    playerUpdate.get("email").getAsString(),
-                    new Gson().toJson(wrapper)
-            );
+            RabbitDBHub.updateAccountDocument(playerUpdate.get("email").getAsString(), wrapper);
         }
         catch (Throwable e){
             log.error("Error sending state 2.");
@@ -222,7 +210,7 @@ public class AcuityHub {
 
             JsonObject wrapper = new JsonObject();
             wrapper.add("state", clientUpdate);
-            rabbitHub.updateConnectionDocument(wrapper.toString());
+            rabbitHub.updateConnectionDocument(wrapper);
         } catch (Throwable e) {
             log.error("Error sending state 1.");
         }

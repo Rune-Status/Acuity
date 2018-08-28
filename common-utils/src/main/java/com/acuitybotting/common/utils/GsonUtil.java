@@ -1,6 +1,7 @@
 package com.acuitybotting.common.utils;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 /**
  * Created by Zachary Herridge on 8/23/2018.

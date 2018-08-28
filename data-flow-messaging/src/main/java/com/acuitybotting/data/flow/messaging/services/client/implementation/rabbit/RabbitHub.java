@@ -6,9 +6,12 @@ import com.acuitybotting.data.flow.messaging.services.client.implementation.rabb
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.channel.RabbitChannelPool;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.client.RabbitClient;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.queue.RabbitQueue;
-import com.acuitybotting.data.flow.messaging.services.db.domain.RabbitDbRequest;
+import com.acuitybotting.data.flow.messaging.services.db.arangodb.ArangoDbRequest;
 import com.acuitybotting.data.flow.messaging.services.db.implementations.rabbit.RabbitDb;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -51,12 +54,12 @@ public class RabbitHub {
                 .open(true);
     }
 
-    public void updateConnectionDocument(String body) throws MessagingException {
-        getDb("services.registered-connections").upsert(
-                "connections",
-                getConnectionId(),
-                body
-        );
+    public void updateConnectionDocument(JsonObject body) throws MessagingException {
+        getDb("registered-connections").publish(ArangoDbRequest.upsert(getConnectionId(), body, body));
+    }
+
+    public Optional<JsonObject> getConnectionDocument() {
+        return getDb("registered-connections").publishWithResponse(ArangoDbRequest.findByKey(getConnectionId())).map(JsonElement::getAsJsonObject);
     }
 
     public RabbitChannelPool createPool(int size) {
@@ -76,7 +79,7 @@ public class RabbitHub {
     }
 
     public RabbitDb getDb(String db) {
-        return new RabbitDb(db, getGeneralExchange(), getAllowedPrefix() + "services.rabbit-db.handleRequest.", () -> localQueue);
+        return new RabbitDb(db, localQueue, getGeneralExchange(), getAllowedPrefix() + "services.arangodb.request");
     }
 
     public RabbitQueue getLocalQueue() {
