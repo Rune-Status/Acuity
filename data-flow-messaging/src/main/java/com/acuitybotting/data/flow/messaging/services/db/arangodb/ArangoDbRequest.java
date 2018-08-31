@@ -24,6 +24,12 @@ public class ArangoDbRequest {
         return upsert;
     }
 
+    public static JsonObject upsertReplace(String key, Object update, Object insert){
+        JsonObject upsert = upsert(key, update, insert);
+        upsert.addProperty("replace", true);
+        return upsert;
+    }
+
     private static JsonObject request(String type, String key){
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("type", type);

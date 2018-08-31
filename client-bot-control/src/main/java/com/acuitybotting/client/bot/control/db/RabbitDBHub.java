@@ -14,13 +14,17 @@ public class RabbitDBHub {
         return AcuityHub.getRabbitHub().getDb(db);
     }
 
-    public static void updateAccountDocument(String key, JsonObject body) throws MessagingException {
+    public static void updateAccountDocument(String key, JsonObject body) {
         getDb("resources-accounts").publish(ArangoDbRequest.upsert(key, body, body));
     }
 
-    public static String saveTimelineEvent(JsonObject body) throws MessagingException {
-        String key = UUID.randomUUID().toString();
-        getDb("timeline-events").publish(ArangoDbRequest.insert(key, body));
+    public static void updateAccountItemsDocument(String key, JsonObject body) {
+        getDb("resources-accounts").publish(ArangoDbRequest.upsertReplace(key, body, body));
+    }
+
+    public static String saveTimelineEvent(String key, JsonObject body) {
+        if (key == null) key = UUID.randomUUID().toString();
+        getDb("timeline-events").publish(ArangoDbRequest.upsert(key, body, body));
         return key;
     }
 }

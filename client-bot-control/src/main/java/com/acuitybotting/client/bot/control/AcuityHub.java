@@ -10,6 +10,7 @@ import com.acuitybotting.common.utils.configurations.utils.ConnectionConfigurati
 import com.acuitybotting.data.flow.messaging.services.client.exceptions.MessagingException;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.RabbitHub;
 import com.acuitybotting.data.flow.messaging.services.client.implementation.rabbit.channel.RabbitChannel;
+import com.acuitybotting.data.flow.messaging.services.db.arangodb.ArangoDbRequest;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.rockaport.alice.Alice;
@@ -91,7 +92,7 @@ public class AcuityHub {
         addShutdownHook();
     }
 
-    private static void addShutdownHook(){
+    private static void addShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 JsonObject update = new JsonObject();
@@ -101,23 +102,6 @@ public class AcuityHub {
                 log.error("Error disconnecting.");
             }
         }));
-    }
-
-    public static boolean publishEvent(String type, String body) {
-        RabbitChannel channel = rabbitHub.getLocalPool().getChannel();
-        if (channel == null) return false;
-        executorService.submit(() -> {
-            try {
-                channel.buildMessage(
-                        rabbitHub.getGeneralExchange(),
-                        rabbitHub.getAllowedPrefix() + "hub-event." + type,
-                        body
-                ).setAttribute("eventType", type).send();
-            } catch (MessagingException e) {
-                e.printStackTrace();
-            }
-        });
-        return true;
     }
 
     private static void pullAndApplyConfiguration() {
@@ -190,9 +174,8 @@ public class AcuityHub {
 
             JsonObject playerUpdate = stateInterface.buildPlayerState();
             if (playerUpdate == null || playerUpdate.get("email") == null) return;
-            RabbitDBHub.updateAccountDocument(playerUpdate.get("email").getAsString() + "_state", playerUpdate);
-        }
-        catch (Throwable e){
+            RabbitDBHub.updateAccountDocument(playerUpdate.get("email").getAsString(), playerUpdate);
+        } catch (Throwable e) {
             log.error("Error sending state 2.");
         }
     }
