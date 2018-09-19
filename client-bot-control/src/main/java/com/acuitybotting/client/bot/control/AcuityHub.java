@@ -44,7 +44,7 @@ public class AcuityHub {
 
     private static boolean guestAccount = true;
 
-    public static void start(String type, String version) {
+    public static void start() {
 
         connectionConfiguration = ConnectionConfigurationUtil.decode(ConnectionConfigurationUtil.find()).orElse(new ConnectionConfiguration());
 
@@ -217,6 +217,6 @@ public class AcuityHub {
     }
 
     public static void main(String[] args) {
-        start("RPC", "test");
+        start();
     }
 }

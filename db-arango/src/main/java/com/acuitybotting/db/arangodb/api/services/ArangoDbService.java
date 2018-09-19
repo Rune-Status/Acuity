@@ -43,13 +43,12 @@ public class ArangoDbService {
         return driver;
     }
 
-    public ArangoDatabase getDefaultDb(){
-        return getDriver().db("AcuityBotting-1");
+    public ArangoDatabase getDb(String db){
+        return db == null ? getDriver().db("AcuityBotting-1") : getDriver().db(db);
     }
 
-
     public ArangoCursor<String> execute(AqlQuery query) {
-        return execute(getDefaultDb(), query);
+        return execute(getDb(null), query);
     }
 
     public ArangoCursor<String> execute(ArangoDatabase defaultDb, AqlQuery query) {

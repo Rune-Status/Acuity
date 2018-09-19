@@ -1,6 +1,5 @@
 package com.acuitybotting.services.arangodb.rabbit.services;
 
-
 import com.acuitybotting.common.utils.GsonUtil;
 import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.db.arangodb.api.query.Aql;

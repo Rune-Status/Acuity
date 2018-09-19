@@ -49,8 +49,9 @@ public class PathFindingRunner implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try {
-            PathingEnviroment.downloadFromDropbox(dropboxService, 1);
-            hpaPathFindingService.consumeJobs();
+            //PathingEnviroment.downloadFromDropbox(dropboxService, 1);
+            //openUi();
+            //hpaPathFindingService.consumeJobs();
         } catch (Throwable e) {
             e.printStackTrace();
         }

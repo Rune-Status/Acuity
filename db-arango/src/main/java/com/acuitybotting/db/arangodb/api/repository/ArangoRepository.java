@@ -1,6 +1,5 @@
 package com.acuitybotting.db.arangodb.api.repository;
 
-
 import com.acuitybotting.db.arangodb.api.query.Aql;
 import com.acuitybotting.db.arangodb.api.query.AqlQuery;
 import com.acuitybotting.db.arangodb.api.query.AqlResults;
@@ -17,6 +16,7 @@ public abstract class ArangoRepository<T> {
 
     private final Class<T> type;
     private final ArangoDbService arangoDbService;
+    private String dbName;
 
     protected ArangoRepository(Class<T> type, ArangoDbService arangoDbService) {
         this.type = type;
@@ -42,7 +42,7 @@ public abstract class ArangoRepository<T> {
     public AqlResults<T> execute(AqlQuery query) {
         return new AqlResults<>(
                 type,
-                arangoDbService.execute(query.withParameter("@collection", getCollectionName()))
+                arangoDbService.execute(arangoDbService.getDb(dbName), query.withParameter("@collection", getCollectionName()))
         );
     }
 

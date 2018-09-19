@@ -2,15 +2,13 @@ package com.acuitybotting.path_finding.rs.domain.location;
 
 import com.acuitybotting.path_finding.rs.utils.RsEnvironment;
 import com.google.gson.annotations.Expose;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class Location implements Locateable{
 
     @Expose
@@ -23,16 +21,6 @@ public class Location implements Locateable{
     @Override
     public Location getLocation() {
         return this;
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("Location{");
-        sb.append("x=").append(x);
-        sb.append(", y=").append(y);
-        sb.append(", plane=").append(plane);
-        sb.append('}');
-        return sb.toString();
     }
 
     @Override
