@@ -8,6 +8,8 @@ import com.acuitybotting.db.arangodb.api.query.AqlResults;
 import com.acuitybotting.db.arangodb.repositories.pathing.PathingRepository;
 import com.acuitybotting.db.arangodb.repositories.pathing.WayPointRepository;
 import com.acuitybotting.db.arangodb.repositories.pathing.domain.WPPath;
+import com.acuitybotting.db.arangodb.repositories.pathing.domain.WPPathNode;
+import com.acuitybotting.db.arangodb.repositories.pathing.domain.WayPoint;
 import com.acuitybotting.path_finding.algorithms.wp.utils.GeoUtil;
 import com.acuitybotting.path_finding.debugging.interactive_map.plugin.Plugin;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
@@ -23,6 +25,7 @@ public class WayPointPlugin extends Plugin {
 
     private Executor executor = ExecutorUtil.newExecutorPool(1);
     private Location start, end;
+    private WPPath wpPath;
 
     public WayPointPlugin(PathingRepository wayPointRepository) {
         this.wayPointRepository = wayPointRepository;
@@ -40,7 +43,14 @@ public class WayPointPlugin extends Plugin {
 
     @Override
     public void onPaint(Graphics2D graphics) {
+        if (wpPath == null || wpPath.getPath() == null) return;
+        for (WPPathNode wpPathNode : wpPath.getPath()) {
+            getPaintUtil().markLocation(graphics, toLocation(wpPathNode.getNode()), Color.BLUE);
+        }
+    }
 
+    private Location toLocation(WayPoint node){
+        return new Location(node.getX(), node.getY(), node.getPlane());
     }
 
     @Override
@@ -78,7 +88,8 @@ public class WayPointPlugin extends Plugin {
                     query.withParameter("endPlane", GeoUtil.rsToGeo(end.getPlane()));
 
                     AqlResults<String> result = wayPointRepository.execute(query);
-                    WPPath wpPath = result.getFirst().map(s -> GsonUtil.getGson().fromJson(s, WPPath.class)).orElse(null);
+                    wpPath = result.getFirst().map(s -> GsonUtil.getGson().fromJson(s, WPPath.class)).orElse(null);
+                    System.out.println("Path: " + wpPath);
                     getMapPanel().repaint();
                 });
             }

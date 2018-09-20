@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WayPoint  {
+public class WayPoint {
 
     private String _id;
     private String _key;
