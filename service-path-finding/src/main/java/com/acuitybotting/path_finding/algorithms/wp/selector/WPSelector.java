@@ -24,6 +24,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringJoiner;
 
 @Setter
 @Getter
@@ -55,36 +56,36 @@ public class WPSelector implements CommandLineRunner {
 
         HPAGraph hpaGraph = hpaPathFindingService.loadHpa(1);
 
+        StringJoiner wpResults = new StringJoiner(",");
+        StringJoiner connectionResults = new StringJoiner(",");
 
 
+        int wpCount = 0;
+        int connectionCount = 0;
+        for (HPARegion value : hpaGraph.getRegions().values()) {
+            for (HPANode node : value.getNodes().values()) {
+                WayPoint wayPoint = new WayPoint(node.getLocation().getX(), node.getLocation().getY(), node.getLocation().getPlane());
+                wayPoint.setLatitude(GeoUtil.rsToGeo(wayPoint.getX()));
+                wayPoint.setLongitude(GeoUtil.rsToGeo(wayPoint.getY()));
+                wayPoint.set_key(node.getLocation().getX() + "_" + node.getLocation().getY() + "_" + node.getLocation().getPlane());
+                wpResults.add(GsonUtil.getGson().toJson(wayPoint));
+                wpCount++;
 
-        try (FileWriter wps = new FileWriter("wps.json", true)){
-            for (HPARegion value : hpaGraph.getRegions().values()) {
-                for (HPANode node : value.getNodes().values()) {
-                    WayPoint wayPoint = new WayPoint(node.getLocation().getX(), node.getLocation().getY(), node.getLocation().getPlane());
-                    wayPoint.setLatitude(GeoUtil.rsToGeo(wayPoint.getX()));
-                    wayPoint.setLongitude(GeoUtil.rsToGeo(wayPoint.getY()));
-                    wayPoint.set_key(node.getLocation().getX() + "_"  + node.getLocation().getY() + "_"  + node.getLocation().getPlane());
-                    GsonUtil.getGson().toJson(wayPoint, wps);
-                    wps.write("\n");
+                for (Edge edge : node.getOutgoingEdges()) {
+                    HPAEdge hpaEdge = (HPAEdge) edge;
+
+                    WayPointConnection connection = new WayPointConnection();
+                    connection.set_to("WayPoint/" + hpaEdge.getEnd().getLocation().getX() + "_"  + hpaEdge.getEnd().getLocation().getY() + "_"  + hpaEdge.getEnd().getLocation().getPlane());
+                    connection.set_from("WayPoint/" + hpaEdge.getStart().getLocation().getX() + "_"  + hpaEdge.getStart().getLocation().getY() + "_"  + hpaEdge.getStart().getLocation().getPlane());
+                    connectionResults.add(GsonUtil.getGson().toJson(connection));
+                    connectionCount++;
                 }
             }
         }
-        catch (Throwable e){
-            e.printStackTrace();
-        }
 
-/*
-        for (Map.Entry<HPANode, String> entry : nodeIdMap.entrySet()) {
-            for (Edge edge : entry.getKey().getOutgoingEdges()) {
-                HPAEdge hpaEdge = (HPAEdge) edge;
+        wpRepository.getArangoDbService().getDb("Pathing-1").collection("WayPoint").importDocuments("[" + wpResults.toString() + "]");
+        wpRepository.getArangoDbService().getDb("Pathing-1").collection("WayPointConnection").importDocuments("[" + connectionResults.toString() + "]");
 
-                WayPointConnection connection = new WayPointConnection();
-                connection.set_to(hpaEdge.getEnd().getLocation().getX() + "_"  + hpaEdge.getEnd().getLocation().getY() + "_"  + hpaEdge.getEnd().getLocation().getPlane());
-                connection.set_from(hpaEdge.getStart().getLocation().getX() + "_"  + hpaEdge.getStart().getLocation().getY() + "_"  + hpaEdge.getStart().getLocation().getPlane());
-
-                System.out.println("Added: connection");
-            }
-        }*/
+        System.out.println("Inserted " + wpCount + " wps and " + connectionCount + " connections.");
     }
 }
