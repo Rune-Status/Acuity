@@ -81,11 +81,11 @@ public class WayPointPlugin extends Plugin {
 
                     query.withParameter("startLat", GeoUtil.rsToGeo(start.getX()));
                     query.withParameter("startLong", GeoUtil.rsToGeo(start.getY()));
-                    query.withParameter("startPlane", GeoUtil.rsToGeo(start.getPlane()));
+                    query.withParameter("startPlane", start.getPlane());
 
                     query.withParameter("endLat", GeoUtil.rsToGeo(end.getX()));
                     query.withParameter("endLong", GeoUtil.rsToGeo(end.getY()));
-                    query.withParameter("endPlane", GeoUtil.rsToGeo(end.getPlane()));
+                    query.withParameter("endPlane", end.getPlane());
 
                     AqlResults<String> result = wayPointRepository.execute(query);
                     wpPath = result.getFirst().map(s -> GsonUtil.getGson().fromJson(s, WPPath.class)).orElse(null);
