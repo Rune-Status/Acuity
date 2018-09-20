@@ -26,4 +26,5 @@ public class PathResult {
     private Map<String, List<Location>> subPaths;
 
     private AStarImplementation aStarImplementation;
+    private PathRequest pathRequest;
 }

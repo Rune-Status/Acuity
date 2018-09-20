@@ -19,6 +19,7 @@ import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPAEdg
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPANode;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.HPARegion;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.graph.TerminatingNode;
+import com.acuitybotting.path_finding.debugging.interactive_map.plugin.impl.HpaPlugin;
 import com.acuitybotting.path_finding.enviroment.PathingEnviroment;
 import com.acuitybotting.path_finding.rs.custom_edges.CustomEdgeData;
 import com.acuitybotting.path_finding.rs.custom_edges.edges.TeleportNode;
@@ -119,7 +120,8 @@ public class HpaPathFindingService {
                     channel
                             .createQueue("acuitybotting.work.find-path-3", false)
                             .withListener(this::handleRequest)
-                            .open(false));
+                            .open(false)
+            );
 
         } catch (Throwable e) {
             e.printStackTrace();
@@ -175,6 +177,9 @@ public class HpaPathFindingService {
         } catch (MessagingException e) {
             e.printStackTrace();
         }
+
+        pathResult.setPathRequest(pathRequest);
+        HpaPlugin.instance.onResult(pathResult);
     }
 
     private boolean isBlocked(Location in) {

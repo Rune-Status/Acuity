@@ -8,6 +8,7 @@ import lombok.Setter;
 public class WayPoint  {
 
     private String _id;
+    private String _key;
     private int x, y, plane;
 
     private double latitude, longitude;

@@ -36,6 +36,7 @@ public class AqlResults<T> implements Iterator<T>, Iterable<T> {
     @Override
     @SuppressWarnings("unchecked")
     public T next() {
+        if (!cursor.hasNext()) return null;
         if (type.equals(String.class)) return (T) cursor.next();
         return gson.fromJson(cursor.next(), type);
     }

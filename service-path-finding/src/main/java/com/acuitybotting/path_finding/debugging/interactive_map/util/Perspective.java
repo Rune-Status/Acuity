@@ -63,6 +63,7 @@ public class Perspective {
 
     public void centerOn(Location location){
         base = location.clone(-round(getTileWidth() / 2), -round(getTileHeight() / 2));
+        base.setPlane(location.getPlane());
     }
 
     public double getTileWidth(){

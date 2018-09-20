@@ -1,6 +1,7 @@
 package com.acuitybotting.path_finding.debugging.interactive_map.plugin.impl;
 
 import com.acuitybotting.common.utils.ExecutorUtil;
+import com.acuitybotting.data.flow.messaging.services.events.MessageEvent;
 import com.acuitybotting.path_finding.algorithms.astar.implmentation.AStarStore;
 import com.acuitybotting.path_finding.algorithms.graph.Edge;
 import com.acuitybotting.path_finding.algorithms.hpa.implementation.HPAGraph;
@@ -18,14 +19,19 @@ import com.acuitybotting.path_finding.service.domain.PathResult;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Zachary Herridge on 6/18/2018.
  */
 public class HpaPlugin extends Plugin {
+
+    public static HpaPlugin instance;
 
     private HPAGraph graph;
 
@@ -34,13 +40,21 @@ public class HpaPlugin extends Plugin {
     private HPARegion startRegion, endRegion;
     private TerminatingNode startNode, endNode;
 
-    private PathResult pathResult;
     private Executor executor = ExecutorUtil.newExecutorPool(1);
+
+    private static List<PathResult> results = new CopyOnWriteArrayList<>();
 
     private HpaPathFindingService pathFindingService;
 
     public HpaPlugin(HPAGraph hpaGraph) {
         this.graph = hpaGraph;
+        ExecutorUtil.newScheduledExecutorPool(1).scheduleAtFixedRate(() -> getMapPanel().repaint(), 1, 3, TimeUnit.SECONDS);
+    }
+
+    public void onResult(PathResult pathResult) {
+        if (pathResult.getPath() == null) return;
+        results.add(pathResult);
+        if(results.size() > 20) results.remove(0);
     }
 
     public void setGraph(HPAGraph graph) {
@@ -106,22 +120,22 @@ public class HpaPlugin extends Plugin {
             }
         }
 
-        PathResult pathResult = pathFindingService.getLastResult();
-        if (pathResult != null){
-            if (pathResult.getAStarImplementation() != null){
+        for (PathResult pathResult : results) {
+    /*        if (pathResult.getAStarImplementation() != null){
                 for (AStarStore store : pathResult.getAStarImplementation().getCostCache().keySet()) {
                     getPaintUtil().markLocation(graphics, store.getNode(), Color.ORANGE);
                 }
-            }
+            }*/
 
             if (pathResult.getPath() != null) {
                 for (Edge edge : pathResult.getPath()) {
                     Stroke stroke = graphics.getStroke();
-                    graphics.setStroke(new BasicStroke(2));
+                    graphics.setStroke(new BasicStroke(4));
                     getPaintUtil().connectLocations(graphics, edge.getStart(), edge.getEnd(), Color.MAGENTA);
                     graphics.setStroke(stroke);
                 }
             }
+
         }
 
         if (startNode != null) getPaintUtil().markLocation(graphics, startNode, Color.RED);
@@ -151,7 +165,7 @@ public class HpaPlugin extends Plugin {
             if (startNode != null && endNode != null) {
                 executor.execute(() -> {
                     try {
-                        pathResult = pathFindingService.findPath(Collections.singleton(start), Collections.singleton(end), null);
+                        pathFindingService.findPath(Collections.singleton(start), Collections.singleton(end), null);
                     } catch (Exception e1) {
                         e1.printStackTrace();
                     }
