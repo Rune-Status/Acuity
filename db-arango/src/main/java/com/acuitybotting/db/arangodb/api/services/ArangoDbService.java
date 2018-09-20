@@ -51,8 +51,8 @@ public class ArangoDbService {
         return execute(getDb(null), query);
     }
 
-    public ArangoCursor<String> execute(ArangoDatabase defaultDb, AqlQuery query) {
-        return defaultDb.query(
+    public ArangoCursor<String> execute(ArangoDatabase database, AqlQuery query) {
+        return database.query(
                 query.build(),
                 query.getQueryParameters(),
                 String.class

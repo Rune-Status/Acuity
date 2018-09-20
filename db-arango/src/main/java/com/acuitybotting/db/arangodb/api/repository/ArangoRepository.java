@@ -40,9 +40,10 @@ public abstract class ArangoRepository<T> {
     }
 
     public AqlResults<T> execute(AqlQuery query) {
+        if (getCollectionName() != null) query.withParameter("@collection", getCollectionName());
         return new AqlResults<>(
                 type,
-                arangoDbService.execute(arangoDbService.getDb(dbName), query.withParameter("@collection", getCollectionName()))
+                arangoDbService.execute(arangoDbService.getDb(dbName), query)
         );
     }
 

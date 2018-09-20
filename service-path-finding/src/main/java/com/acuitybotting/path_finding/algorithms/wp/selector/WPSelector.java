@@ -52,7 +52,7 @@ public class WPSelector implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        init(null, null);
+       /* init(null, null);
 
         HPAGraph hpaGraph = hpaPathFindingService.loadHpa(1);
 
@@ -86,6 +86,6 @@ public class WPSelector implements CommandLineRunner {
         wpRepository.getArangoDbService().getDb("Pathing-1").collection("WayPoint").importDocuments("[" + wpResults.toString() + "]");
         wpRepository.getArangoDbService().getDb("Pathing-1").collection("WayPointConnection").importDocuments("[" + connectionResults.toString() + "]");
 
-        System.out.println("Inserted " + wpCount + " wps and " + connectionCount + " connections.");
+        System.out.println("Inserted " + wpCount + " wps and " + connectionCount + " connections.");*/
     }
 }

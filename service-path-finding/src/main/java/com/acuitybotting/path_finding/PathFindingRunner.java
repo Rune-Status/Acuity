@@ -1,8 +1,11 @@
 package com.acuitybotting.path_finding;
 
+import com.acuitybotting.db.arangodb.repositories.pathing.PathingRepository;
+import com.acuitybotting.db.arangodb.repositories.pathing.WayPointRepository;
 import com.acuitybotting.db.dropbox.DropboxService;
 import com.acuitybotting.path_finding.algorithms.astar.implmentation.AStarImplementation;
 import com.acuitybotting.path_finding.debugging.interactive_map.plugin.impl.PositionPlugin;
+import com.acuitybotting.path_finding.debugging.interactive_map.plugin.impl.WayPointPlugin;
 import com.acuitybotting.path_finding.debugging.interactive_map.ui.MapFrame;
 import com.acuitybotting.path_finding.enviroment.PathingEnviroment;
 import com.acuitybotting.path_finding.rs.utils.RsEnvironment;
@@ -20,12 +23,14 @@ public class PathFindingRunner implements CommandLineRunner {
     private final WebImageProcessingService webImageProcessingService;
     private final HpaPathFindingService hpaPathFindingService;
     private final DropboxService dropboxService;
+    private final PathingRepository wayPointRepository;
 
     @Autowired
-    public PathFindingRunner(WebImageProcessingService webImageProcessingService, HpaPathFindingService hpaPathFindingService, DropboxService dropboxService) {
+    public PathFindingRunner(WebImageProcessingService webImageProcessingService, HpaPathFindingService hpaPathFindingService, DropboxService dropboxService, PathingRepository wayPointRepository) {
         this.webImageProcessingService = webImageProcessingService;
         this.hpaPathFindingService = hpaPathFindingService;
         this.dropboxService = dropboxService;
+        this.wayPointRepository = wayPointRepository;
     }
 
     private void exportXteas() {
@@ -42,6 +47,7 @@ public class PathFindingRunner implements CommandLineRunner {
         AStarImplementation.debugMode = true;
         MapFrame mapFrame = new MapFrame();
         mapFrame.getMapPanel().addPlugin(new PositionPlugin());
+        mapFrame.getMapPanel().addPlugin(new WayPointPlugin(wayPointRepository));
         mapFrame.show();
         return mapFrame;
     }
@@ -50,7 +56,7 @@ public class PathFindingRunner implements CommandLineRunner {
     public void run(String... args) {
         try {
             //PathingEnviroment.downloadFromDropbox(dropboxService, 1);
-            //openUi();
+            openUi();
             //hpaPathFindingService.consumeJobs();
         } catch (Throwable e) {
             e.printStackTrace();
