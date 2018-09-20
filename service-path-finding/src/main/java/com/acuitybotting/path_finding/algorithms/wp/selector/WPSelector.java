@@ -52,7 +52,7 @@ public class WPSelector implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-       /* init(null, null);
+        /*init(null, null);
 
         HPAGraph hpaGraph = hpaPathFindingService.loadHpa(1);
 
@@ -74,7 +74,9 @@ public class WPSelector implements CommandLineRunner {
                 for (Edge edge : node.getOutgoingEdges()) {
                     HPAEdge hpaEdge = (HPAEdge) edge;
 
+                    int size = hpaEdge.getPath() == null ? 1 : hpaEdge.getPath().size();
                     WayPointConnection connection = new WayPointConnection();
+                    connection.setWeight((double) size);
                     connection.set_to("WayPoint/" + hpaEdge.getEnd().getLocation().getX() + "_"  + hpaEdge.getEnd().getLocation().getY() + "_"  + hpaEdge.getEnd().getLocation().getPlane());
                     connection.set_from("WayPoint/" + hpaEdge.getStart().getLocation().getX() + "_"  + hpaEdge.getStart().getLocation().getY() + "_"  + hpaEdge.getStart().getLocation().getPlane());
                     connectionResults.add(GsonUtil.getGson().toJson(connection));
