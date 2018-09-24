@@ -23,6 +23,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class WayPointPlugin extends Plugin {
@@ -34,8 +37,41 @@ public class WayPointPlugin extends Plugin {
     private WPPath wpPath;
     private Set<WPEdge> visibleEdges = new HashSet<>();
 
+    private ScheduledThreadPoolExecutor threadPoolExecutor = ExecutorUtil.newScheduledExecutorPool(1);
+
     public WayPointPlugin(PathingRepository wayPointRepository) {
         this.wayPointRepository = wayPointRepository;
+        threadPoolExecutor.scheduleWithFixedDelay(this::updateVisiblePoints, 1, 1, TimeUnit.SECONDS);
+    }
+
+    private void updateVisiblePoints(){
+        try {
+
+            Location base = getMapPanel().getPerspective().getBase();
+            Location topRight = base.clone((int) getMapPanel().getPerspective().getTileWidth(), -(int) getMapPanel().getPerspective().getTileHeight());
+
+            AqlQuery qp = Aql.query(
+                    "LET nodes = WITHIN_RECTANGLE('WayPoint', @lat1, @long1, @lat2, @long2)\n" +
+                            "FOR wp IN nodes\n" +
+                            "    FILTER wp.plane == @plane\n" +
+                            "    FOR v, e IN ANY wp GRAPH 'RsGraph1'\n" +
+                            "      RETURN DISTINCT {'start': v, 'end': DOCUMENT(e._from)}"
+            );
+
+            qp.withParameter("lat1", GeoUtil.rsToGeo(base.getX()));
+            qp.withParameter("long1", GeoUtil.rsToGeo(base.getY()));
+
+            qp.withParameter("lat2", GeoUtil.rsToGeo(topRight.getX()));
+            qp.withParameter("long2", GeoUtil.rsToGeo(topRight.getY()));
+
+            qp.withParameter("plane", base.getPlane());
+
+            visibleEdges = wayPointRepository.execute(qp).stream().map(s -> GsonUtil.getGson().fromJson(s, WPEdge.class)).collect(Collectors.toSet());
+            getMapPanel().repaint();
+        }
+        catch (Throwable e){
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -70,28 +106,6 @@ public class WayPointPlugin extends Plugin {
     @Override
     public void mouseClicked(MouseEvent e) {
         if (e.isControlDown()) {
-
-            Location base = getMapPanel().getPerspective().getBase();
-            Location topRight = base.clone((int) getMapPanel().getPerspective().getTileWidth(), (int) getMapPanel().getPerspective().getTileHeight());
-
-            AqlQuery qp = Aql.query(
-                    "LET nodes = WITHIN_RECTANGLE('WayPoint', @lat1, @long1, @lat2, @long2)\n" +
-                            "FOR wp IN nodes\n" +
-                            "    FILTER wp.plane == @plane\n" +
-                            "    FOR v, e IN ANY wp GRAPH 'RsGraph1'\n" +
-                            "      RETURN DISTINCT {'start': v, 'end': DOCUMENT(e._from)}"
-            );
-
-            qp.withParameter("lat1", GeoUtil.rsToGeo(base.getX()));
-            qp.withParameter("long1", GeoUtil.rsToGeo(base.getY()));
-
-            qp.withParameter("lat2", GeoUtil.rsToGeo(topRight.getX()));
-            qp.withParameter("long2", GeoUtil.rsToGeo(topRight.getY()));
-
-            qp.withParameter("plane", base.getPlane());
-
-            visibleEdges = wayPointRepository.execute(qp).stream().map(s -> GsonUtil.getGson().fromJson(s, WPEdge.class)).collect(Collectors.toSet());
-
             if (e.isShiftDown()) {
                 end = getMapPanel().getMouseLocation();
                 getMapPanel().repaint();
