@@ -299,6 +299,11 @@ public class HpaPathFindingService {
                 TileNode endNode = RsEnvironment.getRsMap().getNode(end);
                 return sNode.getOutgoingEdges().stream().anyMatch(edge -> edge.getEnd().equals(endNode));
             }
+
+            @Override
+            public boolean isBlocked(Location location) {
+                return RsEnvironment.getRsMap().getFlagAt(location).map(MapFlags::isBlocked).orElse(false);
+            }
         };
     }
 

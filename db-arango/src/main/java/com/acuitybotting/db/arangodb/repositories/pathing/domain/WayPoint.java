@@ -1,5 +1,6 @@
 package com.acuitybotting.db.arangodb.repositories.pathing.domain;
 
+import com.acuitybotting.db.arangodb.repositories.pathing.GeoUtil;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,5 +18,8 @@ public class WayPoint {
         this.x = x;
         this.y = y;
         this.plane = plane;
+        this.latitude = GeoUtil.rsToGeo(x);
+        this.longitude = GeoUtil.rsToGeo(y);
+        this._key = x + "_" + y + "_" + plane;
     }
 }

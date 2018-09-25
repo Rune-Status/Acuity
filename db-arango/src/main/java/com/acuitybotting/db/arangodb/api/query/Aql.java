@@ -39,7 +39,7 @@ public class Aql {
     }
 
     public static AqlQuery insert(Object document) {
-        return query("INSERT $document IN WayPoint").withParameter("$document", document);
+        return query("INSERT $document IN @@collection").withParameter("$document", document);
     }
 
     public static AqlQuery query(String query) {

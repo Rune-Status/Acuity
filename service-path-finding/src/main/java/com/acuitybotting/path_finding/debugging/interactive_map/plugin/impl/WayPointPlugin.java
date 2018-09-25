@@ -5,27 +5,19 @@ import com.acuitybotting.common.utils.GsonUtil;
 import com.acuitybotting.db.arangodb.api.query.Aql;
 import com.acuitybotting.db.arangodb.api.query.AqlQuery;
 import com.acuitybotting.db.arangodb.api.query.AqlResults;
+import com.acuitybotting.db.arangodb.repositories.pathing.GeoUtil;
 import com.acuitybotting.db.arangodb.repositories.pathing.PathingRepository;
-import com.acuitybotting.db.arangodb.repositories.pathing.WayPointRepository;
-import com.acuitybotting.db.arangodb.repositories.pathing.domain.WPEdge;
 import com.acuitybotting.db.arangodb.repositories.pathing.domain.WPPath;
 import com.acuitybotting.db.arangodb.repositories.pathing.domain.WPPathNode;
 import com.acuitybotting.db.arangodb.repositories.pathing.domain.WayPoint;
-import com.acuitybotting.path_finding.algorithms.wp.utils.GeoUtil;
 import com.acuitybotting.path_finding.debugging.interactive_map.plugin.Plugin;
 import com.acuitybotting.path_finding.rs.domain.location.Location;
-import com.arangodb.ArangoCursor;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class WayPointPlugin extends Plugin {
@@ -35,13 +27,11 @@ public class WayPointPlugin extends Plugin {
     private Executor executor = ExecutorUtil.newExecutorPool(1);
     private Location start, end;
     private WPPath wpPath;
-    private Set<WPEdge> visibleEdges = new HashSet<>();
+    private Set<WayPoint> visibleEdges = new HashSet<>();
 
-    private ScheduledThreadPoolExecutor threadPoolExecutor = ExecutorUtil.newScheduledExecutorPool(1);
 
     public WayPointPlugin(PathingRepository wayPointRepository) {
         this.wayPointRepository = wayPointRepository;
-        threadPoolExecutor.scheduleWithFixedDelay(this::updateVisiblePoints, 1, 1, TimeUnit.SECONDS);
     }
 
     private void updateVisiblePoints(){
@@ -52,10 +42,9 @@ public class WayPointPlugin extends Plugin {
 
             AqlQuery qp = Aql.query(
                     "LET nodes = WITHIN_RECTANGLE('WayPoint', @lat1, @long1, @lat2, @long2)\n" +
-                            "FOR wp IN nodes\n" +
-                            "    FILTER wp.plane == @plane\n" +
-                            "    FOR v, e IN ANY wp GRAPH 'RsGraph1'\n" +
-                            "      RETURN DISTINCT {'start': v, 'end': DOCUMENT(e._from)}"
+                            "FOR node IN nodes\n" +
+                            "FILTER node.plane == @plane\n" +
+                            "RETURN node"
             );
 
             qp.withParameter("lat1", GeoUtil.rsToGeo(base.getX()));
@@ -66,13 +55,15 @@ public class WayPointPlugin extends Plugin {
 
             qp.withParameter("plane", base.getPlane());
 
-            visibleEdges = wayPointRepository.execute(qp).stream().map(s -> GsonUtil.getGson().fromJson(s, WPEdge.class)).collect(Collectors.toSet());
+            visibleEdges = wayPointRepository.execute(qp).stream().map(s -> GsonUtil.getGson().fromJson(s, WayPoint.class)).collect(Collectors.toSet());
             getMapPanel().repaint();
         }
         catch (Throwable e){
             e.printStackTrace();
         }
     }
+
+
 
     @Override
     public void onLoad() {
@@ -86,9 +77,11 @@ public class WayPointPlugin extends Plugin {
 
     @Override
     public void onPaint(Graphics2D graphics) {
-        for (WPEdge visibleEdge : visibleEdges) {
-            getPaintUtil().connectLocations(graphics, toLocation(visibleEdge.getStart()), toLocation(visibleEdge.getEnd()), Color.GREEN);
+
+        for (WayPoint visibleEdge : visibleEdges) {
+            getPaintUtil().markLocation(graphics, toLocation(visibleEdge), Color.RED);
         }
+
 
         if (wpPath == null || wpPath.getPath() == null) return;
         WPPathNode last = null;
@@ -105,6 +98,7 @@ public class WayPointPlugin extends Plugin {
 
     @Override
     public void mouseClicked(MouseEvent e) {
+        updateVisiblePoints();
         if (e.isControlDown()) {
             if (e.isShiftDown()) {
                 end = getMapPanel().getMouseLocation();

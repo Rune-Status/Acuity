@@ -1,5 +1,6 @@
 package com.acuitybotting.db.arangodb.api.repository;
 
+import com.acuitybotting.common.utils.GsonUtil;
 import com.acuitybotting.db.arangodb.api.query.Aql;
 import com.acuitybotting.db.arangodb.api.query.AqlQuery;
 import com.acuitybotting.db.arangodb.api.query.AqlResults;
@@ -7,7 +8,12 @@ import com.acuitybotting.db.arangodb.api.services.ArangoDbService;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 @Getter
@@ -31,8 +37,19 @@ public abstract class ArangoRepository<T> {
         return findByFields("_key", key).findAny();
     }
 
-    public AqlResults<T> insert(T value){
+    public AqlResults<T> insert(T value) {
         return execute(Aql.insert(value));
+    }
+
+    private static  <T> Collection<List<T>> partition(Collection<T> list, int size) {
+        final AtomicInteger counter = new AtomicInteger(0);
+        return list.stream()
+                .collect(Collectors.groupingBy(it -> counter.getAndIncrement() / size))
+                .values();
+    }
+
+    public void insert(List<T> source) {
+        partition(source, 7000).parallelStream().forEach(ts -> getArangoDbService().getDb(getDbName()).collection(getCollectionName()).importDocuments(GsonUtil.getGson().toJson(ts)));
     }
 
     public void update(String key, String update) {

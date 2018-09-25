@@ -17,4 +17,6 @@ public interface PathFindingSupplier {
     Optional<List<? extends Edge>> findPath(Location start, Location end, Predicate<Edge> predicate, boolean ignoreStartBlocked);
 
     boolean isDirectlyConnected(Location start, Location end);
+
+    boolean isBlocked(Location location);
 }

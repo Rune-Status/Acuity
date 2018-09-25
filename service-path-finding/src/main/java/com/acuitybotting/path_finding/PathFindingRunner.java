@@ -55,6 +55,8 @@ public class PathFindingRunner implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try {
+            //wayPointRepository.getArangoDbService().getDriver().db("Pathing-1").createAqlFunction("RS::JS_NODE_EVAUL", "function evaluateQuery(query, rsAccount, node, edge) {return eval(query);}", null);
+
             //PathingEnviroment.downloadFromDropbox(dropboxService, 1);
             openUi();
             //hpaPathFindingService.consumeJobs();
